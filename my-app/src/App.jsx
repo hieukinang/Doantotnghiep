@@ -1,29 +1,27 @@
-import { useState } from 'react'
-import './App.css'
-import Header from './components/Header'
-import Footer from './components/Footer'
-import { Route, Routes } from 'react-router-dom'
+import React from 'react'
+import Header from './component/Header'
+import Footer from './component/Footer'
+import Home from './page/customer/Home'
+import Register from './page/customer/Register'
+import Login from './page/customer/Login'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <Header />
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/collection' element={<Collection />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/cart' element={<Cart />} />
-        <Route path='/contact' element={<Contact />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/orders' element={<Order />} />
-        <Route path='/place-order' element={<PlaceOrder />} />
-        <Route path='/product/:productId' element={<Product />} />
-        <Route path='/verify' element={<Verify />} />
-      </Routes>
-      <Footer />
-    </>
+    <div>
+      {/* <Header />
+      <main className="pt-32 px-5 flex-1">
+        <h1 className="text-3xl font-bold text-center text-gray-800">
+          Welcome to KOHI MALL
+        </h1>
+        <p className="text-center text-gray-600 mt-4">
+          Header đã được hiển thị thành công!
+        </p>
+      </main>
+      <Footer /> */}
+      {/* <Home /> */}
+      {/* <Register /> */}
+      <Login />
+    </div>
   )
 }
 
