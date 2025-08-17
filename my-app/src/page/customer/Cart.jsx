@@ -1,9 +1,67 @@
 import React from 'react'
+import Header from '../../component/Header'
+import Footer from '../../component/Footer'
+
+const items = [
+  { id: 1, name: 'Tai nghe Bluetooth Pro', price: 399000, qty: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop' },
+  { id: 2, name: 'Bàn phím cơ', price: 899000, qty: 2, image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop' },
+]
+
+const format = (v) => v.toLocaleString('vi-VN')
 
 const Cart = () => {
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
+
   return (
-    <div>Cart</div>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="pt-32 px-5 flex-1">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-lg shadow">
+            <div className="px-5 py-4 border-b font-semibold">Giỏ hàng</div>
+            <div className="divide-y">
+              {items.map((it) => (
+                <div key={it.id} className="flex items-center gap-4 p-4">
+                  <input type="checkbox" className="accent-[#116AD1]" defaultChecked />
+                  <img src={it.image} alt={it.name} className="w-20 h-20 rounded object-cover" />
+                  <div className="flex-1">
+                    <div className="font-medium">{it.name}</div>
+                    <div className="text-[#116AD1] font-semibold mt-1">{format(it.price)}₫</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="w-8 h-8 border rounded">-</button>
+                    <input defaultValue={it.qty} className="w-12 text-center border rounded h-8" />
+                    <button className="w-8 h-8 border rounded">+</button>
+                  </div>
+                  <button className="text-red-500 text-sm ml-2">Xóa</button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-5 h-fit">
+            <div className="flex justify-between">
+              <span>Tạm tính</span>
+              <span className="font-semibold">{format(subtotal)}₫</span>
+            </div>
+            <div className="flex justify-between mt-2">
+              <span>Phí vận chuyển</span>
+              <span className="font-semibold">Miễn phí</span>
+            </div>
+            <div className="h-px bg-gray-200 my-3" />
+            <div className="flex justify-between text-lg">
+              <span>Tổng</span>
+              <span className="text-[#116AD1] font-bold">{format(subtotal)}₫</span>
+            </div>
+            <a href="/place-order" className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]">
+              Mua hàng
+            </a>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
   )
 }
 
-export default Cart;
+export default Cart
