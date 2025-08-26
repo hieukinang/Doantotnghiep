@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -26,6 +27,12 @@ const Contact = () => {
             </div>
             <div className="mt-4 h-48 bg-gray-100 rounded" />
           </div>
+        </div>
+        
+        <div className="max-w-6xl mx-auto mt-6 text-center">
+          <Link to="/" className="inline-block px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]">
+            Về trang chủ
+          </Link>
         </div>
       </main>
       <Footer />

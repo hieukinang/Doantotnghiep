@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -20,7 +21,7 @@ const EditProfile = () => {
               <input className="border rounded px-3 py-2" placeholder="Số điện thoại" defaultValue="0909xxxxxx" />
               <div className="flex gap-3">
                 <button className="px-4 py-2 bg-[#116AD1] text-white rounded">Lưu</button>
-                <a href="/profile" className="px-4 py-2 border rounded">Hủy</a>
+                <Link to="/profile" className="px-4 py-2 border rounded">Hủy</Link>
               </div>
             </form>
           </div>

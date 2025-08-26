@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import logo from "../../assets/logo.svg";
 
 const Register = () => {
@@ -7,18 +8,18 @@ const Register = () => {
       {/* Header */}
       <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
         {/* Logo + tên */}
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
           <span className="font-bold text-2xl">KOHI MALL</span>
-        </div>
+        </Link>
 
         {/* Chữ ĐĂNG KÝ */}
         <h1 className="text-2xl font-bold">ĐĂNG KÝ</h1>
 
         {/* Hỗ trợ */}
-        <span className="cursor-pointer hover:underline text-base">
+        <Link to="/contact" className="cursor-pointer hover:underline text-base">
           Hỗ trợ
-        </span>
+        </Link>
       </header>
 
       {/* Container chính */}
@@ -79,12 +80,20 @@ const Register = () => {
               </button>
             </form>
 
-            <p className="mt-4 text-sm">
-              Đã có tài khoản?{" "}
-              <a href="/login" className="text-blue-600 font-semibold">
-                Đăng nhập
-              </a>
-            </p>
+            <div className="mt-6 text-center">
+              <p className="text-sm">
+                Đã có tài khoản?{" "}
+                <Link to="/login" className="text-blue-600 font-semibold hover:underline">
+                  Đăng nhập
+                </Link>
+              </p>
+              <p className="text-sm mt-2">
+                Hoặc{" "}
+                <Link to="/register-to-seller" className="text-blue-600 font-semibold hover:underline">
+                  Đăng ký làm người bán
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 import Banner from '../../component/Banner'
@@ -26,12 +27,12 @@ const Home = () => {
         <div className="max-w-6xl mx-auto mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Deal nổi bật hôm nay</h2>
-            <a href="#" className="text-[#116AD1] text-sm">Xem tất cả</a>
+            <Link to="/products" className="text-[#116AD1] text-sm">Xem tất cả</Link>
           </div>
 
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {products.map((p) => (
-              <a key={p.id} href="/product" className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition">
+              <Link key={p.id} to="/product-detail" className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition">
                 <div className="aspect-[1/1] bg-gray-100">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
                 </div>
@@ -40,7 +41,7 @@ const Home = () => {
                   <div className="mt-2 text-[#116AD1] font-semibold">{format(p.price)}₫</div>
                   <div className="mt-1 text-xs text-gray-500">Đã bán 1,2k</div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -49,13 +50,13 @@ const Home = () => {
           <h2 className="text-xl font-semibold">Gợi ý hôm nay</h2>
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {products.concat(products).slice(0,12).map((p, i) => (
-              <a key={i} href="/product" className="bg-white rounded-lg overflow-hidden border hover:border-[#116AD1] transition">
+              <Link key={i} to="/product-detail" className="bg-white rounded-lg overflow-hidden border hover:border-[#116AD1] transition">
                 <img src={p.image} alt={p.name} className="w-full h-36 object-cover" loading="lazy" />
                 <div className="p-2">
                   <div className="line-clamp-2 text-xs">{p.name}</div>
                   <div className="mt-1 text-[#116AD1] font-semibold text-sm">{format(p.price)}₫</div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

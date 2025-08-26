@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -31,11 +32,11 @@ const Footer = () => {
         <div>
           <h3 className="text-xl font-semibold mb-4">Tài khoản</h3>
           <ul className="space-y-2 text-white/90">
-            <li><a href="#" className="hover:underline">Tài khoản của tôi</a></li>
-            <li><a href="#" className="hover:underline">Đăng nhập / Đăng ký</a></li>
-            <li><a href="#" className="hover:underline">Giỏ hàng</a></li>
-            <li><a href="#" className="hover:underline">Yêu thích</a></li>
-            <li><a href="#" className="hover:underline">Cửa hàng</a></li>
+            <li><Link to="/profile" className="hover:underline">Tài khoản của tôi</Link></li>
+            <li><Link to="/login" className="hover:underline">Đăng nhập / Đăng ký</Link></li>
+            <li><Link to="/cart" className="hover:underline">Giỏ hàng</Link></li>
+            <li><Link to="/favorite" className="hover:underline">Yêu thích</Link></li>
+            <li><Link to="/shop" className="hover:underline">Cửa hàng</Link></li>
           </ul>
         </div>
 
@@ -43,10 +44,10 @@ const Footer = () => {
         <div>
           <h3 className="text-xl font-semibold mb-4">Liên kết nhanh</h3>
           <ul className="space-y-2 text-white/90">
-            <li><a href="#" className="hover:underline">Chính sách riêng tư</a></li>
-            <li><a href="#" className="hover:underline">Điều khoản sử dụng</a></li>
-            <li><a href="#" className="hover:underline">FAQ</a></li>
-            <li><a href="#" className="hover:underline">Liên hệ</a></li>
+            <li><Link to="/privacy-policy" className="hover:underline">Chính sách riêng tư</Link></li>
+            <li><Link to="/terms-of-use" className="hover:underline">Điều khoản sử dụng</Link></li>
+            <li><Link to="/faq" className="hover:underline">FAQ</Link></li>
+            <li><Link to="/contact" className="hover:underline">Liên hệ</Link></li>
           </ul>
         </div>
 

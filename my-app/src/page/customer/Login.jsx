@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import logo from "../../assets/logo.svg";
 
 const Login = () => {
@@ -7,18 +8,18 @@ const Login = () => {
       {/* Header */}
       <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
         {/* Logo + tên */}
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
           <span className="font-bold text-2xl">KOHI MALL</span>
-        </div>
+        </Link>
 
         {/* Chữ ĐĂNG NHẬP */}
         <h1 className="text-2xl font-bold">ĐĂNG NHẬP</h1>
 
         {/* Hỗ trợ */}
-        <span className="cursor-pointer hover:underline text-base">
+        <Link to="/contact" className="cursor-pointer hover:underline text-base">
           Hỗ trợ
-        </span>
+        </Link>
       </header>
 
       {/* Container chính */}
@@ -61,14 +62,29 @@ const Login = () => {
                 >
                   Log In
                 </button>
-                <a
-                  href="/forgot-password"
+                <Link
+                  to="/forgot-password"
                   className="text-blue-600 text-sm hover:underline"
                 >
                   Quên mật khẩu?
-                </a>
+                </Link>
               </div>
             </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Chưa có tài khoản?{" "}
+                <Link to="/register" className="text-blue-600 font-semibold hover:underline">
+                  Đăng ký ngay
+                </Link>
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                Hoặc{" "}
+                <Link to="/register-to-seller" className="text-blue-600 font-semibold hover:underline">
+                  Đăng ký làm người bán
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

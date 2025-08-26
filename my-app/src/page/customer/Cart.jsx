@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -53,9 +54,18 @@ const Cart = () => {
               <span>Tổng</span>
               <span className="text-[#116AD1] font-bold">{format(subtotal)}₫</span>
             </div>
-            <a href="/place-order" className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]">
+            <Link to="/place-order" className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]">
               Mua hàng
-            </a>
+            </Link>
+            
+            <div className="mt-4 space-y-2">
+              <Link to="/" className="block text-center text-[#116AD1] py-2 border border-[#116AD1] rounded hover:bg-[#116AD1] hover:text-white transition-colors">
+                Tiếp tục mua sắm
+              </Link>
+              <Link to="/profile" className="block text-center text-gray-600 py-2 border border-gray-300 rounded hover:bg-gray-50">
+                Xem hồ sơ
+              </Link>
+            </div>
           </div>
         </div>
       </main>

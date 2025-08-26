@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -45,7 +46,7 @@ const Payment = () => {
               <span>Cần thanh toán</span>
               <span className="text-[#116AD1] font-bold">1.647.000₫</span>
             </div>
-            <a href="/orders" className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]">Thanh toán</a>
+            <Link to="/orders" className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]">Thanh toán</Link>
           </div>
         </div>
       </main>

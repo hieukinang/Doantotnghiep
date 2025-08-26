@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -40,8 +41,18 @@ const Orders = () => {
                   <div className="text-[#116AD1] font-bold">{o.total.toLocaleString('vi-VN')}₫</div>
                   <div className="text-sm">{o.status}</div>
                 </div>
+                <div className="flex gap-2">
+                  <Link to="/profile" className="text-sm text-[#116AD1] hover:underline">Chi tiết</Link>
+                  <Link to="/exchange-request" className="text-sm text-[#116AD1] hover:underline">Đổi trả</Link>
+                </div>
               </div>
             ))}
+          </div>
+          
+          <div className="mt-6 text-center">
+            <Link to="/" className="inline-block px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]">
+              Tiếp tục mua sắm
+            </Link>
           </div>
         </div>
       </main>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 import cartIcon from '../assets/cart.svg';
 
@@ -16,12 +17,12 @@ const Header = () => {
       <div className="py-2">
         <div className="max-w-6xl mx-auto px-5 flex justify-between items-center">
           <div className="flex gap-5">
-            <a href="/seller" className="text-white text-sm hover:opacity-80">
+            <Link to="/seller" className="text-white text-sm hover:opacity-80">
               Vào kênh người bán
-            </a>
-            <a href="/register-seller" className="text-white text-sm hover:opacity-80 transition-opacity">
+            </Link>
+            <Link to="/register-to-seller" className="text-white text-sm hover:opacity-80 transition-opacity">
               Đăng ký là người bán
-            </a>
+            </Link>
           </div>
           <div className="flex items-center gap-5">
             <div className="flex items-center gap-2">
@@ -34,12 +35,12 @@ const Header = () => {
                 <option value="en" className="text-black">English</option>
               </select>
             </div>
-            <a href="/register" className="text-white text-sm hover:opacity-80 transition-opacity">
+            <Link to="/register" className="text-white text-sm hover:opacity-80 transition-opacity">
               Đăng ký
-            </a>
-            <a href="/login" className="text-white text-sm hover:opacity-80 transition-opacity">
+            </Link>
+            <Link to="/login" className="text-white text-sm hover:opacity-80 transition-opacity">
               Đăng nhập
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -48,10 +49,12 @@ const Header = () => {
       <div className="py-4 shadow-md">
         <div className="max-w-6xl mx-auto px-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="KOHI MALL Logo" className="h-8 w-auto" />
-            <h1 className="text-2xl font-bold text-white tracking-wide m-0">
-              KOHI MALL
-            </h1>
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="KOHI MALL Logo" className="h-8 w-auto" />
+              <h1 className="text-2xl font-bold text-white tracking-wide m-0">
+                KOHI MALL
+              </h1>
+            </Link>
           </div>
 
           <div className="flex-1 bg-white max-w-lg mx-10 border border-gray-300 rounded-lg p-1">
@@ -72,9 +75,10 @@ const Header = () => {
           </form>
           </div>
 
-
           <div className="flex items-center">
-            <img src={cartIcon} alt="Shopping Cart" className="h-6 w-auto cursor-pointer hover:opacity-80 transition-opacity" />
+            <Link to="/cart">
+              <img src={cartIcon} alt="Shopping Cart" className="h-6 w-auto cursor-pointer hover:opacity-80 transition-opacity" />
+            </Link>
           </div>
         </div>
       </div>

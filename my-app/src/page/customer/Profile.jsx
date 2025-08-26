@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -13,15 +14,15 @@ const Profile = () => {
               <img src="https://i.pravatar.cc/100" className="w-12 h-12 rounded-full" />
               <div>
                 <div className="font-semibold">Nguyễn Văn A</div>
-                <a href="/edit-profile" className="text-sm text-[#116AD1]">Sửa hồ sơ</a>
+                <Link to="/edit-profile" className="text-sm text-[#116AD1]">Sửa hồ sơ</Link>
               </div>
             </div>
             <div className="h-px bg-gray-200 my-4" />
             <nav className="space-y-2 text-sm">
-              <a className="block text-gray-700">Tài khoản của tôi</a>
-              <a className="block text-gray-700">Địa chỉ</a>
-              <a className="block text-gray-700">Đơn mua</a>
-              <a className="block text-gray-700">Thông báo</a>
+              <Link to="/profile" className="block text-gray-700">Tài khoản của tôi</Link>
+              <Link to="/profile" className="block text-gray-700">Địa chỉ</Link>
+              <Link to="/orders" className="block text-gray-700">Đơn mua</Link>
+              <Link to="/profile" className="block text-gray-700">Thông báo</Link>
             </nav>
           </aside>
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -42,8 +43,12 @@ const ProductDetail = () => {
 
             <div className="mt-6 flex items-center gap-3">
               <input type="number" min="1" defaultValue={1} className="w-16 border rounded px-2 py-1" />
-              <button className="px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-[#116AD1]/5">Thêm vào giỏ</button>
-              <button className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]">Mua ngay</button>
+              <Link to="/cart" className="px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-[#116AD1]/5">
+                Thêm vào giỏ
+              </Link>
+              <Link to="/place-order" className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]">
+                Mua ngay
+              </Link>
             </div>
 
             <div className="mt-6">
@@ -59,13 +64,13 @@ const ProductDetail = () => {
           <h3 className="font-semibold text-lg">Sản phẩm tương tự</h3>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {gallery.concat(gallery).slice(0,6).map((src, i) => (
-              <a key={i} href="#" className="bg-white rounded-lg overflow-hidden border hover:border-[#116AD1]">
+              <Link key={i} to="/product-detail" className="bg-white rounded-lg overflow-hidden border hover:border-[#116AD1]">
                 <img src={src} alt={`rel-${i}`} className="w-full h-36 object-cover" />
                 <div className="p-2">
                   <div className="text-sm font-medium">Phụ kiện âm thanh</div>
                   <div className="text-[#116AD1] font-semibold text-sm mt-1">199.000₫</div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

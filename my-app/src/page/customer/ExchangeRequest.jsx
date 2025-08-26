@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -23,7 +24,10 @@ const ExchangeRequest = () => {
               <div className="text-sm text-gray-600">Hình ảnh minh họa</div>
               <input type="file" className="mt-2" multiple />
             </div>
-            <button className="mt-2 px-4 py-2 bg-[#116AD1] text-white rounded w-fit">Gửi yêu cầu</button>
+            <div className="flex gap-3">
+              <button className="mt-2 px-4 py-2 bg-[#116AD1] text-white rounded w-fit">Gửi yêu cầu</button>
+              <Link to="/orders" className="mt-2 px-4 py-2 border rounded w-fit">Quay lại</Link>
+            </div>
           </form>
         </div>
       </main>

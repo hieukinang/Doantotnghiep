@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import Footer from "../../component/Footer";
 import logo from "../../assets/logo.svg";
 
 const RegisterToSeller = () => {
@@ -7,18 +9,18 @@ const RegisterToSeller = () => {
       {/* Header */}
       <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
         {/* Logo + tên */}
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
           <span className="font-bold text-2xl">KOHI MALL</span>
-        </div>
+        </Link>
 
         {/* Chữ Đăng ký */}
         <h1 className="text-xl font-semibold">ĐĂNG KÝ LÀ NGƯỜI BÁN</h1>
 
         {/* Hỗ trợ */}
-        <span className="cursor-pointer hover:underline text-sm">
+        <Link to="/contact" className="cursor-pointer hover:underline text-sm">
           Hỗ trợ?
-        </span>
+        </Link>
       </header>
 
       {/* Container chính */}
@@ -91,24 +93,33 @@ const RegisterToSeller = () => {
 
             <p className="mt-4 text-sm text-gray-600">
               Bằng việc đăng ký, bạn đồng ý với{" "}
-              <a href="#" className="text-[#116AD1] hover:underline">
+              <Link to="/about" className="text-[#116AD1] hover:underline">
                 Điều khoản dịch vụ
-              </a>{" "}
+              </Link>{" "}
               &{" "}
-              <a href="#" className="text-[#116AD1] hover:underline">
+              <Link to="/about" className="text-[#116AD1] hover:underline">
                 Chính sách bảo mật
-              </a>
+              </Link>
             </p>
 
-            <p className="mt-4 text-sm">
-              Đã có tài khoản?{" "}
-              <a href="/login" className="text-[#116AD1] font-semibold">
-                Đăng nhập
-              </a>
-            </p>
+            <div className="mt-4 text-center">
+              <p className="text-sm">
+                Đã có tài khoản?{" "}
+                <Link to="/login" className="text-[#116AD1] font-semibold hover:underline">
+                  Đăng nhập
+                </Link>
+              </p>
+              <p className="text-sm mt-2">
+                Hoặc{" "}
+                <Link to="/register" className="text-[#116AD1] font-semibold hover:underline">
+                  Đăng ký tài khoản thường
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

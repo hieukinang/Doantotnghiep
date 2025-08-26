@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -17,6 +18,12 @@ const About = () => {
             <div className="bg-[#116AD1]/10 text-[#116AD1] rounded p-4">Miễn phí vận chuyển</div>
             <div className="bg-[#116AD1]/10 text-[#116AD1] rounded p-4">Đổi trả dễ dàng</div>
             <div className="bg-[#116AD1]/10 text-[#116AD1] rounded p-4">Hỗ trợ 24/7</div>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <Link to="/" className="inline-block px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]">
+              Về trang chủ
+            </Link>
           </div>
         </div>
       </main>

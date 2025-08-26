@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
 
@@ -76,9 +77,9 @@ const PlaceOrder = () => {
               <span>Tổng thanh toán</span>
               <span className="text-[#116AD1] font-bold">{format(subtotal)}₫</span>
             </div>
-            <a href="/payment" className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]">
+            <Link to="/payment" className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]">
               Đặt hàng
-            </a>
+            </Link>
           </div>
         </div>
       </main>

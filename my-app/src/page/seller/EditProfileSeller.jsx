@@ -45,5 +45,3 @@ const EditProfileSeller = () => {
 }
 
 export default EditProfileSeller
-
-
