@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.svg";
-
+import signinImage from "../../../public/signin-up.png";
 const Login = () => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -28,7 +28,7 @@ const Login = () => {
           {/* Left side - Hình ảnh */}
           <div className="w-1/2 bg-gray-100">
             <img
-              src="https://media.tapchitaichinh.vn/w1480/images/upload/hoangthuviet/05182021/tai-sao-nen-chon-mua-sam-qua-mang--2.jpg"
+              src={signinImage}
               alt="Shopping"
               className="w-full h-full object-cover"
             />
