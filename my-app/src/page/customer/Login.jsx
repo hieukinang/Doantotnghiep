@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/logo.svg";
-import signinImage from "../../../public/signin-up.png";
+import logo from "../../assets//home/logo.svg";
+import signinImage from "../../assets/home/signin-up.png";
 const Login = () => {
   return (
     <div className="min-h-screen flex flex-col">

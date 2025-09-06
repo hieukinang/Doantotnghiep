@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo.svg';
-import cartIcon from '../assets/cart.svg';
+import logo from '../assets/home/logo.svg';
+import cartIcon from '../assets/home/cart.svg';
 import languageIcon from '../assets/language.svg';
-import searchIcon from '../assets/search.svg';
+import searchIcon from '../assets/home/search.svg';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
