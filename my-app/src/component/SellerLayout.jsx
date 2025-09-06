@@ -1,5 +1,5 @@
 import React from 'react'
-import logo from '../assets/logo.svg'
+import logo from '../assets/home/logo.svg'
 
 const navItems = [
   { label: 'Đơn hàng', href: '/seller/orders' },
