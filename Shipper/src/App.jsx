@@ -2,6 +2,8 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 // Import Shipper pages
+import ShipperHeader from './component/ShipperHeader'
+import ShipperSidebar from './component/ShipperSidebar'
 import ShipperLogin from './page/ShipperLogin'
 import ShipperRegister from './page/ShipperRegister'
 import ShipperOrders from './page/ShipperOrders'
@@ -12,8 +14,8 @@ import ShipperProfile from './page/ShipperProfile'
 
 function App() {
   return (
-    <div>
-      <Routes>
+      <div>
+       <Routes>
         {/* Shipper Routes */}
         <Route path="/shipper/login" element={<ShipperLogin />} />
         <Route path="/shipper/register" element={<ShipperRegister />} />
@@ -27,7 +29,7 @@ function App() {
         <Route path="/" element={<Navigate to="/shipper/login" replace />} />
         <Route path="/shipper" element={<Navigate to="/shipper/orders" replace />} />
       </Routes>
-    </div>
+      </div>
   )
 }
 

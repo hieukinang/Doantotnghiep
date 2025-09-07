@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../assets/react.svg';
+import logo from '../assets/logo.svg';
+import languageIcon from '../assets/language.svg';
+import searchIcon from '../assets/search.svg';
 
 const ShipperHeader = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,36 +13,34 @@ const ShipperHeader = () => {
   };
 
   return (
-    <header className="w-full fixed top-0 left-0 z-50 bg-gradient-to-r from-[#116AD1] to-blue-600 shadow-lg">
+    <header className="w-full fixed top-0 left-0 z-50 bg-[#116AD1]">
       {/* Top Header Bar */}
-      <div className="py-2 bg-black bg-opacity-10">
+      <div className="py-2">
         <div className="max-w-7xl mx-auto px-5 flex justify-between items-center">
-          <div className="flex gap-6">
-            <Link to="/shipper/orders" className="text-white text-sm hover:text-blue-200 transition-colors duration-200 flex items-center gap-1">
-              <span>📦</span>
+          <div className="flex gap-5">
+            <Link to="/shipper/orders" className="text-white text-sm hover:opacity-80">
               Đơn hàng cần giao
             </Link>
-            <Link to="/shipper/history" className="text-white text-sm hover:text-blue-200 transition-colors duration-200 flex items-center gap-1">
-              <span>📋</span>
+            <Link to="/shipper/history" className="text-white text-sm hover:opacity-80 transition-opacity">
               Lịch sử giao hàng
             </Link>
           </div>
           <div className="flex items-center gap-5">
             <div className="flex items-center gap-2">
+              <img src={languageIcon} alt="Language" className="h-4 w-auto" />
               <select
                 defaultValue="vi"
-                className="bg-transparent text-white text-sm rounded-lg px-3 py-1 focus:outline-none border border-white border-opacity-30"
+                className="bg-transparent text-white text-sm rounded px-2 py-1 focus:outline-none "
               >
-                <option value="vi" className="text-black">Tiếng Việt</option>
-                <option value="en" className="text-black">English</option>
+                <option value="vi" className="text-black border-0">Tiếng Việt</option>
+                <option value="en" className="text-black border-0">English</option>
               </select>
+
             </div>
-            <Link to="/shipper/profile" className="text-white text-sm hover:text-blue-200 transition-colors duration-200 flex items-center gap-1">
-              <span>👤</span>
-              Hồ sơ
+            <Link to="/shipper/profile" className="text-white text-sm hover:opacity-80 transition-opacity">
+              Hồ sơ cá nhân
             </Link>
-            <Link to="/shipper/login" className="text-white text-sm hover:text-blue-200 transition-colors duration-200 flex items-center gap-1">
-              <span>🚪</span>
+            <Link to="/shipper/login" className="text-white text-sm hover:opacity-80 transition-opacity">
               Đăng xuất
             </Link>
           </div>
@@ -48,33 +48,31 @@ const ShipperHeader = () => {
       </div>
 
       {/* Main Header Bar */}
-      <div className="py-4">
+      <div className="py-4 shadow-md pt-0 pb-[10px]">
         <div className="max-w-7xl mx-auto px-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/shipper/orders" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-              <img src={logo} alt="KOHI MALL Logo" className="h-10 w-auto" />
+            <Link to="/shipper" className="flex items-center gap-3">
+              <img src={logo} alt="KOHI MALL Logo" className="h-8 w-auto" />
               <h1 className="text-2xl font-bold text-white tracking-wide m-0">
-                KOHI MALL - SHIPPER
+                KOHI MALL
               </h1>
             </Link>
           </div>
 
-          <div className="flex-1 bg-white max-w-4xl h-auto border border-gray-300 rounded-xl p-1 items-center shadow-sm">
-            <form onSubmit={handleSearch} className="flex w-full">
+          <div className="flex-1 bg-white max-w-4xl h-auto border border-gray-300 rounded-lg p-1 items-center">
+            <form onSubmit={handleSearch} className="flex w-full ">
               <input
                 type="text"
-                placeholder="Tìm kiếm đơn hàng..."
+                placeholder="Tìm kiếm ngay"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 px-4 py-3 border-none rounded-l-xl text-base outline-none bg-white placeholder-gray-400"
+                className="flex-1 px-4 py-2 border-none rounded-l-md text-base outline-none bg-white placeholder-gray-400"
               />
-              <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-r-xl hover:bg-blue-700 transition-colors duration-200 font-medium">
-                🔍 Tìm
-              </button>
+              <img src={searchIcon} alt="Search" onClick={handleSearch} />
             </form>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2 backdrop-blur-sm">
               <span className="text-white text-sm font-medium">🚚 Xin chào, Shipper!</span>
             </div>
