@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets//home/logo.svg";
 import signinImage from "../../assets/home/signin-up.png";
+import Footer from "../../component/Footer";
 const Login = () => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -23,25 +24,24 @@ const Login = () => {
       </header>
 
       {/* Container chính */}
-      <div className="flex flex-1 justify-center items-center">
-        <div className="flex w-[80%] h-[80%] border border-gray-300 shadow-lg">
+      <div className="flex flex-1 mt-5 justify-center items-center px-4">
+        <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
+
           {/* Left side - Hình ảnh */}
-          <div className="w-1/2 bg-gray-100">
+          <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4">
             <img
               src={signinImage}
               alt="Shopping"
-              className="w-full h-full object-cover"
+              className="w-full h-full max-h-[500px] object-contain"
             />
           </div>
 
           {/* Right side - Form đăng nhập */}
-          <div className="w-1/2 flex flex-col justify-center px-10 py-8 border border-gray-500">
+          <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-8 border-t md:border-t-0 md:border-l border-gray-300">
             <h2 className="text-2xl font-bold text-blue-600 mb-2">
               Đăng nhập vào KOHI MALL
             </h2>
-            <p className="text-gray-500 mb-6">
-              Điền thông tin chi tiết bên dưới
-            </p>
+            <p className="text-gray-500 mb-6">Điền thông tin chi tiết bên dưới</p>
 
             <form className="space-y-4">
               <input
@@ -74,13 +74,19 @@ const Login = () => {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Chưa có tài khoản?{" "}
-                <Link to="/register" className="text-blue-600 font-semibold hover:underline">
+                <Link
+                  to="/register"
+                  className="text-blue-600 font-semibold hover:underline"
+                >
                   Đăng ký ngay
                 </Link>
               </p>
               <p className="text-sm text-gray-600 mt-2">
                 Hoặc{" "}
-                <Link to="/register-to-seller" className="text-blue-600 font-semibold hover:underline">
+                <Link
+                  to="/register-to-seller"
+                  className="text-blue-600 font-semibold hover:underline"
+                >
                   Đăng ký làm người bán
                 </Link>
               </p>
@@ -88,6 +94,7 @@ const Login = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

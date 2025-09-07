@@ -18,27 +18,27 @@ const products = [
   { id: 8, name: 'Sạc dự phòng 20.000mAh', price: 349000, image: 'https://images.unsplash.com/photo-1609599006353-9fd4d73b5562?q=80&w=1200&auto=format&fit=crop' },
 ]
 const categories = [
-  { id: 1, name: "Điện thoại", icon: "/icons/phone.svg" },
-  { id: 2, name: "Tivi", icon: "/icons/tv.svg" },
-  { id: 3, name: "Máy giặt", icon: "/icons/wash.svg" },
-  { id: 4, name: "Tủ lạnh", icon: "/icons/fridge.svg" },
-  { id: 5, name: "Điều hòa", icon: "/icons/air.svg" },
-  { id: 6, name: "Laptop", icon: "/icons/laptop.svg" },
-  { id: 7, name: "Thời trang nam", icon: "/icons/clothes.svg" },
-  { id: 8, name: "Giày dép nam", icon: "/icons/shoes.svg" },
-  { id: 9, name: "Túi xách", icon: "/icons/bag.svg" },
-  { id: 10, name: "Đồ ăn", icon: "/icons/food.svg" },
-  { id: 11, name: "Gia dụng", icon: "/icons/home.svg" },
-  { id: 12, name: "Bàn ghế", icon: "/icons/furniture.svg" },
-  { id: 13, name: "Thời trang nữ", icon: "/icons/bag.svg" },
-  { id: 14, name: "Giày dép nữ", icon: "/icons/food.svg" },
-  { id: 15, name: "Phụ kiện & Trang sức", icon: "/icons/home.svg" },
-  { id: 16, name: "Sách vở", icon: "/icons/furniture.svg" },
-  { id: 17, name: "Đồ trẻ em", icon: "/icons/furniture.svg" },
-  { id: 18, name: "Đồ thể thao", icon: "/icons/furniture.svg" },
-  { id: 19, name: "Ô tô & Xe máy & Xe đạp", icon: "/icons/furniture.svg" },
-  { id: 20, name: "Dụng cụ & Thiết bị", icon: "/icons/furniture.svg" },
-  { id: 21, name: "Khác", icon: "/icons/furniture.svg" },
+  { id: 1, name: "Điện thoại", icon: '/src/assets/product/dienthoai2.png' },
+  { id: 2, name: "Tivi", icon: "src/assets/product/tivi1.png" },
+  { id: 3, name: "Máy giặt", icon: "/src/assets/product/maygiat2.png" },
+  { id: 4, name: "Tủ lạnh", icon: "/src/assets/product/tulanh3.png" },
+  { id: 5, name: "Điều hòa", icon: "/src/assets/product/dieuhoa1.png" },
+  { id: 6, name: "Laptop", icon: "/src/assets/product/laptop5.png" },
+  { id: 7, name: "Thời trang nam", icon: "/src/assets/product/thoitrangnam2.png" },
+  { id: 8, name: "Giày dép nam", icon: "/src/assets/product/giaydepnam2.png" },
+  { id: 9, name: "Túi xách", icon: "/src/assets/product/tuixach3.png" },
+  { id: 10, name: "Đồ ăn", icon: "/src/assets/product/doan3.png" },
+  { id: 11, name: "Gia dụng", icon: "/src/assets/product/khac3.png" },
+  { id: 12, name: "Bàn ghế", icon: "/src/assets/product/banghe2.png" },
+  { id: 13, name: "Thời trang nữ", icon: "/src/assets/product/thoitrangnu2.png" },
+  { id: 14, name: "Giày dép nữ", icon: "/src/assets/product/giaydepnu1.png" },
+  { id: 15, name: "Phụ kiện & Trang sức", icon: "/src/assets/product/phukien5.png" },
+  { id: 16, name: "Sách vở", icon: "/src/assets/product/sachvo1.png" },
+  { id: 17, name: "Đồ trẻ em", icon: "/src/assets/product/treem4.png" },
+  { id: 18, name: "Đồ thể thao", icon: "/src/assets/product/thethao4.png" },
+  { id: 19, name: "Ô tô & Xe máy & Xe đạp", icon: "/src/assets/product/xe5.png" },
+  { id: 20, name: "Dụng cụ & Thiết bị", icon: "/src/assets/product/dungcu1.png" },
+  { id: 21, name: "Khác", icon: "/src/assets/product/khac1.png" },
 
 ];
 
@@ -119,8 +119,13 @@ const Home = () => {
                   >
                     {/* Icon giữ cố định */}
                     <div className="w-16 h-16 bg-gray-100 flex items-center justify-center rounded-full flex-shrink-0">
-                      <img src={c.icon} alt={c.name} className="w-10 h-10" />
+                      <img
+                        src={c.icon}
+                        alt={c.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
+
 
                     {/* Text không đẩy icon */}
                     <div className="mt-3 text-base font-medium text-center leading-snug line-clamp-2">
@@ -145,9 +150,6 @@ const Home = () => {
             )}
           </div>
         </div>
-
-
-
         <div className="max-w-7xl mx-auto mt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Deal nổi bật hôm nay</h2>
@@ -170,7 +172,6 @@ const Home = () => {
             ))}
           </div>
         </div>
-
         <div className="max-w-7xl mx-auto mt-10">
           <h2 className="text-xl font-semibold">Gợi ý hôm nay</h2>
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
