@@ -9,7 +9,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="w-full bg text-white flex items-center justify-between px-10 py-6">
+      <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
         {/* Logo + tên */}
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
@@ -38,7 +38,7 @@ const Register = () => {
             <img
               src={image}
               alt="Shopping"
-              className="w-full h-full max-h-[500px] object-contain"
+              className="w-full h-full max-h-[500px] object-fill"
             />
           </div>
 
