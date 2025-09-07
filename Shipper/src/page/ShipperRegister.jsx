@@ -7,14 +7,14 @@ const ShipperRegister = () => {
     fullName: '',
     email: '',
     phone: '',
-    password: '',
-    confirmPassword: '',
-    address: '',
+    idCard: '',
     city: '',
     district: '',
-    idCard: '',
+    address: '',
+    vehicleType: 'motorcycle',
     licensePlate: '',
-    vehicleType: 'motorcycle'
+    password: '',
+    confirmPassword: ''
   });
 
   const cities = [
@@ -51,13 +51,13 @@ const ShipperRegister = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
         {/* Logo + tên */}
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
-          <span className="font-bold text-2xl">KOHI MALL - SHIPPER</span>
+          <span className="font-bold text-2xl">KOHI MALL</span>
         </Link>
 
         {/* Chữ ĐĂNG KÝ */}
@@ -70,229 +70,158 @@ const ShipperRegister = () => {
       </header>
 
       {/* Container chính */}
-      <div className="flex flex-1 justify-center items-center py-12">
-        <div className="w-[90%] max-w-6xl bg-white border border-gray-300 shadow-lg rounded-lg overflow-hidden">
-          {/* Header form */}
-          <div className="bg-blue-600 text-white p-6">
-            <h2 className="text-2xl font-bold">Đăng ký làm Shipper</h2>
-            <p className="text-blue-100 mt-2">Điền đầy đủ thông tin để trở thành shipper của KOHI MALL</p>
+      <div className="flex flex-1 mt-5 justify-center items-center px-4">
+        <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
+          {/* Left side - Hình ảnh */}
+          <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4">
+            <div className="text-center">
+              <div className="text-8xl mb-4">🚚</div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Trở thành Shipper</h3>
+              <p className="text-gray-600">Tham gia đội ngũ giao hàng chuyên nghiệp</p>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Thông tin cá nhân */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Thông tin cá nhân</h3>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Họ và tên *
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    placeholder="Nhập họ và tên đầy đủ"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+          {/* Right side - Form đăng ký */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-8 border-t md:border-t-0 md:border-l border-gray-300">
+            <h2 className="text-2xl font-bold text-blue-600 mb-2">
+              Đăng ký tài khoản Shipper
+            </h2>
+            <p className="text-gray-500 mb-6">Điền thông tin chi tiết bên dưới</p>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Nhập email"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="Họ và tên"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Số điện thoại"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <input
+                type="text"
+                name="idCard"
+                value={formData.idCard}
+                onChange={handleChange}
+                placeholder="Số CMND/CCCD"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <select
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">Chọn tỉnh/thành phố</option>
+                {cities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                name="district"
+                value={formData.district}
+                onChange={handleChange}
+                placeholder="Quận/Huyện"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Địa chỉ chi tiết"
+                rows="3"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                required
+              />
+              <select
+                name="vehicleType"
+                value={formData.vehicleType}
+                onChange={handleChange}
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="motorcycle">Xe máy</option>
+                <option value="bicycle">Xe đạp</option>
+                <option value="car">Ô tô</option>
+              </select>
+              <input
+                type="text"
+                name="licensePlate"
+                value={formData.licensePlate}
+                onChange={handleChange}
+                placeholder="Biển số xe"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Mật khẩu"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Xác nhận mật khẩu"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Số điện thoại *
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Nhập số điện thoại"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Số CMND/CCCD *
-                  </label>
-                  <input
-                    type="text"
-                    name="idCard"
-                    value={formData.idCard}
-                    onChange={handleChange}
-                    placeholder="Nhập số CMND/CCCD"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Thông tin địa chỉ */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Thông tin địa chỉ</h3>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tỉnh/Thành phố nhận đơn *
-                  </label>
-                  <select
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Chọn tỉnh/thành phố</option>
-                    {cities.map(city => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quận/Huyện *
-                  </label>
-                  <input
-                    type="text"
-                    name="district"
-                    value={formData.district}
-                    onChange={handleChange}
-                    placeholder="Nhập quận/huyện"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Địa chỉ chi tiết *
-                  </label>
-                  <textarea
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="Nhập địa chỉ chi tiết"
-                    rows="3"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Thông tin phương tiện */}
-            <div className="mt-8 space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Thông tin phương tiện</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Loại phương tiện *
-                  </label>
-                  <select
-                    name="vehicleType"
-                    value={formData.vehicleType}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="motorcycle">Xe máy</option>
-                    <option value="bicycle">Xe đạp</option>
-                    <option value="car">Ô tô</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Biển số xe *
-                  </label>
-                  <input
-                    type="text"
-                    name="licensePlate"
-                    value={formData.licensePlate}
-                    onChange={handleChange}
-                    placeholder="Nhập biển số xe"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mật khẩu */}
-            <div className="mt-8 space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Thông tin đăng nhập</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mật khẩu *
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Nhập mật khẩu"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Xác nhận mật khẩu *
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Nhập lại mật khẩu"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Submit button */}
-            <div className="mt-8 flex justify-center">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 font-semibold transition-colors"
+                className="w-full bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700"
               >
-                Đăng ký làm Shipper
+                Đăng ký Shipper
               </button>
-            </div>
-          </form>
+            </form>
 
-          <div className="bg-gray-50 p-6 text-center">
-            <p className="text-sm text-gray-600">
-              Đã có tài khoản shipper?{" "}
-              <Link to="/shipper/login" className="text-blue-600 font-semibold hover:underline">
-                Đăng nhập ngay
-              </Link>
-            </p>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Đã có tài khoản shipper?{" "}
+                <Link
+                  to="/shipper/login"
+                  className="text-blue-600 font-semibold hover:underline"
+                >
+                  Đăng nhập
+                </Link>
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                Hoặc{" "}
+                <Link
+                  to="/"
+                  className="text-blue-600 font-semibold hover:underline"
+                >
+                  Về trang chủ
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

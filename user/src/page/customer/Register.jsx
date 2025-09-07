@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/home/logo.svg";
 import Footer from "../../component/Footer";
+import image from "../../../public/register.png"
+
 
 const Register = () => {
   return (
@@ -28,54 +30,52 @@ const Register = () => {
 
 
       {/* Container chính */}
-      <div className="flex flex-1 justify-center items-center mt-5 px-4">
-        <div className="flex flex-col md:flex-row w-full max-w-5xl border border-gray-300 shadow-xl rounded-2xl overflow-hidden">
+      <div className="flex flex-1 mt-5 justify-center items-center px-4">
+        <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
 
           {/* Left side - Hình ảnh */}
-          <div className="md:w-1/2 w-full bg-gray-100 flex items-center justify-center">
+          <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4">
             <img
-              src="https://media.tapchitaichinh.vn/w1480/images/upload/hoangthuviet/05182021/tai-sao-nen-chon-mua-sam-qua-mang--2.jpg"
+              src={image}
               alt="Shopping"
-              className="w-full h-full object-cover md:object-contain"
+              className="w-full h-full max-h-[500px] object-contain"
             />
           </div>
 
-          {/* Right side - Form */}
-          <div className="md:w-1/2 w-full flex flex-col justify-center px-8 py-10 bg-white">
-            <h2 className="text-3xl font-bold text-blue-600 mb-3">
+          {/* Right side - Form đăng ký */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-8 border-t md:border-t-0 md:border-l border-gray-300">
+            <h2 className="text-2xl font-bold text-blue-600 mb-2">
               Đăng ký tài khoản
             </h2>
-            <p className="text-gray-500 mb-8">
-              Điền thông tin chi tiết bên dưới
-            </p>
+            <p className="text-gray-500 mb-6">Điền thông tin chi tiết bên dưới</p>
 
             <form className="space-y-4">
               <input
                 type="text"
                 placeholder="Tên"
-                className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="email"
                 placeholder="Email hoặc số điện thoại"
-                className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="password"
                 placeholder="Mật khẩu"
-                className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold hover:bg-blue-700 transition"
+                className="w-full bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700"
               >
                 Đăng ký
               </button>
 
               <button
                 type="button"
-                className="w-full border flex items-center justify-center gap-2 py-3 rounded-lg hover:bg-gray-100 transition"
+                className="w-full border flex items-center justify-center gap-2 py-2 rounded-md hover:bg-gray-100"
               >
                 <img
                   src="https://www.svgrepo.com/show/355037/google.svg"
@@ -86,9 +86,8 @@ const Register = () => {
               </button>
             </form>
 
-            {/* Link phụ */}
-            <div className="mt-6 text-center space-y-2">
-              <p className="text-sm">
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
                 Đã có tài khoản?{" "}
                 <Link
                   to="/login"
@@ -97,7 +96,7 @@ const Register = () => {
                   Đăng nhập
                 </Link>
               </p>
-              <p className="text-sm">
+              <p className="text-sm text-gray-600 mt-2">
                 Hoặc{" "}
                 <Link
                   to="/register-to-seller"
