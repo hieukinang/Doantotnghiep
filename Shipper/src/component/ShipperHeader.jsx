@@ -4,7 +4,7 @@ import logo from '../assets/logo.svg';
 import languageIcon from '../assets/language.svg';
 import searchIcon from '../assets/search.svg';
 
-const ShipperHeader = () => {
+const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e) => {
@@ -18,10 +18,10 @@ const ShipperHeader = () => {
       <div className="py-2">
         <div className="max-w-7xl mx-auto px-5 flex justify-between items-center">
           <div className="flex gap-5">
-            <Link to="/shipper/orders" className="text-white text-sm hover:opacity-80">
+            <Link to="/seller" className="text-white text-sm hover:opacity-80">
               Đơn hàng cần giao
             </Link>
-            <Link to="/shipper/history" className="text-white text-sm hover:opacity-80 transition-opacity">
+            <Link to="/register-to-seller" className="text-white text-sm hover:opacity-80 transition-opacity">
               Lịch sử giao hàng
             </Link>
           </div>
@@ -37,10 +37,10 @@ const ShipperHeader = () => {
               </select>
 
             </div>
-            <Link to="/shipper/profile" className="text-white text-sm hover:opacity-80 transition-opacity">
+            <Link to="/register" className="text-white text-sm hover:opacity-80 transition-opacity">
               Hồ sơ cá nhân
             </Link>
-            <Link to="/shipper/login" className="text-white text-sm hover:opacity-80 transition-opacity">
+            <Link to="/login" className="text-white text-sm hover:opacity-80 transition-opacity">
               Đăng xuất
             </Link>
           </div>
@@ -51,7 +51,7 @@ const ShipperHeader = () => {
       <div className="py-4 shadow-md pt-0 pb-[10px]">
         <div className="max-w-7xl mx-auto px-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to="/shipper" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3">
               <img src={logo} alt="KOHI MALL Logo" className="h-8 w-auto" />
               <h1 className="text-2xl font-bold text-white tracking-wide m-0">
                 KOHI MALL
@@ -59,7 +59,7 @@ const ShipperHeader = () => {
             </Link>
           </div>
 
-          <div className="flex-1 bg-white max-w-4xl h-auto border border-gray-300 rounded-lg p-1 items-center">
+          <div className="flex-1 bg-white max-w-4xl h-auto border border-gray-300 rounded-lg p-0 mx-1 items-center">
             <form onSubmit={handleSearch} className="flex w-full ">
               <input
                 type="text"
@@ -83,4 +83,4 @@ const ShipperHeader = () => {
   );
 };
 
-export default ShipperHeader;
+export default Header;

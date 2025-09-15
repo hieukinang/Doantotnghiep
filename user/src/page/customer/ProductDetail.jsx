@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import Header from '../../component/Header'
 import Footer from '../../component/Footer'
+import { ShopContext } from '../../context/ShopContext'
 
 const gallery = [
   'https://images.unsplash.com/photo-1518442573684-9ac6e1f9c2b0?q=80&w=1200&auto=format&fit=crop',
@@ -12,25 +13,43 @@ const gallery = [
 
 const ProductDetail = () => {
   const [active, setActive] = useState(0)
+  const [quantity, setQuantity] = useState(1)
+
+  // Lấy addToCart từ context
+  const { addToCart } = useContext(ShopContext)
+
+  // Giả sử id sản phẩm lấy từ API hoặc route param
+  const productId = "product123"
+  const brand = "Tai nghe Bluetooth Pro"
+
+  const handleAddToCart = () => {
+    addToCart(productId, brand, quantity)
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="pt-32 px-5 flex-1">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Ảnh */}
           <div>
             <div className="aspect-square bg-white rounded-lg overflow-hidden shadow">
               <img src={gallery[active]} alt="product" className="w-full h-full object-cover" />
             </div>
             <div className="mt-3 grid grid-cols-4 gap-3">
               {gallery.map((src, i) => (
-                <button key={i} onClick={() => setActive(i)} className={`aspect-square rounded overflow-hidden border ${i===active?'border-[#116AD1]':'border-gray-200'}`}>
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={`aspect-square rounded overflow-hidden border ${i === active ? 'border-[#116AD1]' : 'border-gray-200'}`}
+                >
                   <img src={src} alt={`thumb-${i}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Chi tiết */}
           <div className="bg-white rounded-lg p-5 shadow">
             <h1 className="text-xl font-semibold">Tai nghe Bluetooth Pro</h1>
             <div className="mt-2 text-sm text-gray-500">4.8 • Đã bán 2,3k • Kho: 125</div>
@@ -41,12 +60,25 @@ const ProductDetail = () => {
               <div className="text-sm line-through text-gray-400">599.000₫</div>
             </div>
 
+            {/* Nút thêm vào giỏ */}
             <div className="mt-6 flex items-center gap-3">
-              <input type="number" min="1" defaultValue={1} className="w-16 border rounded px-2 py-1" />
-              <Link to="/cart" className="px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-[#116AD1]/5">
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="w-16 border rounded px-2 py-1"
+              />
+              <button
+                onClick={handleAddToCart}
+                className="px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-[#116AD1]/5"
+              >
                 Thêm vào giỏ
-              </Link>
-              <Link to="/place-order" className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]">
+              </button>
+              <Link
+                to="/place-order"
+                className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]"
+              >
                 Mua ngay
               </Link>
             </div>
@@ -57,21 +89,6 @@ const ProductDetail = () => {
                 Tai nghe Bluetooth Pro cho âm thanh sống động, pin 24h, sạc nhanh Type-C, chống ồn chủ động.
               </p>
             </div>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto mt-8">
-          <h3 className="font-semibold text-lg">Sản phẩm tương tự</h3>
-          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {gallery.concat(gallery).slice(0,6).map((src, i) => (
-              <Link key={i} to="/product-detail" className="bg-white rounded-lg overflow-hidden border hover:border-[#116AD1]">
-                <img src={src} alt={`rel-${i}`} className="w-full h-36 object-cover" />
-                <div className="p-2">
-                  <div className="text-sm font-medium">Phụ kiện âm thanh</div>
-                  <div className="text-[#116AD1] font-semibold text-sm mt-1">199.000₫</div>
-                </div>
-              </Link>
-            ))}
           </div>
         </div>
       </main>

@@ -26,9 +26,11 @@ import Finance from './page/seller/Finance'
 import OrdersSeller from './page/seller/OrdersSeller'
 import Rating from './page/seller/Rating'
 import SalesReport from './page/seller/SalesReport'
+import  ShopContextProvider  from './context/ShopContext'
 
 function App() {
   return (
+    <ShopContextProvider>
     <div>
       <Routes>
         {/* Customer Routes */}
@@ -60,6 +62,7 @@ function App() {
         <Route path="/seller/sales-report" element={<SalesReport />} />
       </Routes>
     </div>
+    </ShopContextProvider>
   )
 }
 
