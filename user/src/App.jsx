@@ -26,6 +26,7 @@ import Finance from './page/seller/Finance'
 import OrdersSeller from './page/seller/OrdersSeller'
 import Rating from './page/seller/Rating'
 import SalesReport from './page/seller/SalesReport'
+import ForgotPassword from './page/customer/ForgotPassword'
 import  ShopContextProvider  from './context/ShopContext'
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
         <Route path="/exchange-request" element={<ExchangeRequest />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
+        <Route  path="/forgot-password" element={<ForgotPassword />} />
         
         {/* Seller Routes */}
         <Route path="/seller" element={<AddDeleteProduct />} />
