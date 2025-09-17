@@ -1,62 +1,63 @@
-import React, { useEffect, useState } from 'react'
-import left from '../assets/fill-left.svg'
-import right from '../assets/fill-right.svg'
+import React, { useEffect, useState } from "react";
+import left from "../assets/fill-left.svg";
+import right from "../assets/fill-right.svg";
 
 const slides = [
-  'https://images.unsplash.com/photo-1512295767273-ac109ac3acfa?q=80&w=1600&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1600&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1600&auto=format&fit=crop',
-]
+  "https://images.unsplash.com/photo-1512295767273-ac109ac3acfa?q=80&w=1600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1600&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1600&auto=format&fit=crop",
+];
 
 // [last, ...slides, first] để tạo loop
-const extended = [slides[slides.length - 1], ...slides, slides[0]]
+const extended = [slides[slides.length - 1], ...slides, slides[0]];
 
 const Banner = () => {
-  const [current, setCurrent] = useState(1) // bắt đầu ở slide thật đầu tiên
-  const [allowTransition, setAllowTransition] = useState(true)
-  const [isHovered, setIsHovered] = useState(false)
+  const [current, setCurrent] = useState(1);
+  const [allowTransition, setAllowTransition] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
 
-  const next = () => setCurrent((c) => c + 1)
-  const prev = () => setCurrent((c) => c - 1)
+  const next = () => setCurrent((c) => c + 1);
+  const prev = () => setCurrent((c) => c - 1);
 
   // Auto chạy 4s, dừng khi hover
   useEffect(() => {
-    if (isHovered) return
-    const id = setInterval(() => next(), 4000)
-    return () => clearInterval(id)
-  }, [isHovered])
+    if (isHovered) return;
+    const id = setInterval(() => next(), 4000);
+    return () => clearInterval(id);
+  }, [isHovered]);
 
   // Reset index khi tới clone đầu/cuối
   useEffect(() => {
     if (current === extended.length - 1) {
       const timer = setTimeout(() => {
-        setAllowTransition(false)
-        setCurrent(1)
-      }, 700)
-      return () => clearTimeout(timer)
+        setAllowTransition(false);
+        setCurrent(1);
+      }, 700);
+      return () => clearTimeout(timer);
     }
     if (current === 0) {
       const timer = setTimeout(() => {
-        setAllowTransition(false)
-        setCurrent(extended.length - 2)
-      }, 700)
-      return () => clearTimeout(timer)
+        setAllowTransition(false);
+        setCurrent(extended.length - 2);
+      }, 700);
+      return () => clearTimeout(timer);
     }
-    setAllowTransition(true)
-  }, [current])
+    setAllowTransition(true);
+  }, [current]);
 
   // Xác định dot active
   const activeDot =
-    current === 0 ? slides.length - 1
-      : current === extended.length - 1 ? 0
-        : current - 1
+    current === 0
+      ? slides.length - 1
+      : current === extended.length - 1
+      ? 0
+      : current - 1;
 
   return (
     <section className="w-full h-[300px] md:h-[350px] lg:h-[400px]">
       <div className="max-w-7xl mx-auto h-full">
         {/* Banner wrapper */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full overflow-hidden">
-
           {/* Banner trượt bên trái */}
           <div
             className="relative col-span-2 rounded-lg overflow-hidden bg-gray-200 flex[0.6] h-full"
@@ -65,7 +66,11 @@ const Banner = () => {
           >
             {/* Track ảnh */}
             <div
-              className={`h-[1] flex ${allowTransition ? 'transition-transform duration-700 ease-in-out' : ''}`}
+              className={`h-[1] flex ${
+                allowTransition
+                  ? "transition-transform duration-700 ease-in-out"
+                  : ""
+              }`}
               style={{ transform: `translateX(-${current * 100}%)` }}
             >
               {extended.map((src, i) => (
@@ -100,7 +105,11 @@ const Banner = () => {
                   key={i}
                   type="button"
                   onClick={() => setCurrent(i + 1)}
-                  className={`h-2 rounded-full transition-all ${i === activeDot ? 'w-5 bg-white' : 'w-2 bg-white/60 hover:bg-white/80'}`}
+                  className={`h-2 rounded-full transition-all ${
+                    i === activeDot
+                      ? "w-5 bg-white"
+                      : "w-2 bg-white/60 hover:bg-white/80"
+                  }`}
                   aria-label={`Go to slide ${i + 1}`}
                 />
               ))}
@@ -121,18 +130,15 @@ const Banner = () => {
               <img
                 src="https://images.unsplash.com/photo-1522199710521-72d69614c702?q=80&w=800&auto=format&fit=crop"
                 alt="Small Banner 2"
-                className="w-full h-[53%] object-fill"
+                className="w-full h-[60%] object-fill"
                 loading="lazy"
               />
             </div>
           </div>
-
         </div>
       </div>
+    </section>
+  );
+};
 
-    </section >
-
-  )
-}
-
-export default Banner
+export default Banner;

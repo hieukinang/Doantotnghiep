@@ -14,7 +14,7 @@ const Profile = () => {
               <img src="https://i.pravatar.cc/100" className="w-12 h-12 rounded-full" />
               <div>
                 <div className="font-semibold">Nguyễn Văn A</div>
-                <Link to="/edit-profile" className="text-sm text-[#116AD1]">Sửa hồ sơ</Link>
+                <Link to="/update-profile" className="text-sm text-[#116AD1]">Sửa hồ sơ</Link>
               </div>
             </div>
             <div className="h-px bg-gray-200 my-4" />

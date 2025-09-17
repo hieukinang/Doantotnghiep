@@ -256,6 +256,62 @@ const products = [
     image:
       "https://images.unsplash.com/photo-1609599006353-9fd4d73b5562?q=80&w=1200&auto=format&fit=crop",
   },
+  {
+    id: 9,
+    name: "Tai nghe Bluetooth Pro",
+    price: 399000,
+    image:
+      "https://images.unsplash.com/photo-1518442573684-9ac6e1f9c2b0?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 10,
+    name: "Giày chạy bộ",
+    price: 599000,
+    image:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 11,
+    name: "Bình giữ nhiệt",
+    price: 159000,
+    image:
+      "https://images.unsplash.com/photo-1586201375761-83865001e31b?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 12,
+    name: "Bàn phím cơ",
+    price: 899000,
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 13,
+    name: "Áo khoác thể thao",
+    price: 329000,
+    image:
+      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 14,
+    name: "Đồng hồ thông minh",
+    price: 1299000,
+    image:
+      "https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 15,
+    name: "Chuột gaming",
+    price: 249000,
+    image:
+      "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 16,
+    name: "Sạc dự phòng 20.000mAh",
+    price: 349000,
+    image:
+      "https://images.unsplash.com/photo-1609599006353-9fd4d73b5562?q=80&w=1200&auto=format&fit=crop",
+  },
 ];
 
 const format = (v) => v.toLocaleString("vi-VN");

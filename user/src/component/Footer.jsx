@@ -50,7 +50,7 @@ const Footer = () => {
         <div>
           <h3 className="text-xl font-semibold mb-4">Liên kết nhanh</h3>
           <ul className="space-y-2 text-white/90">
-            <li><Link to="/privacy-policy" className="hover:underline">Chính sách riêng tư</Link></li>
+            <li><Link to="/privacy-policy" className="hover:underline">Chính sách bảo mật</Link></li>
             <li><Link to="/terms-of-use" className="hover:underline">Điều khoản sử dụng</Link></li>
             <li><Link to="/faq" className="hover:underline">FAQ</Link></li>
             <li><Link to="/contact" className="hover:underline">Liên hệ</Link></li>

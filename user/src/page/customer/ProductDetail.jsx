@@ -73,7 +73,7 @@ const ProductDetail = () => {
                 onClick={handleAddToCart}
                 className="px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-[#116AD1]/5"
               >
-                Thêm vào giỏ
+                Thêm vào giỏ hàng
               </button>
               <Link
                 to="/place-order"

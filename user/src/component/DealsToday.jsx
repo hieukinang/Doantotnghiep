@@ -17,7 +17,7 @@ const DealsToday = ({ products }) => {
         {products.map((p) => (
           <Link
             key={p.id}
-            to="/product-detail"
+            to="/product/:productId"
             className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition"
           >
             <div className="aspect-[1/1] bg-gray-100">

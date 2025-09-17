@@ -188,7 +188,7 @@ const Cart = () => {
                   </div>
                   <button
                     onClick={() => removeItem(it.id)}
-                    className="text-red-500 text-sm ml-2"
+                    className="w-8 h-8 text-white text-sm ml-2 border rounded bg-[#116AD1]  hover:bg-[#FF4500] transition-colors"
                   >
                     Xóa
                   </button>
@@ -229,7 +229,7 @@ const Cart = () => {
               </Link>
               <Link
                 to="/profile"
-                className="block text-center text-gray-600 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                className="block text-center text-[#116AD1] py-2 border border-[#116AD1] rounded hover:bg-[#116AD1] hover:text-white transition-colors"
               >
                 Xem hồ sơ
               </Link>
