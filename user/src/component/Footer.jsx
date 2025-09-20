@@ -41,8 +41,7 @@ const Footer = () => {
             <li><Link to="/profile" className="hover:underline">Tài khoản của tôi</Link></li>
             <li><Link to="/login" className="hover:underline">Đăng nhập / Đăng ký</Link></li>
             <li><Link to="/cart" className="hover:underline">Giỏ hàng</Link></li>
-            <li><Link to="/favorite" className="hover:underline">Yêu thích</Link></li>
-            <li><Link to="/shop" className="hover:underline">Cửa hàng</Link></li>
+            <li><Link to="/followed-shops" className="hover:underline">Yêu thích</Link></li>
           </ul>
         </div>
 
