@@ -7,7 +7,8 @@ import routes from "./routes/index.js";
 import GlobalErrorMiddleware from "./middleware/GlobalError.middleware.js";
 import APIError from "./utils/apiError.utils.js";
 import cors from "cors";
-import {webhookCheckout} from "./controller/orderController.js";
+import "./model/associations.js";
+// import {webhookCheckout} from "./controller/orderController.js";
 
 // SECURITY PACKAGES
 import rateLimit from "express-rate-limit";
@@ -32,11 +33,11 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "uploads")));
 
 //_________STRIPE_WEBHOOK_________//
-app.post(
-  "/api/webhook",
-  express.raw({type: "application/json"}),
-  webhookCheckout
-);
+// app.post(
+//   "/api/webhook",
+//   express.raw({type: "application/json"}),
+//   webhookCheckout
+// );
 
 //_________MIDDLEWARES_________//
 // 1)_[SECURITY]-{CROSS_SITE_SCRIPTING(XSS)}_HELMET_HEADERS_
