@@ -16,6 +16,7 @@ const Client = sequelize.define(
     phone: {
       type: DataTypes.STRING(20),
       allowNull: true,
+      unique: true,
       validate: {
         is: {
           args: /^[0-9]{9,20}$/,

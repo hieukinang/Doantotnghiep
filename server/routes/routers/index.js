@@ -2,6 +2,7 @@ import express from "express";
 
 // import userRouter from "./userRouter.js";
 import authRouter from "./authRouter.js";
+import clientRouter from "./clientRouter.js";
 // import productRouter from "./productRouter.js";
 // import categoryRouter from "./categoryRouter.js";
 // import subcategoryRouter from "./subcategoryRouter.js";
@@ -17,6 +18,7 @@ const router = express.Router();
 
 // router.use(`/users`, userRouter);
 router.use(`/auth`, authRouter);
+router.use(`/client`, clientRouter);
 // router.use(`/products`, productRouter);
 // router.use(`/categories`, categoryRouter);
 // router.use(`/subcategories`, subcategoryRouter);

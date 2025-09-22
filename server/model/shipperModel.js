@@ -14,6 +14,7 @@ const Shipper = sequelize.define(
     citizen_id: {
       type: DataTypes.STRING,
       allowNull: true,
+      unique: true,
     },
     email: {
       type: DataTypes.STRING,
@@ -25,6 +26,7 @@ const Shipper = sequelize.define(
     phone: {
       type: DataTypes.STRING(20),
       allowNull: true,
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,

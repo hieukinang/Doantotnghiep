@@ -13,6 +13,7 @@ const Store = sequelize.define(
     citizen_id: {
       type: DataTypes.STRING,
       allowNull: true,
+      unique: true,
     },
     name: {
       type: DataTypes.STRING,
