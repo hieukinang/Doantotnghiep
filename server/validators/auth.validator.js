@@ -47,11 +47,11 @@ export const registerValidator = [
 ];
 
 export const loginValidator = [
-  check("email")
+  check("emailOrPhone")
     .notEmpty()
-    .withMessage("Email is required")
-    .isEmail()
-    .withMessage("Please enter a valid email address"),
+    .withMessage("Email or Phone is required")
+    .isString()
+    .withMessage("Email or Phone must be a string"),
   check("password")
     .notEmpty()
     .withMessage("Password is required")

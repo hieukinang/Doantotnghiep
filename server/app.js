@@ -8,6 +8,7 @@ import GlobalErrorMiddleware from "./middleware/GlobalError.middleware.js";
 import APIError from "./utils/apiError.utils.js";
 import cors from "cors";
 import "./model/associations.js";
+import cookieParser from "cookie-parser";
 // import {webhookCheckout} from "./controller/orderController.js";
 
 // SECURITY PACKAGES
@@ -61,6 +62,10 @@ app.use(
     limit: "15kb",
   })
 );
+
+// Thêm cookieParser vào sau body parser
+app.use(cookieParser());
+
 // 5)_[SECURITY]-{CROSS_SITE_SCRIPTING(XSS)_&_NO_SQL_INJECTION_ATTACK}_DATA_SANITIZATION_
 // a)protect from No Sql Injection
 app.use(mongoSanitize());

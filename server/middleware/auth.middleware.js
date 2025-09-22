@@ -1,4 +1,4 @@
-import User from "../model/userModel.js";
+import Client from "../model/clientModel.js";
 import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {verifyToken} from "../utils/tokenHandler.utils.js";
@@ -13,6 +13,9 @@ export const isAuth = asyncHandler(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(" ")[1];
   }
+  if (!token && req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
   if (!token) {
     return next(new APIError("Unauthorized , Please login to get access", 401));
   }
@@ -22,7 +25,7 @@ export const isAuth = asyncHandler(async (req, res, next) => {
   // console.log(decoded);
 
   // 3) Check if user is still exist (what if the user was deleted ? we check to see if the user is still exist or deleted)
-  const currentUser = await User.findById(decoded.userId);
+  const currentUser = await Client.findByPk(decoded.userId);
   if (!currentUser) {
     return next(
       new APIError(
