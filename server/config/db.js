@@ -18,7 +18,7 @@ const sequelize = new Sequelize(
 const connectToDB = async () => {
   try {
     await sequelize.authenticate();
-    // await sequelize.sync({ force: true }); // Xóa và tạo lại bảng
+    await sequelize.sync({ force: true }); // Xóa và tạo lại bảng
     console.log("MySQL Connected successfully!".cyan.underline);
   } catch (error) {
     console.error(`Error: ${error.message}`.red.bold);

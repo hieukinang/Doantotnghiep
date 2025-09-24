@@ -17,12 +17,7 @@ export const register = asyncHandler(async (req, res, next) => {
         return next(new APIError("Số điện thoại đã tồn tại, vui lòng nhập số điện thoại mới", 400));
     }
 
-    // 3) Check password and confirmPassword match
-    if(password !== confirmPassword){
-        return next(new APIError("Mật khẩu không khớp, vui lòng kiểm tra lại", 400));
-    }
-
-    // CREATE_NEW_CLIENT    
+    // CREATE_NEW_CLIENT
     const newClient = await Client.create({
         username,
         phone,

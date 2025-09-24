@@ -26,3 +26,10 @@ export const CLIENT_TYPE = {
   VIP: "VIP",
   PREMIUM: "PREMIUM",
 };
+
+export const STORE_STATUS = {
+  OPEN: "OPEN",
+  CLOSED: "CLOSED",
+  BANNED: "BANNED",
+  PROCESS: "PROCESS",
+};
