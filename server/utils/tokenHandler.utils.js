@@ -14,7 +14,7 @@ export const verifyToken = (token) => {
 
 //_GENERATE_AND_SEND_TOKEN_TO_RESPONSE_//
 export const generateSendToken = (res, user, statusCode) => {
-  const token = signToken(user._id);
+  const token = signToken(user.id);
 
   //_[SECURITY]-{CROSS_SITE_SCRIPTING(XSS)}_STORE_JWT_TO_COOKIES_//
   // @descOfAttack Attacker try to inject scripts to run a malicious code

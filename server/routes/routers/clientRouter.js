@@ -3,14 +3,25 @@ import multer from "multer";
 const upload = multer();
 
 import {
-    register
+    register, 
+    login,
+    logout,
 } from "../../controller/clientController.js";
 import {
-  registerValidator
+  loginValidator
 } from "../../validators/auth.validator.js";
+
+import {
+  registerValidator
+} from "../../validators/user.validator.js";
+
+import { isAuth } from "../../middleware/auth.middleware.js";
+import Client from "../../model/clientModel.js";
 
 const router = express.Router();
 
 router.route("/register").post(upload.none(), registerValidator, register);
+router.route("/login").post(upload.none(), loginValidator, login);
+router.route("/logout").post(isAuth(Client), logout);
 
 export default router;
