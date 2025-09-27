@@ -16,6 +16,16 @@ const Shipper = sequelize.define(
       allowNull: true,
       unique: true,
     },
+    id_image: {
+      type: DataTypes.STRING(255),
+      defaultValue: "default-shipper.jpg",
+      get() {
+        const rawValue = this.getDataValue("id_image");
+        if (!rawValue) return null;
+        if (rawValue.startsWith("http")) return rawValue;
+        return `${process.env.BASE_URL}/shippers/${rawValue}`;
+      },
+    },
     email: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -96,6 +106,14 @@ const Shipper = sequelize.define(
   {
     tableName: "shippers",
     timestamps: true, // tự động có createdAt, updatedAt
+    hooks: {
+      beforeSave: async (store) => {
+        if (store.changed("password")) {
+          store.password = await bcrypt.hash(store.password, 12);
+          store.passwordChangedAt = new Date();
+        }
+      }
+    },
   }
 );
 

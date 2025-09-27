@@ -6,22 +6,21 @@ import {
     register, 
     login,
     logout,
-} from "../../controller/clientController.js";
+    uploadStoreImage,
+    resizeAdminImage
+} from "../../controller/adminController.js";
 import {
-  loginValidator
-} from "../../validators/auth.validator.js";
-
-import {
+  loginValidator,
   registerValidator
-} from "../../validators/client.validator.js";
+} from "../../validators/admin.validator.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
-import Client from "../../model/clientModel.js";
+import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
-router.route("/register").post(upload.none(), registerValidator, register);
+router.route("/register").post(uploadStoreImage, resizeAdminImage, registerValidator, register);
 router.route("/login").post(upload.none(), loginValidator, login);
-router.route("/logout").post(isAuth(Client), logout);
+router.route("/logout").post(isAuth(Admin), logout);
 
 export default router;

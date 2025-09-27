@@ -33,6 +33,14 @@ const Admin = sequelize.define(
         },
       },
     },
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      unique: true,
+      validate: {
+        isEmail: { msg: "Must be a valid email address" },
+      },
+    },
     phone: {
       type: DataTypes.STRING(10),
       validate: {
