@@ -15,6 +15,8 @@ import { Op } from "sequelize";
 export const uploadShipperImages = uploadMixOfImages([
     { name: "id_image", maxCount: 1 },
     { name: "image", maxCount: 1 },
+    { name: "profile_image", maxCount: 1 },
+    { name: "health_image", maxCount: 1 },
 ]);
 
 // 2) PROCESSING(Sharp)
@@ -28,7 +30,7 @@ export const resizeShipperImages = asyncHandler(async (req, res, next) => {
 
   // Xử lý id_image
   if (req.files.id_image && req.files.id_image[0]) {
-      const idImageFilename = `citizen_id_image-${req.body.citizen_id || Date.now()}.jpeg`;
+      const idImageFilename = `citizen_id-${req.body.citizen_id || Date.now()}.jpeg`;
       await sharp(req.files.id_image[0].buffer)
           .resize(400, 400)
           .toFormat("jpeg")
@@ -39,13 +41,33 @@ export const resizeShipperImages = asyncHandler(async (req, res, next) => {
 
   // Xử lý image (avatar)
   if (req.files.image && req.files.image[0]) {
-      const avatarFilename = `shipper-avatar-${req.body.citizen_id || Date.now()}.jpeg`;
+      const avatarFilename = `avatar-${req.body.citizen_id || Date.now()}.jpeg`;
       await sharp(req.files.image[0].buffer)
           .resize(400, 400)
           .toFormat("jpeg")
           .jpeg({ quality: 80 })
           .toFile(`${process.env.FILES_UPLOADS_PATH}/shippers/${avatarFilename}`);
       req.body.image = avatarFilename;
+  }
+  // Xử lý profile_image
+  if (req.files.profile_image && req.files.profile_image[0]) {
+      const profileImageFilename = `profile-${req.body.citizen_id || Date.now()}.jpeg`;
+      await sharp(req.files.profile_image[0].buffer)
+          .resize(400, 400)
+          .toFormat("jpeg")
+          .jpeg({ quality: 80 })
+          .toFile(`${process.env.FILES_UPLOADS_PATH}/shippers/${profileImageFilename}`);
+      req.body.profile_image = profileImageFilename;
+  }
+    // Xử lý health_image
+  if (req.files.health_image && req.files.health_image[0]) {
+      const healthImageFilename = `health-${req.body.citizen_id || Date.now()}.jpeg`;
+      await sharp(req.files.health_image[0].buffer)
+          .resize(400, 400)
+          .toFormat("jpeg")
+          .jpeg({ quality: 80 })
+          .toFile(`${process.env.FILES_UPLOADS_PATH}/shippers/${healthImageFilename}`);
+      req.body.health_image = healthImageFilename;
   }
   next();
 });
@@ -64,6 +86,8 @@ export const register = asyncHandler(async (req, res, next) => {
         work_area_city,
         work_area_village,
         image,
+        profile_image,
+        health_image,
         bank_name,
         bank_account_number,
         bank_account_holder_name
@@ -84,7 +108,9 @@ export const register = asyncHandler(async (req, res, next) => {
         !bank_name ||
         !bank_account_number ||
         !bank_account_holder_name || 
-        !image
+        !image || 
+        !profile_image ||
+        !health_image
     ) {
         return next(new APIError("Vui lòng nhập đầy đủ thông tin", 400));
     }
@@ -117,7 +143,9 @@ export const register = asyncHandler(async (req, res, next) => {
         bank_account_holder_name,
         work_area_city,
         work_area_village,
-        image
+        image,
+        profile_image,
+        health_image
     });
     generateSendToken(res, newShipper, 201);
 });

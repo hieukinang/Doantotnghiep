@@ -18,9 +18,39 @@ const Shipper = sequelize.define(
     },
     id_image: {
       type: DataTypes.STRING(255),
-      defaultValue: "default-shipper.jpg",
+      defaultValue: "default-citizen_id_image.jpg",
       get() {
         const rawValue = this.getDataValue("id_image");
+        if (!rawValue) return null;
+        if (rawValue.startsWith("http")) return rawValue;
+        return `${process.env.BASE_URL}/shippers/${rawValue}`;
+      },
+    },
+    image: {
+      type: DataTypes.STRING(255),
+      defaultValue: "default-image.jpg",
+      get() {
+        const rawValue = this.getDataValue("image");
+        if (!rawValue) return null;
+        if (rawValue.startsWith("http")) return rawValue;
+        return `${process.env.BASE_URL}/shippers/${rawValue}`;
+      },
+    },
+    profile_image: {
+      type: DataTypes.STRING(255),
+      defaultValue: "default-profile_image.jpg",
+      get() {
+        const rawValue = this.getDataValue("profile_image");
+        if (!rawValue) return null;
+        if (rawValue.startsWith("http")) return rawValue;
+        return `${process.env.BASE_URL}/shippers/${rawValue}`;
+      },
+    },
+    health_image: {
+      type: DataTypes.STRING(255),
+      defaultValue: "default-health_image.jpg",
+      get() {
+        const rawValue = this.getDataValue("health_image");
         if (!rawValue) return null;
         if (rawValue.startsWith("http")) return rawValue;
         return `${process.env.BASE_URL}/shippers/${rawValue}`;
@@ -76,10 +106,6 @@ const Shipper = sequelize.define(
     },
     work_area_village: {
       type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    image: {
-      type: DataTypes.STRING,
       allowNull: true,
     },
     bank_name: {

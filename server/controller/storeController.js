@@ -28,7 +28,7 @@ export const resizeStoreImages = asyncHandler(async (req, res, next) => {
 
   // Xử lý id_image
   if (req.files.id_image && req.files.id_image[0]) {
-      const idImageFilename = `citizen_id_image-${req.body.citizen_id}.jpeg`;
+      const idImageFilename = `citizen_id-${req.body.citizen_id}.jpeg`;
       await sharp(req.files.id_image[0].buffer)
           .resize(400, 400)
           .toFormat("jpeg")
@@ -39,7 +39,7 @@ export const resizeStoreImages = asyncHandler(async (req, res, next) => {
 
   // Xử lý image (avatar)
   if (req.files.image && req.files.image[0]) {
-      const avatarFilename = `store-avatar-${req.body.citizen_id}.jpeg`;
+      const avatarFilename = `avatar-${req.body.citizen_id}.jpeg`;
       await sharp(req.files.image[0].buffer)
           .resize(400, 400)
           .toFormat("jpeg")

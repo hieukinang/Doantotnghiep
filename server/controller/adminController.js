@@ -19,7 +19,7 @@ export const resizeAdminImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
   // console.log(req.file);
 
-  const filename = `${req.body.username}-${req.body.job_title}-${Date.now()}.jpeg`;
+  const filename = `${req.body.username}-${req.body.job_title}.jpeg`;
 
   await sharp(req.file.buffer)
     .resize(400, 400)
