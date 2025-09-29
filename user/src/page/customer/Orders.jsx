@@ -42,7 +42,7 @@ const Orders = () => {
                   <div className="text-sm">{o.status}</div>
                 </div>
                 <div className="flex gap-2">
-                  <Link to="/profile" className="text-sm text-[#116AD1] hover:underline">Chi tiết</Link>
+                  <Link to="/order-detail" className="text-sm text-[#116AD1] hover:underline">Chi tiết</Link>
                   <Link to="/exchange-request" className="text-sm text-[#116AD1] hover:underline">Đổi trả</Link>
                 </div>
               </div>

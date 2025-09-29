@@ -265,7 +265,7 @@ CREATE TABLE `clients` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `phone` (`phone`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -274,6 +274,7 @@ CREATE TABLE `clients` (
 
 LOCK TABLES `clients` WRITE;
 /*!40000 ALTER TABLE `clients` DISABLE KEYS */;
+INSERT INTO `clients` VALUES (1,'0989677012','$2b$12$nWCYnrITll1R6.ZjOSXnH.cdK8zvthVkE.yV4MnhDHgSOVVOI0kgq','minhtri04062003@gmail.com','Duong Minh Tri',NULL,NULL,0,'NORMAL','ACTIVE',NULL,NULL,NULL,'default-client.jpg',NULL,NULL,NULL,0,0,'2025-09-29 14:00:31','2025-09-29 14:00:31','2025-09-29 14:00:31');
 /*!40000 ALTER TABLE `clients` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -736,7 +737,10 @@ DROP TABLE IF EXISTS `shippers`;
 CREATE TABLE `shippers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `citizen_id` varchar(255) DEFAULT NULL,
-  `id_image` varchar(255) DEFAULT 'default-shipper.jpg',
+  `id_image` varchar(255) DEFAULT 'default-citizen_id_image.jpg',
+  `image` varchar(255) DEFAULT 'default-image.jpg',
+  `profile_image` varchar(255) DEFAULT 'default-profile_image.jpg',
+  `health_image` varchar(255) DEFAULT 'default-health_image.jpg',
   `email` varchar(255) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
@@ -749,7 +753,6 @@ CREATE TABLE `shippers` (
   `total_deliveries` int DEFAULT '0',
   `work_area_city` varchar(100) DEFAULT NULL,
   `work_area_village` varchar(100) DEFAULT NULL,
-  `image` varchar(255) DEFAULT NULL,
   `bank_name` varchar(100) DEFAULT NULL,
   `bank_account_number` varchar(100) DEFAULT NULL,
   `bank_account_holder_name` varchar(100) DEFAULT NULL,
@@ -888,4 +891,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-27  9:33:56
+-- Dump completed on 2025-09-29 21:01:52

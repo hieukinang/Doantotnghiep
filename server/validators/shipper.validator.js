@@ -47,8 +47,11 @@ export const registerValidator = [
 		.notEmpty().withMessage("Bank account number is required"),
 	check("bank_account_holder_name")
 		.notEmpty().withMessage("Bank account holder name is required"),
-	check("image").optional(),
-	check("profile_image").optional(),
-	check("health_image").optional(),
+	check("image")
+		.notEmpty().withMessage("ID image is required"),
+	check("profile_image")
+		.notEmpty().withMessage("Profile image is required"),
+	check("health_image")
+		.notEmpty().withMessage("Health image is required"),
 	validatorMiddleware,
 ];

@@ -1,10 +1,11 @@
 import React from 'react'
 import logo from '../assets/home/logo.svg'
+import { NavLink } from 'react-router-dom'
 
 const navItems = [
   { label: 'Đơn hàng', href: '/seller/orders' },
   { label: 'Sản phẩm', href: '/seller/add-delete-product' },
-  { label: 'Chỉnh sửa sản phẩm', href: '/seller/edit-product' },
+  { label: 'Chỉnh sửa sản phẩm', href: '/seller/update-product' },
   { label: 'Báo cáo doanh số', href: '/seller/sales-report' },
   { label: 'Đánh giá', href: '/seller/rating' },
   { label: 'Tài chính', href: '/seller/finance' },
@@ -23,13 +24,19 @@ const SellerLayout = ({ title = 'Bảng điều khiển', children }) => {
         </div>
         <nav className="p-3 space-y-1 overflow-auto">
           {navItems.map((n) => (
-            <a
+            <NavLink
               key={n.href}
-              href={n.href}
-              className="block px-3 py-2 rounded hover:bg-[#116AD1]/10 hover:text-[#116AD1] text-sm text-gray-700"
+              to={n.href}
+              className={({ isActive }) =>
+                `block px-3 py-2 rounded text-sm transition-colors
+                ${isActive
+                  ? 'bg-[#116AD1] text-white font-medium'
+                  : 'text-gray-700 hover:bg-[#116AD1]/10 hover:text-[#116AD1]'
+                }`
+              }
             >
               {n.label}
-            </a>
+            </NavLink>
           ))}
         </nav>
       </aside>
@@ -55,5 +62,3 @@ const SellerLayout = ({ title = 'Bảng điều khiển', children }) => {
 }
 
 export default SellerLayout
-
-

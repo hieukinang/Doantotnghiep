@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import SellerLayout from '../../component/SellerLayout'
 
 const cards = [
@@ -49,7 +50,7 @@ const Finance = () => {
 
       <div className="mt-6 flex gap-3">
         <button className="px-4 py-2 bg-[#116AD1] text-white rounded">Rút tiền</button>
-        <button className="px-4 py-2 border rounded">Xem báo cáo</button>
+        <Link to="/seller/sales-report" className="px-4 py-2 border rounded">Xem báo cáo</Link>
       </div>
     </SellerLayout>
   )
