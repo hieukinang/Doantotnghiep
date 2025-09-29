@@ -5,8 +5,6 @@ import {generateSendToken} from "../utils/tokenHandler.utils.js";
 import {uploadSingleImage} from "../middleware/imgUpload.middleware.js";
 
 import sharp from "sharp";
-import dayjs from "dayjs";
-
 
 import { Op } from "sequelize";
 
@@ -100,7 +98,12 @@ export const register = asyncHandler(async (req, res, next) => {
         bank_account_number,
         bank_account_holder_name
     });
-    generateSendToken(res, newAdmin, 201);
+    res.status(statusCode).json({
+    status: "success",
+    data: {
+      newAdmin,
+    },
+  });
 });
 
 export const login = asyncHandler(async (req, res, next) => {
