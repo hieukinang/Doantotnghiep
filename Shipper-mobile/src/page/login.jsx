@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Alert } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import logo from '../../assets/icon.png'; // ảnh React Native
+import logo from '../../assets/icon.png';
+import Config from 'react-native-config';
+
+
+const backendUrl = 'http://10.0.2.2:5000/api';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    emailOrPhone: '',
+    password: ''
+  });
   const navigation = useNavigation();
-  const backendUrl = 'http://localhost:5000';
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
@@ -15,16 +21,26 @@ const Login = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post(`${backendUrl}/api/shipper/login`, formData);
+      const res = await axios.post(
+        `${backendUrl}/shippers/login`,
+        {
+          emailOrPhone: formData.emailOrPhone,
+          password: formData.password,
+        },
+        {
+          headers: { "Content-Type": "application/json" }
+        }
+      );
 
-      if (res.data.success) {
+
+      if (res.status === 200) {
         Alert.alert('Success', 'Đăng nhập thành công!');
-        navigation.navigate('ShipperOrders');
+        navigation.navigate('MapScreen');
       } else {
         Alert.alert('Error', res.data.message || 'Sai thông tin đăng nhập');
       }
     } catch (err) {
-      console.error(err);
+      console.error(err.response?.data || err.message);
       Alert.alert('Error', 'Lỗi server, thử lại sau!');
     }
   };
@@ -56,8 +72,8 @@ const Login = () => {
 
           <TextInput
             placeholder="Email hoặc số điện thoại"
-            value={formData.email}
-            onChangeText={(text) => handleChange('email', text)}
+            value={formData.emailOrPhone}
+            onChangeText={(text) => handleChange('emailOrPhone', text)}
             style={styles.input}
           />
           <TextInput

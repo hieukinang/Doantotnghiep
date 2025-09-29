@@ -6,7 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // Import Shipper screens
 import Login from './page/login';
 import Register from './page/register';
-// import ShipperOrders from './page/ShipperOrders';
+import MapScreen from './page/map-screen';
 // import ShipperUpdateStatus from './page/ShipperUpdateStatus';
 // import ShipperOrderDetail from './page/ShipperOrderDetail';
 // import ShipperDeliveryHistory from './page/ShipperDeliveryHistory';
@@ -29,12 +29,12 @@ export default function App() {
           component={Register} 
           options={{ headerShown: false }} 
         />
-        {/*<Stack.Screen 
-          name="ShipperOrders" 
-          component={ShipperOrders} 
-          options={{ title: 'Orders' }} 
-        />
         <Stack.Screen 
+          name="MapScreen" 
+          component={MapScreen} 
+          options={{ headerShown: false }} 
+        />
+        {/*<Stack.Screen 
           name="ShipperUpdateStatus" 
           component={ShipperUpdateStatus} 
           options={{ title: 'Update Status' }} 

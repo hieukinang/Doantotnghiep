@@ -56,6 +56,7 @@ CREATE TABLE `admins` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
   `phone` varchar(10) DEFAULT NULL,
   `fullname` varchar(255) DEFAULT NULL,
   `role` enum('manager','staff') DEFAULT NULL,
@@ -72,7 +73,8 @@ CREATE TABLE `admins` (
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -261,6 +263,7 @@ CREATE TABLE `clients` (
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `phone` (`phone`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -733,6 +736,7 @@ DROP TABLE IF EXISTS `shippers`;
 CREATE TABLE `shippers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `citizen_id` varchar(255) DEFAULT NULL,
+  `id_image` varchar(255) DEFAULT 'default-shipper.jpg',
   `email` varchar(255) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
@@ -753,7 +757,9 @@ CREATE TABLE `shippers` (
   `is_verified_email` tinyint(1) DEFAULT '0',
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `citizen_id` (`citizen_id`),
+  UNIQUE KEY `phone` (`phone`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -804,26 +810,31 @@ DROP TABLE IF EXISTS `stores`;
 CREATE TABLE `stores` (
   `id` int NOT NULL AUTO_INCREMENT,
   `citizen_id` varchar(255) DEFAULT NULL,
+  `id_image` varchar(255) DEFAULT 'default-store.jpg',
   `name` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `email` varchar(255) DEFAULT NULL,
-  `bank_name` varchar(255) DEFAULT NULL,
-  `bank_account_number` varchar(255) DEFAULT NULL,
-  `bank_account_holder_name` varchar(255) DEFAULT NULL,
+  `bank_name` varchar(100) DEFAULT NULL,
+  `bank_account_number` varchar(100) DEFAULT NULL,
+  `bank_account_holder_name` varchar(100) DEFAULT NULL,
   `rating` int DEFAULT '0',
   `total_sales` int DEFAULT '0',
   `number_of_products` int DEFAULT '0',
-  `status` varchar(50) DEFAULT NULL,
-  `city` varchar(255) DEFAULT NULL,
-  `village` varchar(255) DEFAULT NULL,
-  `detail_address` varchar(255) DEFAULT NULL,
-  `image` varchar(255) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'PROCESS',
+  `city` varchar(100) DEFAULT NULL,
+  `village` varchar(100) DEFAULT NULL,
+  `detail_address` varchar(100) DEFAULT NULL,
+  `image` varchar(255) DEFAULT 'default-store.jpg',
   `description` varchar(255) DEFAULT NULL,
-  `is_verified_mail` tinyint(1) DEFAULT '0',
+  `is_verified_email` tinyint(1) DEFAULT '0',
+  `passwordChangedAt` datetime DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `citizen_id` (`citizen_id`),
+  UNIQUE KEY `phone` (`phone`),
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -877,4 +888,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-21  8:55:40
+-- Dump completed on 2025-09-27  9:33:56

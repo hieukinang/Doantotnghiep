@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.use(`/client`, clientRouter);
 router.use(`/store`, storeRouter);
-router.use(`/shipper`, shipperRouter);
+router.use(`/shippers`, shipperRouter);
 router.use(`/admin`, adminRouter);
 
 

@@ -2,23 +2,33 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
+import axios from 'axios';
+import Config from 'react-native-config';
+import UploadImage from '../component/upload-image';
+
 
 const Register = () => {
   const navigation = useNavigation();
-
   const [formData, setFormData] = useState({
-    fullName: '',
+    fullname: '',
     email: '',
     phone: '',
-    idCard: '',
-    city: '',
-    district: '',
-    address: '',
-    vehicleType: 'motorcycle',
-    licensePlate: '',
+    citizen_id: '',
+    work_area_city: '',
+    work_area_village: '',
+    vehicle_name: 'motorcycle',
+    license_plate: '',
+    bank_name: '',
+    bank_account_number: '',
+    bank_account_holder_name: '',
+    id_image: null,
+    image: null,
+    profile_image: null,
+    health_image: null,
     password: '',
     confirmPassword: ''
   });
+
 
   const cities = [
     'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
@@ -36,20 +46,85 @@ const Register = () => {
     'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái'
   ];
 
-  const handleChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
+  const backendUrl = 'http://10.0.2.2:5000/api';
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
   };
 
-  const handleSubmit = () => {
+
+  const handleSubmit = async () => {
     if (formData.password !== formData.confirmPassword) {
       Alert.alert('Lỗi', 'Mật khẩu xác nhận không khớp!');
       return;
     }
-    console.log('Shipper registration:', formData);
-    Alert.alert('Success', 'Đăng ký thành công!');
-    // navigation.navigate('ShipperLogin'); // chuyển sang login nếu cần
-  };
 
+    const data = new FormData();
+
+    // Thêm các field dạng text
+    data.append("citizen_id", formData.citizen_id);
+    data.append("phone", formData.phone);
+    data.append("email", formData.email);
+    data.append("password", formData.password);
+    data.append("confirmPassword", formData.confirmPassword);
+    data.append("fullname", formData.fullname);
+    data.append("vehicle_name", formData.vehicle_name);
+    data.append("license_plate", formData.license_plate);
+    data.append("work_area_city", formData.work_area_city);
+    data.append("work_area_village", formData.work_area_village);
+    data.append("bank_name", formData.bank_name);
+    data.append("bank_account_number", formData.bank_account_number);
+    data.append("bank_account_holder_name", formData.bank_account_holder_name);
+
+    // Thêm ảnh (nếu có chọn)
+    if (formData.id_image) {
+      data.append("id_image", {
+        uri: formData.id_image,   // dạng file://...
+        type: "image/jpeg",
+        name: "id_image.jpg"
+      });
+    }
+
+    if (formData.image) {
+      data.append("image", {
+        uri: formData.image,
+        type: "image/jpeg",
+        name: "vehicle.jpg"
+      });
+    }
+
+    if (formData.profile_image) {
+      data.append("profile_image", {
+        uri: formData.profile_image,
+        type: "image/jpeg",
+        name: "profile.jpg"
+      });
+    }
+
+    if (formData.health_image) {
+      data.append("health_image", {
+        uri: formData.health_image,
+        type: "image/jpeg",
+        name: "health.jpg"
+      });
+    }
+
+    try {
+      const res = await axios.post(`${backendUrl}/shippers/register`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+
+      Alert.alert("Thành công", "Đăng ký thành công!");
+      console.log("Register response:", res.data);
+      navigation.navigate("Login");
+
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Lỗi", err.response?.data?.message || "Đăng ký thất bại, vui lòng thử lại!");
+    }
+  };
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.header}>ĐĂNG KÝ SHIPPER</Text>
@@ -57,8 +132,9 @@ const Register = () => {
       <View style={styles.form}>
         <TextInput
           placeholder="Họ và tên"
-          value={formData.fullName}
-          onChangeText={(text) => handleChange('fullName', text)}
+          value={formData.fullname}
+          onChangeText={(text) => handleChange('fullname', text)}
+          keyboardType="default"
           style={styles.input}
         />
         <TextInput
@@ -77,16 +153,16 @@ const Register = () => {
         />
         <TextInput
           placeholder="Số CMND/CCCD"
-          value={formData.idCard}
-          onChangeText={(text) => handleChange('idCard', text)}
+          value={formData.citizen_id}
+          onChangeText={(text) => handleChange('citizen_id', text)}
           style={styles.input}
         />
 
         {/* Picker cho tỉnh/thành */}
         <View style={styles.pickerContainer}>
           <Picker
-            selectedValue={formData.city}
-            onValueChange={(value) => handleChange('city', value)}
+            selectedValue={formData.work_area_city}
+            onValueChange={(value) => handleChange('work_area_city', value)}
           >
             <Picker.Item label="Chọn tỉnh/thành phố" value="" />
             {cities.map(city => (
@@ -96,24 +172,18 @@ const Register = () => {
         </View>
 
         <TextInput
-          placeholder="Quận/Huyện"
-          value={formData.district}
-          onChangeText={(text) => handleChange('district', text)}
+          placeholder="Xã/Phường/Thị trấn"
+          value={formData.work_area_village}
+          onChangeText={(text) => handleChange('work_area_village', text)}
+          keyboardType="default"
           style={styles.input}
         />
-        <TextInput
-          placeholder="Địa chỉ chi tiết"
-          value={formData.address}
-          onChangeText={(text) => handleChange('address', text)}
-          style={[styles.input, { height: 80 }]}
-          multiline
-        />
 
-        {/* Picker cho loại phương tiện */}
+        {/* Loại phương tiện */}
         <View style={styles.pickerContainer}>
           <Picker
-            selectedValue={formData.vehicleType}
-            onValueChange={(value) => handleChange('vehicleType', value)}
+            selectedValue={formData.vehicle_name}
+            onValueChange={(value) => handleChange('vehicle_name', value)}
           >
             <Picker.Item label="Xe máy" value="motorcycle" />
             <Picker.Item label="Xe đạp" value="bicycle" />
@@ -123,10 +193,59 @@ const Register = () => {
 
         <TextInput
           placeholder="Biển số xe"
-          value={formData.licensePlate}
-          onChangeText={(text) => handleChange('licensePlate', text)}
+          value={formData.license_plate}
+          onChangeText={(text) => handleChange('license_plate', text)}
           style={styles.input}
         />
+
+        {/* Bank info */}
+        <TextInput
+          placeholder="Tên ngân hàng"
+          value={formData.bank_name}
+          onChangeText={(text) => handleChange('bank_name', text)}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Số tài khoản ngân hàng"
+          value={formData.bank_account_number}
+          onChangeText={(text) => handleChange('bank_account_number', text)}
+          style={styles.input}
+          keyboardType="numeric"
+        />
+        <TextInput
+          placeholder="Chủ tài khoản ngân hàng"
+          value={formData.bank_account_holder_name}
+          onChangeText={(text) => handleChange('bank_account_holder_name', text)}
+          keyboardType="default"
+          style={styles.input}
+        />
+
+        {/* Upload hình ảnh - bạn có thể dùng ImagePicker */}
+        <UploadImage
+          label="Ảnh CMND/CCCD"
+          value={formData.id_image}
+          onChange={(uri) => handleChange('id_image', uri)}
+        />
+
+        <UploadImage
+          label="Ảnh phương tiện"
+          value={formData.image}
+          onChange={(uri) => handleChange('image', uri)}
+        />
+
+        <UploadImage
+          label="Ảnh hồ sơ"
+          value={formData.profile_image}
+          onChange={(uri) => handleChange('profile_image', uri)}
+        />
+
+        <UploadImage
+          label="Ảnh giấy khám sức khỏe"
+          value={formData.health_image}
+          onChange={(uri) => handleChange('health_image', uri)}
+        />
+
+        {/* Password */}
         <TextInput
           placeholder="Mật khẩu"
           value={formData.password}
@@ -148,11 +267,12 @@ const Register = () => {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Đã có tài khoản? 
+            Đã có tài khoản?
             <Text style={styles.link} onPress={() => navigation.navigate('Login')}> Đăng nhập</Text>
           </Text>
         </View>
       </View>
+
     </ScrollView>
   );
 };

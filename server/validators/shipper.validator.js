@@ -48,5 +48,7 @@ export const registerValidator = [
 	check("bank_account_holder_name")
 		.notEmpty().withMessage("Bank account holder name is required"),
 	check("image").optional(),
+	check("profile_image").optional(),
+	check("health_image").optional(),
 	validatorMiddleware,
 ];

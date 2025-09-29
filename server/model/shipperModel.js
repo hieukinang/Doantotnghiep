@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import {sequelize} from "../config/db.js";
+import { sequelize } from "../config/db.js";
 import bcrypt from "bcrypt";
 
 // Định nghĩa bảng `shippers`
@@ -79,6 +79,14 @@ const Shipper = sequelize.define(
       allowNull: true,
     },
     image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    profile_image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    health_image: {
       type: DataTypes.STRING,
       allowNull: true,
     },
