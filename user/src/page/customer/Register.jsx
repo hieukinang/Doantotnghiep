@@ -30,7 +30,7 @@ const Register = () => {
 
 
       {/* Container chính */}
-      <div className="flex flex-1 mt-5 justify-center items-center px-4">
+      <main className="flex flex-1 mt-5 justify-center items-center px-4">
         <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
 
           {/* Left side - Hình ảnh */}
@@ -38,7 +38,7 @@ const Register = () => {
             <img
               src={image}
               alt="Shopping"
-              className="w-full h-full max-h-[500px] object-fill"
+              className="w-full h-full max-h-[650px] object-fill"
             />
           </div>
 
@@ -49,15 +49,20 @@ const Register = () => {
             </h2>
             <p className="text-gray-500 mb-6">Điền thông tin chi tiết bên dưới</p>
 
-            <form className="space-y-4">
+            <form className="space-y-6">
               <input
                 type="text"
-                placeholder="Tên"
+                placeholder="Tên người dùng"
                 className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="email"
-                placeholder="Email hoặc số điện thoại"
+                placeholder="Email (your@gmail.com)"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Số điện thoại"
                 className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
@@ -65,7 +70,11 @@ const Register = () => {
                 placeholder="Mật khẩu"
                 className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
-
+              <input
+                type="password"
+                placeholder="Xác nhận mật khẩu"
+                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              />
               <button
                 type="submit"
                 className="w-full bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700"
@@ -108,7 +117,7 @@ const Register = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
 
       <Footer />
