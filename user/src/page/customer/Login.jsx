@@ -4,6 +4,48 @@ import logo from "../../assets//home/logo.svg";
 import signinImage from "../../assets/home/signin-up.png";
 import Footer from "../../component/Footer";
 const Login = () => {
+  const [form, setForm] = React.useState({
+    emailOrPhone: "",
+    password: "",
+  });
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const [success, setSuccess] = React.useState("");
+  const navigate = window.location.replace ? null : null; // placeholder for react-router-dom v6
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/client/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess("Đăng nhập thành công!");
+        localStorage.setItem("token", data.token);
+        setTimeout(() => {
+          window.location.replace("/");
+        }, 1000);
+      } else {
+        setError(data.message || "Đăng nhập thất bại");
+      }
+    } catch (err) {
+      setError("Lỗi kết nối máy chủ");
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -18,7 +60,10 @@ const Login = () => {
         <h1 className="text-2xl font-bold">ĐĂNG NHẬP</h1>
 
         {/* Hỗ trợ */}
-        <Link to="/contact" className="cursor-pointer hover:underline text-base">
+        <Link
+          to="/contact"
+          className="cursor-pointer hover:underline text-base"
+        >
           Hỗ trợ
         </Link>
       </header>
@@ -26,7 +71,6 @@ const Login = () => {
       {/* Container chính */}
       <div className="flex flex-1 mt-5 justify-center items-center px-4">
         <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
-
           {/* Left side - Hình ảnh */}
           <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4">
             <img
@@ -41,26 +85,40 @@ const Login = () => {
             <h2 className="text-2xl font-bold text-blue-600 mb-2">
               Đăng nhập vào KOHI MALL
             </h2>
-            <p className="text-gray-500 mb-6">Điền thông tin chi tiết bên dưới</p>
+            <p className="text-gray-500 mb-6">
+              Điền thông tin chi tiết bên dưới
+            </p>
 
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <input
-                type="email"
+                type="text"
+                name="emailOrPhone"
+                value={form.emailOrPhone}
+                onChange={handleChange}
                 placeholder="Email hoặc số điện thoại"
                 className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
               <input
                 type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
                 placeholder="Mật khẩu"
                 className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
-
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+              {success && (
+                <div className="text-green-600 text-sm">{success}</div>
+              )}
               <div className="flex items-center justify-between">
                 <button
                   type="submit"
                   className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-semibold"
+                  disabled={loading}
                 >
-                  Log In
+                  {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </button>
                 <Link
                   to="/forgot-password"

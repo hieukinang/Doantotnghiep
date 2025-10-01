@@ -1,122 +1,198 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../../component/Footer";
 import logo from "../../assets/home/logo.svg";
+import { TextField, Button } from "@mui/material";
 
 const RegisterToSeller = () => {
+  const [formData, setFormData] = useState({
+    cccd: "",
+    cccd_front: null,
+    avatar: null,
+    store_name: "",
+    phone: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+    bank_name: "",
+    bank_account_number: "",
+    bank_account_holder_name: "",
+    city: "",
+    village: "",
+    detail_address: "",
+    description: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (files) {
+      setFormData({ ...formData, [name]: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(formData);
+    // Logic gửi dữ liệu lên backend sẽ thêm ở đây
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
-        {/* Logo + tên */}
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
           <span className="font-bold text-2xl">KOHI MALL</span>
         </Link>
-
-        {/* Chữ Đăng ký */}
         <h1 className="text-xl font-semibold">ĐĂNG KÝ LÀ NGƯỜI BÁN</h1>
-
-        {/* Hỗ trợ */}
         <Link to="/contact" className="cursor-pointer hover:underline text-sm">
           Hỗ trợ?
         </Link>
       </header>
 
-      {/* Container chính */}
-      <div className="flex flex-1 justify-center items-center">
-        <div className="flex w-200 h-200 shadow-lg">
-          {/* Left side */}
-          <div className="w-5/12 flex flex-col justify-center px-10 py-8 bg-[#116AD1] text-white">
-            <h2 className="text-3xl font-bold mb-6">
-              Trở thành Người bán ngay hôm nay
-            </h2>
-            <ul className="space-y-6">
-              <li className="flex items-start gap-3">
-                <span className="text-2xl">🏬</span>
-                <span>
-                  Nền tảng thương mại điện tử hàng đầu Đông Nam Á và Đài Loan
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-2xl">🌏</span>
-                <span>Phát triển trở thành thương hiệu toàn cầu</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-2xl">👥</span>
-                <span>
-                  Dẫn đầu lượng người dùng trên ứng dụng mua sắm tại Việt Nam
-                </span>
-              </li>
-            </ul>
-          </div>
+      {/* Form container */}
+      <div className="flex flex-1 justify-center items-center p-10 bg-gray-100">
+        <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-8">
+          <h2 className="text-2xl font-bold text-[#116AD1] mb-6">
+            Thông tin đăng ký Người bán
+          </h2>
 
-          {/* Middle gap */}
-          <div className="w-2/12 bg-white"></div>
+          <form
+            className="grid grid-cols-2 gap-4"
+            onSubmit={handleSubmit}
+          >
+            <TextField
+              label="Căn cước công dân"
+              name="cccd"
+              value={formData.cccd}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Ảnh mặt trước căn cước công dân"
+              name="cccd_front"
+              type="file"
+              InputLabelProps={{ shrink: true }}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Ảnh đại diện"
+              name="avatar"
+              type="file"
+              InputLabelProps={{ shrink: true }}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Tên cửa hàng"
+              name="store_name"
+              value={formData.store_name}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Số điện thoại"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Mật khẩu"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Xác nhận mật khẩu"
+              name="confirm_password"
+              type="password"
+              value={formData.confirm_password}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Ngân hàng"
+              name="bank_name"
+              value={formData.bank_name}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Số tài khoản"
+              name="bank_account_number"
+              value={formData.bank_account_number}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Chủ tài khoản"
+              name="bank_account_holder_name"
+              value={formData.bank_account_holder_name}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Thành phố"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Xã/Phường"
+              name="village"
+              value={formData.village}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Địa chỉ chi tiết"
+              name="detail_address"
+              value={formData.detail_address}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Mô tả cửa hàng"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              multiline
+              rows={3}
+              required
+            />
 
-          {/* Right side */}
-          <div className="w-5/12 flex flex-col justify-center px-10 py-8 bg-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">Đăng ký</h2>
-
-            <form className="space-y-4">
-              <input
-                type="tel"
-                placeholder="Số điện thoại"
-                className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-[#116AD1]"
-              />
-
-              <button
+            {/* Button submit spanning 2 columns */}
+            <div className="col-span-2 flex justify-end gap-4 mt-4">
+              <Button
+                type="reset"
+                variant="outlined"
+                color="error"
+              >
+                Hủy
+              </Button>
+              <Button
                 type="submit"
-                className="w-full bg-[#116AD1] text-white rounded-md py-2 font-semibold hover:bg-blue-800 transition"
+                variant="contained"
+                style={{ backgroundColor: "#116AD1" }}
               >
-                Tiếp theo
-              </button>
-
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <span className="text-gray-500 text-sm">HOẶC</span>
-                <div className="flex-1 h-px bg-gray-300"></div>
-              </div>
-
-              <button
-                type="button"
-                className="w-full border flex items-center justify-center gap-2 py-2 rounded-md hover:bg-gray-100"
-              >
-                <img
-                  src="https://www.svgrepo.com/show/355037/google.svg"
-                  alt="Google"
-                  className="w-5 h-5"
-                />
-                Đăng ký với Google
-              </button>
-            </form>
-
-            <p className="mt-4 text-sm text-gray-600">
-              Bằng việc đăng ký, bạn đồng ý với{" "}
-              <Link to="/about" className="text-[#116AD1] hover:underline">
-                Điều khoản dịch vụ
-              </Link>{" "}
-              &{" "}
-              <Link to="/about" className="text-[#116AD1] hover:underline">
-                Chính sách bảo mật
-              </Link>
-            </p>
-
-            <div className="mt-4 text-center">
-              <p className="text-sm">
-                Đã có tài khoản?{" "}
-                <Link to="/login" className="text-[#116AD1] font-semibold hover:underline">
-                  Đăng nhập
-                </Link>
-              </p>
-              <p className="text-sm mt-2">
-                Hoặc{" "}
-                <Link to="/register" className="text-[#116AD1] font-semibold hover:underline">
-                  Đăng ký tài khoản thường
-                </Link>
-              </p>
+                Đăng ký
+              </Button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
       <Footer />
