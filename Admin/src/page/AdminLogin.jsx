@@ -1,52 +1,141 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from "react";
 
 const AdminLogin = () => {
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const onSubmit = (e) => {
-    e.preventDefault()
-    navigate('/dashboard')
-  }
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess("Đăng nhập thành công!");
+        localStorage.setItem("adminToken", data.token);
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1000);
+      } else {
+        setError(data.message || "Sai tên đăng nhập hoặc mật khẩu");
+      }
+    } catch (err) {
+      setError("Lỗi kết nối máy chủ");
+    }
+    setLoading(false);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Đăng nhập Admin</h1>
-        <form onSubmit={onSubmit} className="space-y-4">
+    <div className="h-screen flex items-center justify-center bg-gray-100">
+      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-2xl border border-gray-200">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            Đăng nhập Quản trị
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Hệ thống Thương mại Điện tử DO AN MALL
+          </p>
+        </div>
+
+        <form className="space-y-6" onSubmit={handleLogin}>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="admin@example.com"
-              required
-            />
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700 text-left"
+            >
+              Email hoặc Số điện thoại
+            </label>
+            <div className="mt-1">
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="your@gmail.com hoặc số điện thoại"
+                className={`appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-blue-50 bg-opacity-30 
+                  focus:ring-[#116AD1] 
+                  ${username ? "border-[#116AD1]" : ""}
+                `}
+              />
+            </div>
           </div>
+
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Mật khẩu</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
-              required
-            />
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 text-left"
+            >
+              Mật khẩu
+            </label>
+            <div className="mt-1">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mật khẩu"
+                className={`appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-blue-50 bg-opacity-30 
+                  focus:ring-[#116AD1]
+                  ${password ? "border-[#116AD1]" : ""}
+                `}
+              />
+            </div>
           </div>
-          <button type="submit" className="w-full bg-[#116AD1] text-white py-2 rounded-md hover:opacity-90">
-            Đăng nhập
-          </button>
+
+          <div className="flex items-center justify-end">
+            <div className="text-sm">
+              <a
+                href="#"
+                className="font-medium hover:text-opacity-80 transition duration-150 ease-in-out text-[#116AD1]"
+              >
+                Quên mật khẩu?
+              </a>
+            </div>
+          </div>
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+          {success && (
+            <div className="text-green-600 text-sm text-center">{success}</div>
+          )}
+
+          <div>
+            <button
+              type="submit"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-bold text-white bg-opacity-90 hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out transform hover:scale-[1.00] 
+                bg-[#116AD1] focus:ring-[#116AD1]"
+              disabled={loading}
+            >
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            </button>
+          </div>
         </form>
+
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-400">
+            &copy; 2025 DO AN. Tất cả quyền được bảo lưu.
+          </p>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminLogin
-
-
+export default AdminLogin;
