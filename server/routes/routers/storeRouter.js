@@ -22,7 +22,7 @@ import Store from "../../model/storeModel.js";
 
 const router = express.Router();
 
-router.route("/register").post(uploadStoreImages, resizeStoreImages, registerValidator, register);
+router.route("/register").post(uploadStoreImages, registerValidator, resizeStoreImages, register);
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Store), logout);
 

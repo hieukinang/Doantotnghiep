@@ -23,7 +23,7 @@ import Shipper from "../../model/shipperModel.js";
 
 const router = express.Router();
 
-router.route("/register").post(uploadShipperImages, resizeShipperImages, registerValidator, register);
+router.route("/register").post(uploadShipperImages, registerValidator, resizeShipperImages, register);
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Shipper), logout);
 
