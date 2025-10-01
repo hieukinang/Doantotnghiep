@@ -1,8 +1,8 @@
 import Shipper from "../model/shipperModel.js";
 import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
-import {generateSendToken} from "../utils/tokenHandler.utils.js";
-import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
+import { generateSendToken } from "../utils/tokenHandler.utils.js";
+import { uploadMixOfImages } from "../middleware/imgUpload.middleware.js";
 
 import fs from "fs";
 import path from "path";
@@ -11,7 +11,7 @@ import sharp from "sharp";
 import { Op } from "sequelize";
 
 //__________IMAGES_HANDLER__________//
-// 1) UPLOADING(Multer) - upload đồng thời 2 ảnh: id_image và image
+// 1) UPLOADING(Multer) - upload đồng thời 4 ảnh: id_image, image, profile_image, health_image
 export const uploadShipperImages = uploadMixOfImages([
     { name: "id_image", maxCount: 1 },
     { name: "image", maxCount: 1 },
@@ -21,12 +21,12 @@ export const uploadShipperImages = uploadMixOfImages([
 
 // 2) PROCESSING(Sharp)
 export const resizeShipperImages = asyncHandler(async (req, res, next) => {
-  if (!req.files) return next();
+    if (!req.files) return next();
 
-  const shippersDir = path.join(process.env.FILES_UPLOADS_PATH, "shippers");
-  if (!fs.existsSync(shippersDir)) {
-      fs.mkdirSync(shippersDir, { recursive: true });
-  }
+    const shippersDir = path.join(process.env.FILES_UPLOADS_PATH, "shippers");
+    if (!fs.existsSync(shippersDir)) {
+        fs.mkdirSync(shippersDir, { recursive: true });
+    }
 
   // Xử lý id_image
   if (req.files.id_image && req.files.id_image[0]) {
@@ -39,17 +39,39 @@ export const resizeShipperImages = asyncHandler(async (req, res, next) => {
       req.body.id_image = idImageFilename;
   }
 
-  // Xử lý image (avatar)
-  if (req.files.image && req.files.image[0]) {
-      const avatarFilename = `avatar-${req.body.citizen_id || Date.now()}.jpeg`;
-      await sharp(req.files.image[0].buffer)
-          .resize(400, 400)
-          .toFormat("jpeg")
-          .jpeg({ quality: 80 })
-          .toFile(`${process.env.FILES_UPLOADS_PATH}/shippers/${avatarFilename}`);
-      req.body.image = avatarFilename;
-  }
-  // Xử lý profile_image
+    // Xử lý image (vehicle)
+    if (req.files.image && req.files.image[0]) {
+        const vehicleFilename = `vehicle-${req.body.citizen_id || Date.now()}.jpeg`;
+        await sharp(req.files.image[0].buffer)
+            .resize(400, 400)
+            .toFormat("jpeg")
+            .jpeg({ quality: 80 })
+            .toFile(`${process.env.FILES_UPLOADS_PATH}/shippers/${vehicleFilename}`);
+        req.body.image = vehicleFilename;
+    }
+
+    // Xử lý profile_image
+    if (req.files.profile_image && req.files.profile_image[0]) {
+        const profileFilename = `shipper-profile-${req.body.citizen_id || Date.now()}.jpeg`;
+        await sharp(req.files.profile_image[0].buffer)
+            .resize(400, 400)
+            .toFormat("jpeg")
+            .jpeg({ quality: 80 })
+            .toFile(`${process.env.FILES_UPLOADS_PATH}/shippers/${profileFilename}`);
+        req.body.profile_image = profileFilename;
+    }
+
+    // Xử lý health_image
+    if (req.files.health_image && req.files.health_image[0]) {
+        const healthFilename = `shipper-health-${req.body.citizen_id || Date.now()}.jpeg`;
+        await sharp(req.files.health_image[0].buffer)
+            .resize(400, 400)
+            .toFormat("jpeg")
+            .jpeg({ quality: 80 })
+            .toFile(`${process.env.FILES_UPLOADS_PATH}/shippers/${healthFilename}`);
+        req.body.health_image = healthFilename;
+    }
+    // Xử lý profile_image
   if (req.files.profile_image && req.files.profile_image[0]) {
       const profileImageFilename = `profile-${req.body.citizen_id || Date.now()}.jpeg`;
       await sharp(req.files.profile_image[0].buffer)
@@ -73,6 +95,9 @@ export const resizeShipperImages = asyncHandler(async (req, res, next) => {
 });
 
 export const register = asyncHandler(async (req, res, next) => {
+    console.log('Register request body:', req.body);
+    console.log('Register request files:', req.files);
+
     const {
         citizen_id,
         id_image,
@@ -151,19 +176,19 @@ export const register = asyncHandler(async (req, res, next) => {
 });
 
 export const login = asyncHandler(async (req, res, next) => {
-    const {emailOrPhone, password} = req.body;
+    const { emailOrPhone, password } = req.body;
     // 1) If all data entered
-    if(!emailOrPhone || !password) {
+    if (!emailOrPhone || !password) {
         return next(new APIError("Vui lòng nhập đầy đủ thông tin", 400));
     }
 
     // 2) If shipper exist && password is correct
     const shipper = await Shipper.findOne({
         where: {
-            [Op.or]: [{email: emailOrPhone}, {phone: emailOrPhone}]
+            [Op.or]: [{ email: emailOrPhone }, { phone: emailOrPhone }]
         }
     });
-    if(!shipper || !await shipper.isCorrectPassword(password)){
+    if (!shipper || !await shipper.isCorrectPassword(password)) {
         return next(new APIError("Email hoặc mật khẩu không đúng, vui lòng kiểm tra lại", 401));
     }
 
@@ -171,13 +196,13 @@ export const login = asyncHandler(async (req, res, next) => {
 });
 
 export const logout = asyncHandler(async (req, res, next) => {
-  res.cookie("token", null, {
-    expires: new Date(Date.now()),
-    httpOnly: true,
-  });
+    res.cookie("token", null, {
+        expires: new Date(Date.now()),
+        httpOnly: true,
+    });
 
-  res.status(200).json({
-    success: true,
-    message: "Logged out successfully",
-  });
+    res.status(200).json({
+        success: true,
+        message: "Logged out successfully",
+    });
 });
