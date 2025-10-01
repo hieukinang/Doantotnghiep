@@ -1,6 +1,6 @@
 import express from "express";
 import {allowedTo, isAuth} from "../../middleware/auth.middleware.js";
-import {USER_ROLES} from "../../constants/index.js";
+import {ADMIN_ROLES} from "../../constants/index.js";
 import {
   getAllBanners,
   deleteSingleBanner,
@@ -14,7 +14,7 @@ import {
 const router = express.Router();
 
 router.route("/").get(getAllBanners);
-router.use(isAuth, allowedTo(USER_ROLES.ADMIN));
+router.use(isAuth, allowedTo(ADMIN_ROLES.MANAGER));
 router.route("/").post(uploadBannerImage, resizeBannerImage, createBanner);
 router
   .route("/:id")

@@ -98,7 +98,7 @@ export const register = asyncHandler(async (req, res, next) => {
         bank_account_number,
         bank_account_holder_name
     });
-    res.status(statusCode).json({
+    res.status(201).json({
     status: "success",
     data: {
       newAdmin,
