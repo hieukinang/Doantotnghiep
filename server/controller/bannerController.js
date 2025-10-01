@@ -17,9 +17,9 @@ export const uploadBannerImage = uploadSingleImage("image");
 // 2) PROCESSING(Sharp)
 export const resizeBannerImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
-  // console.log(req.file);
+  console.log(req.user);
 
-  const filename = `banner-${req.admin.id}-${Date.now()}.jpeg`;
+  const filename = `banner-${req.user.id}-${Date.now()}.jpeg`;
 
   await sharp(req.file.buffer)
     .resize(1920, 784)

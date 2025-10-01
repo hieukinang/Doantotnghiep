@@ -10,16 +10,17 @@ import {
   uploadBannerImage,
   resizeBannerImage,
 } from "../../controller/bannerController.js";
+import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
 router.route("/").get(getAllBanners);
-router.use(isAuth, allowedTo(ADMIN_ROLES.MANAGER));
-router.route("/").post(uploadBannerImage, resizeBannerImage, createBanner);
-router
-  .route("/:id")
-  .get(getSingleBanner)
-  .patch(uploadBannerImage, resizeBannerImage, updateSingleBanner)
-  .delete(deleteSingleBanner);
+router.use(isAuth(Admin), allowedTo(ADMIN_ROLES.MANAGER));
+router.route("/create").post(uploadBannerImage, resizeBannerImage, createBanner);
+// router
+//   .route("/:id")
+//   .get(getSingleBanner)
+//   .patch(uploadBannerImage, resizeBannerImage, updateSingleBanner)
+//   .delete(deleteSingleBanner);
 
 export default router;
