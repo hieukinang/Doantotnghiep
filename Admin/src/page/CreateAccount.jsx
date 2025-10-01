@@ -122,7 +122,7 @@ function CreateAccount() {
           data.append(key, value);
         }
       });
-      const res = await fetch("http://localhost:5000/api/admin/register", {
+      const res = await fetch("http://localhost:5000/api/admins/register", {
         method: "POST",
         body: data,
       });

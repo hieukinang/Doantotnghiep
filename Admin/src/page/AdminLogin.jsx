@@ -13,7 +13,7 @@ const AdminLogin = () => {
     setSuccess("");
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/admin/login", {
+      const res = await fetch("http://127.0.0.1:5000/api/admins/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
