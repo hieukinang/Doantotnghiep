@@ -18,7 +18,7 @@ export const uploadCategoryImage = uploadSingleImage("image");
 export const resizeCategoryImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
 
-  const filename = `category-${req.admin.id}-${Date.now()}.jpeg`;
+  const filename = `category-${req.user.id}-${Date.now()}.jpeg`;
 
   await sharp(req.file.buffer)
     .resize(1250, 1600)

@@ -77,17 +77,19 @@ export const createOne = (Model) =>
 export const updateOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const [affectedRows, [doc]] = await Model.update(req.body, {
+    const [affectedRows] = await Model.update(req.body, {
       where: { id },
-      returning: true,
       individualHooks: true,
     });
 
-    if (!doc) {
+    if (!affectedRows) {
       return next(
         new APIError(`There is no document match this id : ${id}`, 404)
       );
     }
+
+    // Lấy lại bản ghi vừa update để trả về
+    const doc = await Model.findByPk(id);
 
     res.status(200).json({
       status: "success",
