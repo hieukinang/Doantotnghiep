@@ -7,10 +7,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Login from './page/login';
 import Register from './page/register';
 import MapScreen from './page/map-screen';
-// import ShipperUpdateStatus from './page/ShipperUpdateStatus';
-// import ShipperOrderDetail from './page/ShipperOrderDetail';
-// import ShipperDeliveryHistory from './page/ShipperDeliveryHistory';
-// import ShipperProfile from './page/ShipperProfile';
+import DeliveryHistoryScreen from './page/delivery-history';
+import WalletScreen from './page/wallet';
+import OrdersScreen from './page/order';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,41 +18,38 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         {/* Shipper Screens */}
-        <Stack.Screen 
-          name="Login" 
-          component={Login} 
-          options={{ headerShown: false }} 
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{ headerShown: false }}
         />
-         <Stack.Screen 
-          name="Register" 
-          component={Register} 
-          options={{ headerShown: false }} 
+        <Stack.Screen
+          name="Register"
+          component={Register}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="MapScreen" 
-          component={MapScreen} 
-          options={{ headerShown: false }} 
+        <Stack.Screen
+          name="MapScreen"
+          component={MapScreen}
+          options={{ headerShown: false }}
         />
-        {/*<Stack.Screen 
-          name="ShipperUpdateStatus" 
-          component={ShipperUpdateStatus} 
-          options={{ title: 'Update Status' }} 
+
+        {/* Thêm các màn hình mới */}
+        <Stack.Screen
+          name="DeliveryHistory"
+          component={DeliveryHistoryScreen}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="ShipperOrderDetail" 
-          component={ShipperOrderDetail} 
-          options={{ title: 'Order Detail' }} 
+        <Stack.Screen
+          name="Wallet"
+          component={WalletScreen}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="ShipperDeliveryHistory" 
-          component={ShipperDeliveryHistory} 
-          options={{ title: 'Delivery History' }} 
+        <Stack.Screen
+          name="Orders"
+          component={OrdersScreen}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="ShipperProfile" 
-          component={ShipperProfile} 
-          options={{ title: 'Profile' }} 
-        /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
