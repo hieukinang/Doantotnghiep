@@ -2,17 +2,18 @@ import APIError from "./apiError.utils.js";
 import APIFeatures, { docsFilter } from "./apiFeatures.utils.js";
 import asyncHandler from "./asyncHandler.utils.js";
 
-// GET ALL - Sequelize version
-export const getAll = (Model) =>
+/**
+ * GET ALL - Sequelize version, hỗ trợ truyền options (ví dụ: include) để lấy các entity liên quan.
+ * @param {Model} Model - Sequelize model gốc
+ * @param {Object} options - Các options bổ sung cho truy vấn Sequelize (ví dụ: { include: [...] })
+ */
+export const getAll = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
-    // _FOR_NESTED_ROUTES_ //
     let filter = {};
     if (req.filterObj) filter = req.filterObj;
 
-    // _NUM_OF_DOCUMENTS_ //
     const totalNumOfDocs = await Model.count({ where: docsFilter(req.query) });
 
-    // Build query options using APIFeatures
     const apiFeatures = new APIFeatures(Model, req.query)
       .filter()
       .sort()
@@ -20,7 +21,9 @@ export const getAll = (Model) =>
       .search()
       .paginate(totalNumOfDocs);
 
-    // Execute query
+    // Merge thêm các options truyền vào (ví dụ: include)
+    Object.assign(apiFeatures.options, options);
+
     const { docs, totalNumOfDocs: count, paginationStatus } = await apiFeatures.exec();
 
     res.status(200).json({
@@ -34,18 +37,20 @@ export const getAll = (Model) =>
     });
   });
 
-// GET ONE - Sequelize version
-export const getOne = (Model, includeOptions) =>
+/**
+ * GET ONE - Sequelize version, hỗ trợ truyền options (ví dụ: include) để lấy các entity liên quan.
+ * @param {Model} Model - Sequelize model gốc
+ * @param {Object} options - Các options bổ sung cho truy vấn Sequelize (ví dụ: { include: [...] })
+ */
+export const getOne = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const options = {
+    const findOptions = {
       where: { id },
       attributes: { exclude: ["__v"] },
+      ...options,
     };
-    if (includeOptions) {
-      options.include = includeOptions;
-    }
-    const doc = await Model.findOne(options);
+    const doc = await Model.findOne(findOptions);
 
     if (!doc) {
       return next(
@@ -61,20 +66,35 @@ export const getOne = (Model, includeOptions) =>
     });
   });
 
-// CREATE ONE - Sequelize version
-export const createOne = (Model) =>
+/**
+ * CREATE ONE - Sequelize version, hỗ trợ truyền options (ví dụ: include) để lấy các entity liên quan sau khi tạo.
+ * @param {Model} Model - Sequelize model gốc
+ * @param {Object} options - Các options bổ sung cho truy vấn Sequelize (ví dụ: { include: [...] })
+ */
+export const createOne = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
     const doc = await Model.create(req.body);
+
+    // Nếu có options.include, lấy lại bản ghi kèm liên kết
+    let docWithInclude = doc;
+    if (options.include) {
+      docWithInclude = await Model.findByPk(doc.id, { include: options.include });
+    }
+
     res.status(201).json({
       status: "success",
       data: {
-        doc,
+        doc: docWithInclude,
       },
     });
   });
 
-// UPDATE ONE - Sequelize version
-export const updateOne = (Model) =>
+/**
+ * UPDATE ONE - Sequelize version, hỗ trợ truyền options (ví dụ: include) để lấy các entity liên quan sau khi update.
+ * @param {Model} Model - Sequelize model gốc
+ * @param {Object} options - Các options bổ sung cho truy vấn Sequelize (ví dụ: { include: [...] })
+ */
+export const updateOne = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const [affectedRows] = await Model.update(req.body, {
@@ -88,9 +108,8 @@ export const updateOne = (Model) =>
       );
     }
 
-    // Lấy lại bản ghi vừa update để trả về
-    const doc = await Model.findByPk(id);
-
+    // Lấy lại bản ghi vừa update để trả về, kèm liên kết nếu có
+    let doc = await Model.findByPk(id, options);
     res.status(200).json({
       status: "success",
       data: {
@@ -99,11 +118,15 @@ export const updateOne = (Model) =>
     });
   });
 
-// DELETE ONE - Sequelize version
-export const deleteOne = (Model) =>
+/**
+ * DELETE ONE - Sequelize version, hỗ trợ truyền options (ví dụ: include) để lấy các entity liên quan trước khi xóa (nếu cần).
+ * @param {Model} Model - Sequelize model gốc
+ * @param {Object} options - Các options bổ sung cho truy vấn Sequelize (ví dụ: { include: [...] })
+ */
+export const deleteOne = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const doc = await Model.findByPk(id);
+    const doc = await Model.findByPk(id, options);
 
     if (!doc) {
       return next(

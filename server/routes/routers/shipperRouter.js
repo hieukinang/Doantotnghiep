@@ -7,7 +7,8 @@ import {
     login,
     logout,
     uploadShipperImages,
-    resizeShipperImages
+    resizeShipperImages,
+    getSingleShipper
 } from "../../controller/shipperController.js";
 
 import {
@@ -26,5 +27,8 @@ const router = express.Router();
 router.route("/register").post(uploadShipperImages, registerValidator, resizeShipperImages, register);
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Shipper), logout);
+
+router.route("/:id")
+  .get(isAuth(Shipper), getSingleShipper);
 
 export default router;

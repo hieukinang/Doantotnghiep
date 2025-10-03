@@ -9,6 +9,7 @@ import path from "path";
 import sharp from "sharp";
 
 import { Op } from "sequelize";
+import { getOne } from "../utils/refactorControllers.utils.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer) - upload đồng thời 4 ảnh: id_image, image, profile_image, health_image
@@ -206,3 +207,5 @@ export const logout = asyncHandler(async (req, res, next) => {
         message: "Logged out successfully",
     });
 });
+
+export const getSingleShipper = getOne(Shipper);

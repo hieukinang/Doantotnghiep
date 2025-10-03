@@ -38,7 +38,7 @@ CartItem.belongsTo(Cart, { foreignKey: "cartId", as: "CartItemCart" });
 CartItem.belongsTo(Product, { foreignKey: "productId", as: "CartItemProduct" });
 Cart.belongsTo(Client, { foreignKey: "clientId", as: "CartClient" });
 Cart.hasMany(CartItem, { foreignKey: "cartId", as: "CartItems" });
-Category.hasMany(Attribute, { foreignKey: "categoryId", as: "CategoryAttributes" });
+Category.hasMany(Attribute, { foreignKey: "categoryId", as: "CategoryAttributes", onDelete: "CASCADE" });
 Category.hasMany(Product, { foreignKey: "categoryId", as: "CategoryProducts" });
 Client.hasMany(Address, { foreignKey: "clientId", as: "ClientAddresses" });
 Client.hasOne(Cart, { foreignKey: "clientId", as: "ClientCart" });
