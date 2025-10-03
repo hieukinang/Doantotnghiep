@@ -80,25 +80,25 @@ export const register = asyncHandler(async (req, res, next) => {
     return next(new APIError("Số điện thoại, email tồn tại", 400));
   }
 
-  // CREATE_NEW_ADMIN
-  const newAdmin = await Admin.create({
-    username,
-    password,
-    confirmPassword,
-    email,
-    phone,
-    fullname,
-    role,
-    job_title,
-    hire_date,
-    salary,
-    address,
-    image,
-    bank_name,
-    bank_account_number,
-    bank_account_holder_name
-  });
-  res.status(201).json({
+    // CREATE_NEW_ADMIN
+    const newAdmin = await Admin.create({
+        username,
+        password,
+        confirmPassword,
+        email,
+        phone,
+        fullname,
+        role,
+        job_title,
+        hire_date,
+        salary,
+        address,
+        image,
+        bank_name,
+        bank_account_number,
+        bank_account_holder_name
+    });
+    res.status(201).json({
     status: "success",
     data: {
       newAdmin,

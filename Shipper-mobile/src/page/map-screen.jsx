@@ -1,21 +1,65 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  PanResponder,
+  Animated
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-const { width } = Dimensions.get('window');
+import Sidebar from '../component/sidebar';
+import Popup from '../component/popup';
+const MIN_HEIGHT = 300;
+const MAX_HEIGHT = 500;
 
 const MapScreen = () => {
   const navigation = useNavigation();
   const [showSidebar, setShowSidebar] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+
+  const animatedHeight = useRef(new Animated.Value(MIN_HEIGHT)).current;
+
+  // PanResponder để kéo thanh Bottom Sheet
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 5;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        let newHeight = MIN_HEIGHT - gestureState.dy;
+        if (newHeight < MIN_HEIGHT) newHeight = MIN_HEIGHT;
+        if (newHeight > MAX_HEIGHT) newHeight = MAX_HEIGHT;
+        animatedHeight.setValue(newHeight);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy < 0) {
+          // Kéo lên → bung max
+          Animated.spring(animatedHeight, {
+            toValue: MAX_HEIGHT,
+            useNativeDriver: false,
+          }).start();
+        } else {
+          // Kéo xuống → thu về min
+          Animated.spring(animatedHeight, {
+            toValue: MIN_HEIGHT,
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
-    if (!showSidebar) setShowPopup(false); // đóng popup nếu mở sidebar
+    if (!showSidebar) setShowPopup(false);
   };
 
   const togglePopup = () => {
     setShowPopup(!showPopup);
-    if (!showPopup) setShowSidebar(false); // đóng sidebar nếu mở popup
+    if (!showPopup) setShowSidebar(false);
   };
 
   const closeAll = () => {
@@ -23,23 +67,30 @@ const MapScreen = () => {
     setShowPopup(false);
   };
 
+  const confirmCancel = () => {
+    Alert.alert(
+      "Xác nhận",
+      "Bạn có chắc chắn muốn hủy đơn này?",
+      [
+        { text: "Không", style: "cancel" },
+        { text: "Có", onPress: () => console.log("Đơn hàng đã bị hủy") }
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        {/* Nút mở Sidebar */}
         <TouchableOpacity onPress={toggleSidebar}>
           <Text style={styles.menuBtn}>☰</Text>
         </TouchableOpacity>
 
-        {/* Title */}
         <Text style={styles.headerTitle}>KOHI MALL</Text>
 
-        {/* Nút mở Popup */}
         <TouchableOpacity onPress={togglePopup}>
           <Text style={styles.menuBtn}>⚙</Text>
         </TouchableOpacity>
-
       </View>
 
       {/* Map */}
@@ -48,31 +99,38 @@ const MapScreen = () => {
       </View>
 
       {/* Bottom Info Tab */}
-      <View style={styles.bottomTab}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.boxContainer}>
-            <Text style={styles.boxTitle}>Thông tin đơn hàng</Text>
-            <Text style={styles.boxText}>Mã đơn: #DH00123</Text>
-            <Text style={styles.boxText}>Địa chỉ: 123 Đường ABC, Quận X</Text>
+      <Animated.View style={[styles.bottomTab, { height: animatedHeight }]}>
+        {/* Thanh kéo */}
+        <View {...panResponder.panHandlers} style={styles.dragHandleContainer}>
+          <View style={styles.dragHandle} />
+        </View>
 
-            <View style={styles.boxRow}>
-              <TouchableOpacity
-                style={styles.buttonPrimary}
-                onPress={() => console.log('Nhận đơn')}
-              >
-                <Text style={styles.buttonText}>Nhận đơn</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.buttonOutline}
-                onPress={() => navigation.navigate('Login')}
-              >
-                <Text style={styles.buttonOutlineText}>Chi tiết</Text>
-              </TouchableOpacity>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <TouchableOpacity onPress={() => navigation.navigate('OrderDetail')}>
+            <View style={styles.boxContainer}>
+              <Text style={styles.boxText}>Mã đơn: #DH00123</Text>
+              <Text style={styles.boxText}>Địa chỉ: 123 Đường ABC, Quận X</Text>
+              <Text style={styles.boxText}>Người nhận: Nguyễn Văn A</Text>
+
+              <View style={styles.boxRow}>
+                <TouchableOpacity
+                  style={styles.buttonPrimary}
+                  onPress={() => console.log('Xác nhận giao hàng')}
+                >
+                  <Text style={styles.buttonText}>Xác nhận giao hàng</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.buttonCancel}
+                  onPress={confirmCancel}
+                >
+                  <Text style={styles.buttonCancelText}>Hủy</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-          {/* ... thêm boxContainer khác */}
+          </TouchableOpacity>
         </ScrollView>
-      </View>
+      </Animated.View>
 
       {/* Overlay */}
       {(showSidebar || showPopup) && (
@@ -85,52 +143,25 @@ const MapScreen = () => {
 
       {/* Sidebar */}
       {showSidebar && (
-        <View style={styles.sidebar}>
-          <Text style={styles.sidebarTitle}>Menu</Text>
-
-          <TouchableOpacity onPress={() => {
-            navigation.navigate("DeliveryHistory");
-            setShowSidebar(false); // đóng Sidebar sau khi bấm
-          }}>
-            <Text style={styles.sidebarItem}>Lịch sử giao hàng</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => {
-            navigation.navigate("Wallet");
-            setShowSidebar(false);
-          }}>
-            <Text style={styles.sidebarItem}>Ví tiền</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => {
-            navigation.navigate("Orders");
-            setShowSidebar(false);
-          }}>
-            <Text style={styles.sidebarItem}>Đơn hàng</Text>
-          </TouchableOpacity>
-        </View>
+        <Sidebar onClose={() => setShowSidebar(false)} />
       )}
 
       {/* Popup */}
       {showPopup && (
-        <View style={styles.popup}>
-          <Text style={styles.popupTitle}>Cài đặt</Text>
-          <TouchableOpacity onPress={closeAll}>
-            <Text style={styles.popupItem}>Đóng</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => console.log('Hồ sơ')}>
-            <Text style={styles.popupItem}>Hồ sơ</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => console.log('Đăng xuất')}>
-            <Text style={styles.popupItem}>Đăng xuất</Text>
-          </TouchableOpacity>
-        </View>
+        <Popup
+          visible={showPopup}
+          onClose={closeAll}
+          items={[
+            { label: "Hồ sơ", onPress: () => console.log("Hồ sơ") },
+            { label: "Đăng xuất", onPress: () => console.log("Đăng xuất") },
+          ]}
+        />
       )}
     </View>
   );
 };
 
-const HEADER_HEIGHT = 80; // tổng chiều cao header
+const HEADER_HEIGHT = 80;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
@@ -145,7 +176,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerTitle: { color: '#116AD1', fontSize: 20, fontWeight: 'bold' },
-
   menuBtn: { fontSize: 22, color: '#116AD1' },
 
   mapPlaceholder: {
@@ -163,14 +193,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    padding: 24,
-    height: 300,
+    padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 6,
   },
+
+  dragHandleContainer: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  dragHandle: {
+    width: 50,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#ccc',
+  },
+
   boxContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -179,28 +220,28 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     backgroundColor: '#fff',
   },
-  boxTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
   boxText: { fontSize: 14, marginBottom: 4 },
-  boxRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
+
+  boxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+
   buttonPrimary: {
+    flex: 1,
     backgroundColor: '#116AD1',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderRadius: 6,
-    width: '48%',
     alignItems: 'center',
+    marginRight: 8,
   },
   buttonText: { color: 'white', fontWeight: 'bold' },
-  buttonOutline: {
-    borderWidth: 1,
-    borderColor: '#116AD1',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+
+  buttonCancel: {
+    backgroundColor: '#FDEDED',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 6,
-    width: '48%',
     alignItems: 'center',
   },
-  buttonOutlineText: { color: '#116AD1', fontWeight: 'bold' },
+  buttonCancelText: { color: '#D32F2F', fontWeight: 'bold' },
 
   overlay: {
     position: 'absolute',
@@ -211,22 +252,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     zIndex: 15,
   },
-
-  sidebar: {
-    position: 'absolute',
-    top: HEADER_HEIGHT,
-    bottom: 0,
-    left: 0,
-    width: width * 0.7,
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRightWidth: 1,
-    borderColor: '#ccc',
-    elevation: 20,
-    zIndex: 30,
-  },
-  sidebarTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
-  sidebarItem: { fontSize: 16, paddingVertical: 10, color: '#116AD1' },
 
   popup: {
     position: 'absolute',

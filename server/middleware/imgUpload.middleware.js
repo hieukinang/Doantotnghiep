@@ -27,3 +27,6 @@ export const uploadSingleImage = (fieldName) =>
 
 export const uploadMixOfImages = (arrayOfFields) =>
   multerOptions().fields(arrayOfFields);
+
+export const uploadManyImages = (fieldName, maxCount = 20) =>
+  multerOptions().array(fieldName, maxCount);

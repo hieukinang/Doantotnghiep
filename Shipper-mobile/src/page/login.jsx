@@ -3,8 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView,
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import logo from '../../assets/icon.png';
-import Config from 'react-native-config';
-
+import { useAuth } from '../shipper-context/auth-context'; // sửa đường dẫn cho đúng
 
 const backendUrl = 'http://10.0.2.2:5000/api';
 
@@ -14,6 +13,7 @@ const Login = () => {
     password: ''
   });
   const navigation = useNavigation();
+  const { signIn } = useAuth(); // dùng signIn để lưu global state + persist
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
@@ -32,16 +32,34 @@ const Login = () => {
         }
       );
 
-
+      // Nếu backend trả 200, parse id và token theo nhiều cấu trúc khác nhau
       if (res.status === 200) {
+        const data = res.data || {};
+
+        // Một số backend trả { id, token }, một số trả { user: { id, ... }, token }, hoặc { shipper: { id } }
+        const possibleId =
+          data.id ||
+          data.user?.id ||
+          data.userId ||
+          data.shipper?.id ||
+          data.data?.id ||
+          data.result?.id;
+
+        // token nếu có
+        const possibleToken = data.token || data.accessToken || data.jwt;
+
+        // Gọi signIn để lưu vào Context (và AsyncStorage bên trong signIn nếu bạn bật persist)
+        await signIn({ id: possibleId, token: possibleToken }, true);
+
         Alert.alert('Success', 'Đăng nhập thành công!');
-        navigation.navigate('MapScreen');
+        navigation.replace('MapScreen'); // replace để không back về login
       } else {
-        Alert.alert('Error', res.data.message || 'Sai thông tin đăng nhập');
+        Alert.alert('Error', res.data?.message || 'Sai thông tin đăng nhập');
       }
     } catch (err) {
       console.error(err.response?.data || err.message);
-      Alert.alert('Error', 'Lỗi server, thử lại sau!');
+      const msg = err.response?.data?.message || 'Lỗi server, thử lại sau!';
+      Alert.alert('Error', msg);
     }
   };
 
@@ -75,6 +93,8 @@ const Login = () => {
             value={formData.emailOrPhone}
             onChangeText={(text) => handleChange('emailOrPhone', text)}
             style={styles.input}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
           <TextInput
             placeholder="Mật khẩu"
