@@ -26,8 +26,8 @@ router
     isAuth(Admin),
     allowedTo(ADMIN_ROLES.MANAGER),
     uploadCategoryImage,
-    resizeCategoryImage,
     createCategoryValidator,
+    resizeCategoryImage,
     createCategory
   );
 router
@@ -37,8 +37,8 @@ router
     isAuth(Admin),
     allowedTo(ADMIN_ROLES.MANAGER),
     uploadCategoryImage,
-    resizeCategoryImage,
     updateCategoryValidator,
+    resizeCategoryImage,
     updateSingleCategory
   )
   .delete(

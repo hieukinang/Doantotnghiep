@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import logo from '../../assets/icon.png';
 import { useAuth } from '../shipper-context/auth-context'; // sửa đường dẫn cho đúng
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const backendUrl = 'http://10.0.2.2:5000/api';
 
@@ -27,41 +28,39 @@ const Login = () => {
           emailOrPhone: formData.emailOrPhone,
           password: formData.password,
         },
-        {
-          headers: { "Content-Type": "application/json" }
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      // Nếu backend trả 200, parse id và token theo nhiều cấu trúc khác nhau
-      if (res.status === 200) {
-        const data = res.data || {};
+      console.log("LOGIN RESPONSE:", res.data);
 
-        // Một số backend trả { id, token }, một số trả { user: { id, ... }, token }, hoặc { shipper: { id } }
-        const possibleId =
-          data.id ||
-          data.user?.id ||
-          data.userId ||
-          data.shipper?.id ||
-          data.data?.id ||
-          data.result?.id;
+      if (res.status === 200 && res.data.status === "success") {
+        const user = res.data?.data?.user;
+        const token = res.data?.token;
+        const shipperId = user?.id;
 
-        // token nếu có
-        const possibleToken = data.token || data.accessToken || data.jwt;
+        if (!shipperId) {
+          Alert.alert("Error", "Không tìm thấy ID trong phản hồi từ server");
+          return;
+        }
 
-        // Gọi signIn để lưu vào Context (và AsyncStorage bên trong signIn nếu bạn bật persist)
-        await signIn({ id: possibleId, token: possibleToken }, true);
+        // lưu id vào AsyncStorage
+        await AsyncStorage.setItem("shipperId", shipperId.toString());
 
-        Alert.alert('Success', 'Đăng nhập thành công!');
-        navigation.replace('MapScreen'); // replace để không back về login
+        // lưu vào context
+        await signIn({ id: shipperId, token }, true);
+
+        Alert.alert("Success", "Đăng nhập thành công!");
+        navigation.replace("MapScreen");
       } else {
-        Alert.alert('Error', res.data?.message || 'Sai thông tin đăng nhập');
+        Alert.alert("Error", res.data?.message || "Sai thông tin đăng nhập");
       }
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      const msg = err.response?.data?.message || 'Lỗi server, thử lại sau!';
-      Alert.alert('Error', msg);
+      console.error("LOGIN ERROR:", err.response?.data || err.message);
+      const msg = err.response?.data?.message || "Lỗi server, thử lại sau!";
+      Alert.alert("Error", msg);
     }
   };
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
