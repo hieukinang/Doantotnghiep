@@ -13,6 +13,7 @@ const ProductVariant = sequelize.define(
     sku_code: {
       type: DataTypes.STRING(50),
       allowNull: true,
+      unique: true,
     },
     price: {
       type: DataTypes.FLOAT,
@@ -25,6 +26,7 @@ const ProductVariant = sequelize.define(
         model: Product,
         key: "id",
       },
+      onDelete: "CASCADE",
     },
   },
   {

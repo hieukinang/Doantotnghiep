@@ -63,6 +63,14 @@ app.use(
   })
 );
 
+// Thêm hỗ trợ cho form-urlencoded (để nhận dữ liệu từ form truyền lên)
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "15kb",
+  })
+);
+
 // Thêm cookieParser vào sau body parser
 app.use(cookieParser());
 

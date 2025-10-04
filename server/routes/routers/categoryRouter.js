@@ -27,7 +27,7 @@ router
 router.use(isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER));
 
 router
-  .post(
+  .post("/",
     uploadCategoryImage,
     createCategoryValidator,
     resizeCategoryImage,

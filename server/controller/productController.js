@@ -68,7 +68,13 @@ export const resizeProductImages = asyncHandler(async (req, res, next) => {
 // @access  Private("ADMIN")
 export const createProduct = asyncHandler(async (req, res, next) => {
   // 1. Tạo product
-  const product = await Product.create(req.body);
+  const product = await Product.create({
+    name: req.body.name,
+    description: req.body.description,
+    main_image: req.body.main_image,
+    categoryId: req.body.categoryId,
+    storeId: req.user.id
+  });
 
   // 2. Nếu có slide_images (tên file đã được resizeProductImages gán vào req.body.slide_images)
   if (Array.isArray(req.body.slide_images) && req.body.slide_images.length > 0) {
@@ -107,7 +113,7 @@ export const getSingleProduct = getOne(Product, {
 // @desc    UPDATE Single Product
 // @route   PATCH /api/products/:id
 // @access  Private("ADMIN")
-// export const updateSingleProduct = updateOne(Product);
+export const updateSingleProduct = updateOne(Product);
 
 // @desc    DELETE Single Product
 // @route   DELETE /api/products/:id

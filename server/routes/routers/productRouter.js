@@ -5,7 +5,10 @@ import {
   uploadProductImages,
   resizeProductImages,
   getSingleProduct,
+  updateSingleProduct,
 } from "../../controller/productController.js";
+
+import {createProductVariant} from "../../controller/productVariantController.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
 import {
@@ -20,12 +23,12 @@ const router = express.Router();
 
 // NESTED_ROUTES_[GET reviews which belongs to specific product, CREATE a review on a specific product]
 
+router.use(isAuth(Store), checkStoreStatus);
+
 router
   .route("/")
   .get(getAllProducts)
   .post(
-    isAuth(Store),
-    checkStoreStatus,
     uploadProductImages,
     createProductValidator,
     resizeProductImages,
@@ -34,15 +37,19 @@ router
 
 router
   .route("/:id")
-  .get(getSingleProduct);
-  // .patch(
-  //   isAuth,
-  //   allowedTo(USER_ROLES.ADMIN),
-  //   uploadProductImages,
-  //   resizeProductImages,
-  //   updateProductValidator,
-  //   updateSingleProduct
-  // )
+  .post(
+    createProductVariant
+  )
+
+router
+  .route("/:id")
+  .get(getSingleProduct)
+  .patch(
+    uploadProductImages,
+    createProductValidator,
+    resizeProductImages,
+    updateSingleProduct
+  )
   // .delete(
   //   isAuth,
   //   allowedTo(USER_ROLES.ADMIN),
