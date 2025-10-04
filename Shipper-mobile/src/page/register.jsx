@@ -151,6 +151,21 @@ const Register = () => {
           style={styles.input}
           keyboardType="phone-pad"
         />
+        {/* Password */}
+        <TextInput
+          placeholder="Mật khẩu"
+          value={formData.password}
+          onChangeText={(text) => handleChange('password', text)}
+          style={styles.input}
+          secureTextEntry
+        />
+        <TextInput
+          placeholder="Xác nhận mật khẩu"
+          value={formData.confirmPassword}
+          onChangeText={(text) => handleChange('confirmPassword', text)}
+          style={styles.input}
+          secureTextEntry
+        />
         <TextInput
           placeholder="Số CMND/CCCD"
           value={formData.citizen_id}
@@ -245,21 +260,7 @@ const Register = () => {
           onChange={(uri) => handleChange('health_image', uri)}
         />
 
-        {/* Password */}
-        <TextInput
-          placeholder="Mật khẩu"
-          value={formData.password}
-          onChangeText={(text) => handleChange('password', text)}
-          style={styles.input}
-          secureTextEntry
-        />
-        <TextInput
-          placeholder="Xác nhận mật khẩu"
-          value={formData.confirmPassword}
-          onChangeText={(text) => handleChange('confirmPassword', text)}
-          style={styles.input}
-          secureTextEntry
-        />
+        
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Đăng ký Shipper</Text>

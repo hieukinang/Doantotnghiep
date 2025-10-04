@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView,
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import logo from '../../assets/icon.png';
-import Config from 'react-native-config';
-
+import { useAuth } from '../shipper-context/auth-context'; // sửa đường dẫn cho đúng
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const backendUrl = 'http://10.0.2.2:5000/api';
 
@@ -14,6 +14,7 @@ const Login = () => {
     password: ''
   });
   const navigation = useNavigation();
+  const { signIn } = useAuth(); // dùng signIn để lưu global state + persist
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
@@ -27,23 +28,39 @@ const Login = () => {
           emailOrPhone: formData.emailOrPhone,
           password: formData.password,
         },
-        {
-          headers: { "Content-Type": "application/json" }
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
+      console.log("LOGIN RESPONSE:", res.data);
 
-      if (res.status === 200) {
-        Alert.alert('Success', 'Đăng nhập thành công!');
-        navigation.navigate('MapScreen');
+      if (res.status === 200 && res.data.status === "success") {
+        const user = res.data?.data?.user;
+        const token = res.data?.token;
+        const shipperId = user?.id;
+
+        if (!shipperId) {
+          Alert.alert("Error", "Không tìm thấy ID trong phản hồi từ server");
+          return;
+        }
+
+        // lưu id vào AsyncStorage
+        await AsyncStorage.setItem("shipperId", shipperId.toString());
+
+        // lưu vào context
+        await signIn({ id: shipperId, token }, true);
+
+        Alert.alert("Success", "Đăng nhập thành công!");
+        navigation.replace("MapScreen");
       } else {
-        Alert.alert('Error', res.data.message || 'Sai thông tin đăng nhập');
+        Alert.alert("Error", res.data?.message || "Sai thông tin đăng nhập");
       }
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      Alert.alert('Error', 'Lỗi server, thử lại sau!');
+      console.error("LOGIN ERROR:", err.response?.data || err.message);
+      const msg = err.response?.data?.message || "Lỗi server, thử lại sau!";
+      Alert.alert("Error", msg);
     }
   };
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -75,6 +92,8 @@ const Login = () => {
             value={formData.emailOrPhone}
             onChangeText={(text) => handleChange('emailOrPhone', text)}
             style={styles.input}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
           <TextInput
             placeholder="Mật khẩu"
