@@ -2,6 +2,7 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
 import Category from "./categoryModel.js";
 import Store from "./storeModel.js";
+import { PRODUCT_STATUS } from "../constants/index.js";
 
 const Product = sequelize.define(
   "Product",
@@ -77,8 +78,9 @@ const Product = sequelize.define(
       },
     },
     status: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
+      type: DataTypes.ENUM(...Object.values(PRODUCT_STATUS)),
+      allowNull: false,
+      defaultValue: PRODUCT_STATUS.ACTIVE,
     },
     categoryId: {
       type: DataTypes.INTEGER,

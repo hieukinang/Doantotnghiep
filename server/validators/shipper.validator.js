@@ -2,14 +2,35 @@ import validatorMiddleware from "../middleware/validator.middleware.js";
 import { check } from "express-validator";
 import { isPasswordsMatches, isUnique } from "./custom.validators.js";
 import Shipper from "../model/shipperModel.js";
+import { SHIPPER_STATUS } from "../constants/index.js";
+
+// Custom middleware kiểm tra file ảnh
+const checkShipperImages = (req, res, next) => {
+  const requiredFields = ["id_image", "image", "profile_image", "health_image"];
+  const errors = [];
+
+  requiredFields.forEach((field) => {
+    // Nếu không có file hoặc file rỗng
+    if (!req.files || !req.files[field] || req.files[field].length === 0) {
+      errors.push({
+        msg: `${field.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())} is required`,
+        param: field,
+        location: "files",
+      });
+    }
+  });
+
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  }
+  next();
+};
 
 export const registerValidator = [
 	check("citizen_id")
 		.notEmpty().withMessage("Citizen ID is required")
 		.isString().withMessage("Citizen ID must be a string")
 		.custom((val) => isUnique(val, Shipper, "citizen_id")),
-	check("id_image")
-		.notEmpty().withMessage("ID image is required"),
 	check("phone")
 		.notEmpty().withMessage("Phone is required")
 		.isString().withMessage("Phone must be a string")
@@ -47,11 +68,6 @@ export const registerValidator = [
 		.notEmpty().withMessage("Bank account number is required"),
 	check("bank_account_holder_name")
 		.notEmpty().withMessage("Bank account holder name is required"),
-	check("image")
-		.notEmpty().withMessage("ID image is required"),
-	check("profile_image")
-		.notEmpty().withMessage("Profile image is required"),
-	check("health_image")
-		.notEmpty().withMessage("Health image is required"),
+	checkShipperImages, // kiểm tra file ảnh
 	validatorMiddleware,
 ];

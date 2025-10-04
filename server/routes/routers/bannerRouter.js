@@ -4,23 +4,22 @@ import {ADMIN_ROLES} from "../../constants/index.js";
 import {
   getAllBanners,
   deleteSingleBanner,
-  createBanner,
-  updateSingleBanner,
+  createManyBanners,
   getSingleBanner,
-  uploadBannerImage,
-  resizeBannerImage,
+  resizeBannerImages,
 } from "../../controller/bannerController.js";
+import {checkAdminStatus} from "../../validators/status.validator.js";
+import {uploadManyImages} from "../../middleware/imgUpload.middleware.js";
 import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
 router.route("/").get(getAllBanners);
-router.use(isAuth(Admin), allowedTo(ADMIN_ROLES.MANAGER));
-router.route("/create").post(uploadBannerImage, resizeBannerImage, createBanner);
-// router
-//   .route("/:id")
-//   .get(getSingleBanner)
-//   .patch(uploadBannerImage, resizeBannerImage, updateSingleBanner)
-//   .delete(deleteSingleBanner);
+router.use(isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER));
+router.route("/create").post(uploadManyImages("images"), resizeBannerImages, createManyBanners);
+router
+  .route("/:id")
+  .get(getSingleBanner)
+  .delete(deleteSingleBanner);
 
 export default router;

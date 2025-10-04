@@ -2,7 +2,6 @@ import Product from "../model/productModel.js";
 import {
   getAll,
   getOne,
-  createOne,
   updateOne,
   deleteOne,
 } from "../utils/refactorControllers.utils.js";
@@ -10,21 +9,24 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
 import sharp from "sharp";
 
+import ProductImage from "../model/productImageModel.js";
+
+
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer)
 export const uploadProductImages = uploadMixOfImages([
-  {name: "image", maxCount: 1},
-  {name: "sliderImages", maxCount: 4},
+  {name: "main_image", maxCount: 1},
+  {name: "slide_images", maxCount: 5},
 ]);
 
 // 2) PROCESSING(Sharp)
 export const resizeProductImages = asyncHandler(async (req, res, next) => {
   if (!req.files) return next();
-  // a) image field
-  if (req.files.image) {
-    const mainImageFilename = `product-${req.user._id}-${Date.now()}-main.jpeg`;
+  // a) main_image field
+  if (req.files.main_image) {
+    const mainImageFilename = `product-${req.user.id}-${Date.now()}-main.jpeg`;
     // console.log(req.files);
-    await sharp(req.files.image[0].buffer)
+    await sharp(req.files.main_image[0].buffer)
       .resize(800, 800)
       .toFormat("jpeg")
       .jpeg({quality: 90})
@@ -32,15 +34,15 @@ export const resizeProductImages = asyncHandler(async (req, res, next) => {
         `${process.env.FILES_UPLOADS_PATH}/products/${mainImageFilename}`
       );
     // put it in req.body to access it when we access createProduct, updateSingleProduct to save the filename into database
-    req.body.image = mainImageFilename;
+    req.body.main_image = mainImageFilename;
   }
 
-  // b) sliderImages field
-  if (req.files.sliderImages) {
-    req.body.sliderImages = [];
+  // b) slide_images field
+  if (req.files.slide_images) {
+    req.body.slide_images = [];
     await Promise.all(
-      req.files.sliderImages.map(async (img, idx) => {
-        const sliderImageName = `product-${req.user._id}-${Date.now()}-slide-${
+      req.files.slide_images.map(async (img, idx) => {
+        const sliderImageName = `product-${req.user.id}-${Date.now()}-slide-${
           idx + 1
         }.jpeg`;
 
@@ -49,11 +51,11 @@ export const resizeProductImages = asyncHandler(async (req, res, next) => {
           .toFormat("jpeg")
           .jpeg({quality: 90})
           .toFile(
-            `${process.env.FILES_UPLOADS_PATH}/products/${sliderImageName}`
+            `${process.env.FILES_UPLOADS_PATH}/productSliceImages/${sliderImageName}`
           );
 
         // put it in req.body to access it when we access createProduct, updateSingleProduct to save the filename into database
-        req.body.sliderImages.push(sliderImageName);
+        req.body.slide_images.push(sliderImageName);
       })
     );
   }
@@ -64,7 +66,31 @@ export const resizeProductImages = asyncHandler(async (req, res, next) => {
 // @desc    CREATE A Product
 // @route   POST /api/products
 // @access  Private("ADMIN")
-export const createProduct = createOne(Product);
+export const createProduct = asyncHandler(async (req, res, next) => {
+  // 1. Tạo product
+  const product = await Product.create(req.body);
+
+  // 2. Nếu có slide_images (tên file đã được resizeProductImages gán vào req.body.slide_images)
+  if (Array.isArray(req.body.slide_images) && req.body.slide_images.length > 0) {
+    const productImages = req.body.slide_images.map((img) => ({
+      image_url: img,
+      productId: product.id,
+    }));
+    await ProductImage.bulkCreate(productImages);
+  }
+
+  // 3. Lấy lại product kèm các ProductImages vừa tạo
+  const productWithImages = await Product.findByPk(product.id, {
+    include: [{ model: ProductImage, as: "ProductImages" }],
+  });
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      product: productWithImages,
+    },
+  });
+});
 
 // @desc    GET All Products
 // @route   GET /api/products
@@ -74,27 +100,29 @@ export const getAllProducts = getAll(Product);
 // @desc    GET Single Product
 // @route   GET /api/products/:id
 // @access  Public
-export const getSingleProduct = getOne(Product, "reviews");
+export const getSingleProduct = getOne(Product, {
+  include: [{ model: ProductImage, as: "ProductImages" }],
+});
 
 // @desc    UPDATE Single Product
 // @route   PATCH /api/products/:id
 // @access  Private("ADMIN")
-export const updateSingleProduct = updateOne(Product);
+// export const updateSingleProduct = updateOne(Product);
 
 // @desc    DELETE Single Product
 // @route   DELETE /api/products/:id
 // @access  Private("ADMIN")
-export const deleteSingleProduct = deleteOne(Product);
+// export const deleteSingleProduct = deleteOne(Product);
 
 // @desc    GET Top Aliases(Rated-Sold-Sales) Product
 // @route   ex: GET /api/products?sort=-ratingAverage&limit=7 GET /api/products/top-rated
 // @access  Public
-export const getTopAliases = (sortOption) => {
-  return (req, res, next) => {
-    req.query.limit = "7";
-    req.query.sort = `${sortOption}`;
-    req.query.fields =
-      "name price image discount ratingAverage reviewsNumber quantityInStock";
-    next();
-  };
-};
+// export const getTopAliases = (sortOption) => {
+//   return (req, res, next) => {
+//     req.query.limit = "7";
+//     req.query.sort = `${sortOption}`;
+//     req.query.fields =
+//       "name price image discount ratingAverage reviewsNumber quantityInStock";
+//     next();
+//   };
+// };

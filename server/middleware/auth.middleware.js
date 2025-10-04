@@ -2,6 +2,7 @@ import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import { verifyToken } from "../utils/tokenHandler.utils.js";
 
+
 export const isAuth = (Model) =>
   asyncHandler(async (req, res, next) => {
     let token;

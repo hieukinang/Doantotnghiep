@@ -3,7 +3,7 @@ import {check} from "express-validator";
 import {
   isReviewedBefore,
   didYouOwner,
-  didYouOwnerOrAdmin,
+  // didYouOwnerOrAdmin,
 } from "./custom.validators.js";
 import Review from "../model/reviewModel.js";
 
@@ -60,10 +60,10 @@ export const updateReviewValidator = [
     .withMessage("Review rating must be between 1 and 5"),
   validatorMiddleware,
 ];
-export const deleteReviewValidator = [
-  check("id")
-    .isMongoId()
-    .withMessage("Invalid id format")
-    .custom((val, {req}) => didYouOwnerOrAdmin(val, Review, req)),
-  validatorMiddleware,
-];
+// export const deleteReviewValidator = [
+//   check("id")
+//     .isMongoId()
+//     .withMessage("Invalid id format")
+//     .custom((val, {req}) => didYouOwnerOrAdmin(val, Review, req)),
+//   validatorMiddleware,
+// ];

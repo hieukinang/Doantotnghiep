@@ -2,6 +2,8 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
 import bcrypt from "bcrypt";
 
+import { SHIPPER_STATUS } from "../constants/index.js";
+
 // Định nghĩa bảng `shippers`
 const Shipper = sequelize.define(
   "Shipper",
@@ -77,8 +79,9 @@ const Shipper = sequelize.define(
       allowNull: true,
     },
     status: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
+      type: DataTypes.ENUM(...Object.values(SHIPPER_STATUS)),
+      allowNull: false,
+      defaultValue: SHIPPER_STATUS.PROCESSING,
     },
     is_available: {
       type: DataTypes.BOOLEAN,

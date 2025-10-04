@@ -20,6 +20,11 @@ const Banner = sequelize.define(
         return `${process.env.BASE_URL}/banners/${rawValue}`;
       },
     },
+    type: {
+      type: DataTypes.ENUM("sidebar", "fixed"),
+      allowNull: false,
+      defaultValue: "sidebar",
+    },
     adminId: {
       type: DataTypes.INTEGER,
       allowNull: true,

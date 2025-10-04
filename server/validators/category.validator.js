@@ -12,15 +12,18 @@ export const getCategoryValidator = [
 ];
 
 export const createCategoryValidator = [
+  (req, res, next) => {
+    if (!req.file) {
+      return res.status(400).json({ errors: [{ msg: "Category must have image", param: "image", location: "body" }] });
+    }
+    next();
+  },
   check("name")
     .notEmpty()
     .withMessage("Category name is required")
     .isLength({ min: 3, max: 30 })
     .withMessage("Category name must be between 3 and 30 characters")
     .custom((val) => isUnique(val, Category, "name")),
-  check("image")
-    .notEmpty()
-    .withMessage("Category must have image"),
   check("description")
     .optional()
     .isLength({ min: 20, max: 255 })

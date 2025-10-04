@@ -14,17 +14,14 @@ const Attribute = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    data_type: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
     categoryId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: Category,
         key: "id",
       },
+      onDelete: "CASCADE",
     },
   },
   {

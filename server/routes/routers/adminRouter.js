@@ -19,7 +19,12 @@ import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
-router.route("/register").post(uploadStoreImage, resizeAdminImage, registerValidator, register);
+router.route("/register").post(
+  uploadStoreImage,      // nếu hợp lệ mới upload file
+  registerValidator,     // validate dữ liệu trước
+  resizeAdminImage,      // xử lý ảnh
+  register
+);
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Admin), logout);
 

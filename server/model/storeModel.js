@@ -85,9 +85,9 @@ const Store = sequelize.define(
       defaultValue: 0,
     },
     status: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      defaultValue: STORE_STATUS.PROCESS,
+      type: DataTypes.ENUM(...Object.values(STORE_STATUS)),
+      allowNull: false,
+      defaultValue: STORE_STATUS.PROCESSING,
     },
     city: {
       type: DataTypes.STRING(100),

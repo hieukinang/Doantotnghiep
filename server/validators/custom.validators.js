@@ -1,4 +1,4 @@
-import {USER_ROLES} from "../constants/index.js";
+// import {USER_ROLES} from "../constants/index.js";
 
 //__CHECK(By FieldName)_Field_isUnique__//
 export const isUnique = async (val, Model, fieldName) => {
@@ -62,15 +62,15 @@ export const didYouOwner = async (val, Model, req) => {
 };
 
 //_CHECK_OWNER_OR_ADMIN_BEFORE_UPDATING_//
-export const didYouOwnerOrAdmin = async (val, Model, req) => {
-  // user can only delete his or her reviews, but admin can delete any review
-  if (req.user.role === USER_ROLES.USER) {
-    const reviewSelected = await Model.findByPk(val, { include: ['user'] });
-    if (!reviewSelected) {
-      throw new Error(`No Reviews matches with this id: ${val}`);
-    }
-    if (!reviewSelected.user || reviewSelected.user.id !== req.user.id) {
-      throw new Error(`You are only allowed to delete your reviews`);
-    }
-  }
-};
+// export const didYouOwnerOrAdmin = async (val, Model, req) => {
+//   // user can only delete his or her reviews, but admin can delete any review
+//   if (req.user.role === USER_ROLES.USER) {
+//     const reviewSelected = await Model.findByPk(val, { include: ['user'] });
+//     if (!reviewSelected) {
+//       throw new Error(`No Reviews matches with this id: ${val}`);
+//     }
+//     if (!reviewSelected.user || reviewSelected.user.id !== req.user.id) {
+//       throw new Error(`You are only allowed to delete your reviews`);
+//     }
+//   }
+// };
