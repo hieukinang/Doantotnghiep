@@ -57,7 +57,7 @@ const Header = () => {
       <div className="py-2">
         <div className="max-w-7xl mx-auto px-5 flex justify-between items-center">
           <div className="flex gap-5">
-            <Link to="/seller" className="text-white text-sm hover:opacity-80">
+            <Link to="/seller/login" className="text-white text-sm hover:opacity-80">
               Vào kênh người bán
             </Link>
             <Link
