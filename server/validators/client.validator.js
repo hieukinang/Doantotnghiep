@@ -1,3 +1,4 @@
+import { CLIENT_STATUS } from "../constants/index.js";
 import validatorMiddleware from "../middleware/validator.middleware.js";
 import {check} from "express-validator";
 import Client from "../model/clientModel.js";
@@ -13,7 +14,7 @@ export const registerValidator = [
     .withMessage("Username minimum length 3 characters")
     .isLength({max: 30})
     .withMessage("Username maximum length 30 characters"),
-    check("phone")
+  check("phone")
     .notEmpty()
     .withMessage("Phone is required")
     .isString()

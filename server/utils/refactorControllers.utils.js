@@ -66,25 +66,13 @@ export const getOne = (Model, options = {}) =>
     });
   });
 
-/**
- * CREATE ONE - Sequelize version, hỗ trợ truyền options (ví dụ: include) để lấy các entity liên quan sau khi tạo.
- * @param {Model} Model - Sequelize model gốc
- * @param {Object} options - Các options bổ sung cho truy vấn Sequelize (ví dụ: { include: [...] })
- */
-export const createOne = (Model, options = {}) =>
+export const createOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     const doc = await Model.create(req.body);
-
-    // Nếu có options.include, lấy lại bản ghi kèm liên kết
-    let docWithInclude = doc;
-    if (options.include) {
-      docWithInclude = await Model.findByPk(doc.id, { include: options.include });
-    }
-
     res.status(201).json({
       status: "success",
       data: {
-        doc: docWithInclude,
+        doc,
       },
     });
   });

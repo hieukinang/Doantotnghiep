@@ -10,6 +10,7 @@ import {
   uploadCategoryImage,
   resizeCategoryImage,
 } from "../../controller/categoryController.js";
+import {checkAdminStatus} from "../../validators/status.validator.js";
 import {
   getCategoryValidator,
   createCategoryValidator,
@@ -21,10 +22,12 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(getAllCategories)
+  .get(getAllCategories);
+  
+router.use(isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER));
+
+router
   .post(
-    isAuth(Admin),
-    allowedTo(ADMIN_ROLES.MANAGER),
     uploadCategoryImage,
     createCategoryValidator,
     resizeCategoryImage,
@@ -34,16 +37,12 @@ router
   .route("/:id")
   .get(getCategoryValidator, getSingleCategory)
   .patch(
-    isAuth(Admin),
-    allowedTo(ADMIN_ROLES.MANAGER),
     uploadCategoryImage,
     updateCategoryValidator,
     resizeCategoryImage,
     updateSingleCategory
   )
   .delete(
-    isAuth(Admin),
-    allowedTo(ADMIN_ROLES.MANAGER),
     deleteCategoryValidator,
     deleteSingleCategory
   );

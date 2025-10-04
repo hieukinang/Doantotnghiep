@@ -73,7 +73,7 @@ Product.belongsTo(Store, { foreignKey: "storeId", as: "ProductStore" });
 Product.hasMany(CartItem, { foreignKey: "productId", as: "ProductCartItems" });
 Product.hasMany(Coupon, { foreignKey: "productId", as: "ProductCoupons" });
 Product.hasMany(Favorite, { foreignKey: "productId", as: "ProductFavorites" });
-Product.hasMany(ProductImage, { foreignKey: "productId", as: "ProductImages" });
+Product.hasMany(ProductImage, { foreignKey: "productId", as: "ProductImages", onDelete: "CASCADE" });
 Product.hasMany(ProductVariant, { foreignKey: "productId", as: "ProductVariants" });
 Product.hasMany(Review, { foreignKey: "productId", as: "ProductReviews" });
 ProductVariant.belongsTo(Product, { foreignKey: "productId", as: "ProductVariantProduct" });
