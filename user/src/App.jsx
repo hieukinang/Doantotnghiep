@@ -30,7 +30,9 @@ import Rating from "./page/seller/Rating";
 import SalesReport from "./page/seller/SalesReport";
 import ForgotPassword from "./page/customer/ForgotPassword";
 import OrderDetailSeller from "./page/seller/OrderDetailSeller";
+
 import ShopContextProvider from "./context/ShopContext";
+import LoginSeller from "./page/seller/LoginSeller";
 
 function App() {
   return (
@@ -72,6 +74,7 @@ function App() {
           <Route path="/seller/rating" element={<Rating />} />
           <Route path="/seller/sales-report" element={<SalesReport />} />
           <Route path="/seller/order-detail" element={<OrderDetailSeller />} />
+          <Route path="/seller/login" element={<LoginSeller />} />
         </Routes>
       </div>
     </ShopContextProvider>
