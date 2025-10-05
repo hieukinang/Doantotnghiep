@@ -4,7 +4,8 @@ import { NavLink } from 'react-router-dom'
 
 const navItems = [
   { label: 'Đơn hàng', href: '/seller/orders' },
-  { label: 'Sản phẩm', href: '/seller/add-delete-product' },
+  { label: 'Danh sách sản phẩm', href: '/seller/list-product' },
+  { label: 'Thêm sản phẩm', href: '/seller/add-product' },
   { label: 'Chỉnh sửa sản phẩm', href: '/seller/update-product' },
   { label: 'Báo cáo doanh số', href: '/seller/sales-report' },
   { label: 'Đánh giá', href: '/seller/rating' },

@@ -192,12 +192,12 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import Header from "../../component/Header";
-import Footer from "../../component/Footer";
-import Banner from "../../component/Banner";
-import Categories from "../../component/Category";
-import DealsToday from "../../component/DealsToday";
-import Suggestions from "../../component/Suggestions";
+import Header from "../../component-home-page/Header";
+import Footer from "../../component-home-page/Footer";
+import Banner from "../../component-home-page/Banner";
+import Categories from "../../component-home-page/Category";
+import DealsToday from "../../component-home-page/DealsToday";
+import Suggestions from "../../component-home-page/Suggestions";
 
 const products = [
   {

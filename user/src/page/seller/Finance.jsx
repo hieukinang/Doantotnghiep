@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import SellerLayout from '../../component/SellerLayout'
+import SellerLayout from '../../component-seller-page/SellerLayout'
 
 const cards = [
   { label: 'Doanh thu hôm nay', value: 12500000, color: 'bg-[#116AD1]/10 text-[#116AD1]' },

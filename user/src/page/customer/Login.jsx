@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets//home/logo.svg";
 import signinImage from "../../assets/home/signin-up.png";
-import Footer from "../../component/Footer";
+import Footer from "../../component-home-page/Footer";
 const Login = () => {
   const [form, setForm] = React.useState({
     emailOrPhone: "",

@@ -22,9 +22,9 @@ const categories = [
   { id: 16, name: "Sách vở", icon: "/src/assets/product/sachvo1.png" },
   { id: 17, name: "Đồ trẻ em", icon: "/src/assets/product/treem4.png" },
   { id: 18, name: "Đồ thể thao", icon: "/src/assets/product/thethao4.png" },
-  { id: 19, name: "Ô tô & Xe máy & Xe đạp", icon: "/src/assets/product/xe5.png" },
+  { id: 19, name: "Phụ kiện xe", icon: "/src/assets/product/xe5.png" },
   { id: 20, name: "Dụng cụ & Thiết bị", icon: "/src/assets/product/dungcu1.png" },
-  { id: 21, name: "Khác", icon: "/src/assets/product/khac1.png" },
+  { id: 21, name: "Đồ chơi", icon: "/src/assets/product/khac1.png" },
 ];
 
 const Categories = () => {
