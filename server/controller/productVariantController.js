@@ -1,11 +1,12 @@
 import ProductVariant from "../model/productVariantModel.js";
 import VariantOption from "../model/variantOptionModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
+import Attribute from "../model/attributeModel.js";
 
 export const createProductVariant = asyncHandler(async (req, res, next) => {
 
   const productId = req.params.id;
-  const { sku_code, price, variant_options } = req.body;
+  const { price, stock_quantity, variant_options } = req.body;
 
   // Validate
   if (!productId || !variant_options || !Array.isArray(variant_options)) {
@@ -15,13 +16,13 @@ export const createProductVariant = asyncHandler(async (req, res, next) => {
   // 1. Tạo ProductVariant
   const productVariant = await ProductVariant.create({
     productId,
-    sku_code,
     price,
+    stock_quantity
   });
 
   // 2. Tạo VariantOption cho từng biến thể
   for (const option of variant_options) {
-    const { attributeIds, values, stock_quantity } = option;
+    const { attributeIds, values } = option;
     if (
       !Array.isArray(attributeIds) ||
       !Array.isArray(values) ||
@@ -35,8 +36,7 @@ export const createProductVariant = asyncHandler(async (req, res, next) => {
       await VariantOption.create({
         product_variantId: productVariant.id,
         attributeId: attributeIds[i],
-        value: values[i],
-        stock_quantity: stock_quantity,
+        value: values[i]
       });
     }
   }
@@ -54,28 +54,34 @@ export const createProductVariant = asyncHandler(async (req, res, next) => {
   });
 });
 
-export const getProductVariantOptions = asyncHandler(async (req, res, next) => {
-  const { sku_code } = req.params;
-  console.log(req.params);
-  if (!sku_code) {
-    return res.status(400).json({ message: "Missing sku_code" });
-  }
+// export const getProductVariantOptions = asyncHandler(async (req, res, next) => {
+//   const { product_variant_id } = req.params;
+//   if (!product_variant_id) {
+//     return res.status(400).json({ message: "Missing product_variant_id" });
+//   }
 
-  // Tìm ProductVariant theo sku_code
-  const productVariant = await ProductVariant.findOne({ where: { sku_code } });
-  if (!productVariant) {
-    return res.status(404).json({ message: "ProductVariant not found" });
-  }
+//   // Tìm ProductVariant theo product_variant_id
+//   const productVariant = await ProductVariant.findOne({ where: { id: product_variant_id } });
+//   if (!productVariant) {
+//     return res.status(404).json({ message: "ProductVariant not found" });
+//   }
 
-  // Lấy các VariantOption theo product_variantId
-  const variantOptions = await VariantOption.findAll({
-    where: { product_variantId: productVariant.id },
-  });
+//   // Lấy các VariantOption theo product_variantId
+//   const variantOptions = await VariantOption.findAll({
+//     where: { product_variantId: productVariant.id },
+//       attributes: { exclude: ["__v"] },
+//       include: [{ model: Attribute, as: "VariantOptionAttribute" }],
+//   });
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      variantOptions,
-    },
-  });
-});
+//   // Map lại thành [{name: value}]
+//   const mappedOptions = variantOptions.map(opt => ({
+//     [opt.VariantOptionAttribute?.name]: opt.value
+//   }));
+
+//   res.status(200).json({
+//     status: "success",
+//     data: {
+//       variantOptions: mappedOptions,
+//     },
+//   });
+// });

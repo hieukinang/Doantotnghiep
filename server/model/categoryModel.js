@@ -37,19 +37,6 @@ const Category = sequelize.define(
         return `${process.env.BASE_URL}/categories/${rawValue}`;
       },
     },
-    description: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      set(value) {
-        if (value) this.setDataValue("description", value.trim());
-      },
-      validate: {
-        len: {
-          args: [20, 255],
-          msg: "Category description must be between 20 and 255 characters",
-        },
-      },
-    },
   },
   {
     tableName: "categories",

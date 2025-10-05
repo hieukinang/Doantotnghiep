@@ -10,13 +10,12 @@ const ProductVariant = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    sku_code: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      unique: true,
-    },
     price: {
       type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    stock_quantity: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     productId: {

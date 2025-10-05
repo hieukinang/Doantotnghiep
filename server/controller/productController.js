@@ -11,6 +11,8 @@ import sharp from "sharp";
 
 import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
+import VariantOption from "../model/variantOptionModel.js";
+import Attribute from "../model/attributeModel.js";
 
 
 //__________IMAGES_HANDLER__________//
@@ -111,10 +113,37 @@ export const getAllProducts = getAll(Product, {
 // @desc    GET Single Product
 // @route   GET /api/products/:id
 // @access  Public
-export const getSingleProduct = getOne(Product, {
-  include: [{ model: ProductImage, as: "ProductImages" },
-            { model: ProductVariant, as: "ProductVariants" },
-  ],
+export const getSingleProduct = asyncHandler(async (req, res, next) => {
+  const product = await Product.findByPk(req.params.id, {
+    include: [
+      { model: ProductImage, as: "ProductImages" },
+      { 
+        model: ProductVariant, 
+        as: "ProductVariants",
+        include: [
+          {
+            model: VariantOption,
+            as: "ProductVariantOptions",
+            include: [{ model: Attribute, as: "VariantOptionAttribute" }]
+          }
+        ]
+      }
+    ]
+  });
+
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" });
+  }
+
+  // Convert to plain object for manipulation
+  const productObj = product.toJSON();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      doc: productObj,
+    },
+  });
 });
 
 // @desc    UPDATE Single Product

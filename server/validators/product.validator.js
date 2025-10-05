@@ -1,6 +1,7 @@
 import validatorMiddleware from "../middleware/validator.middleware.js";
 import { isExistInDB } from "./custom.validators.js";
 import { check } from "express-validator";
+import Product from "../model/productModel.js";
 
 // Middleware kiểm tra file ảnh cho product
 const checkProductImages = (req, res, next) => {
@@ -64,9 +65,8 @@ export const createProductValidator = [
 // Validator kiểm tra id có tồn tại trong database không
 export const IdValidator = [
   check("id")
-    .custom((val) => {
-      console.log(val);
-      isExistInDB(val, Product);
+    .custom(async (val) => {
+      await isExistInDB(val, Product);
     })
     .withMessage("Product not found"),
   validatorMiddleware,
