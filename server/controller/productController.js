@@ -10,6 +10,7 @@ import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
 import sharp from "sharp";
 
 import ProductImage from "../model/productImageModel.js";
+import ProductVariant from "../model/productVariantModel.js";
 
 
 //__________IMAGES_HANDLER__________//
@@ -101,13 +102,19 @@ export const createProduct = asyncHandler(async (req, res, next) => {
 // @desc    GET All Products
 // @route   GET /api/products
 // @access  Public
-export const getAllProducts = getAll(Product);
+export const getAllProducts = getAll(Product, {
+  include: [{ model: ProductImage, as: "ProductImages" },
+            { model: ProductVariant, as: "ProductVariants" },
+  ],
+});
 
 // @desc    GET Single Product
 // @route   GET /api/products/:id
 // @access  Public
 export const getSingleProduct = getOne(Product, {
-  include: [{ model: ProductImage, as: "ProductImages" }],
+  include: [{ model: ProductImage, as: "ProductImages" },
+            { model: ProductVariant, as: "ProductVariants" },
+  ],
 });
 
 // @desc    UPDATE Single Product
@@ -118,7 +125,11 @@ export const updateSingleProduct = updateOne(Product);
 // @desc    DELETE Single Product
 // @route   DELETE /api/products/:id
 // @access  Private("ADMIN")
-// export const deleteSingleProduct = deleteOne(Product);
+export const deleteSingleProduct = deleteOne(Product, {
+  include: [{ model: ProductImage, as: "ProductImages" },
+            { model: ProductVariant, as: "ProductVariants" },
+  ],
+});
 
 // @desc    GET Top Aliases(Rated-Sold-Sales) Product
 // @route   ex: GET /api/products?sort=-ratingAverage&limit=7 GET /api/products/top-rated
