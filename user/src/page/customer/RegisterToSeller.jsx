@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Footer from "../../component/Footer";
+import Footer from "../../component-home-page/Footer";
 import logo from "../../assets/home/logo.svg";
 import { TextField, Button } from "@mui/material";
 

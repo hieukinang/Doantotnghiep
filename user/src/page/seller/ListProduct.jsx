@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import SellerLayout from "../../component/SellerLayout";
+import SellerLayout from "../../component-seller-page/SellerLayout";
 
 const mockProducts = [
   {

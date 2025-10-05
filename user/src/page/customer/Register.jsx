@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/home/logo.svg";
-import Footer from "../../component/Footer";
+import Footer from "../../component-home-page/Footer";
 import image from "../../../public/register.png";
 
 const Register = () => {

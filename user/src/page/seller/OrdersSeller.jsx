@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import SellerLayout from "../../component/SellerLayout";
+import SellerLayout from "../../component-seller-page/SellerLayout";
 
 const mock = [
   {
@@ -39,9 +39,8 @@ const OrdersSeller = () => {
             <button
               key={s}
               onClick={() => setActive(s)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                active === s ? "bg-[#116AD1] text-white" : "bg-gray-100"
-              }`}
+              className={`px-3 py-1 rounded-full text-sm ${active === s ? "bg-[#116AD1] text-white" : "bg-gray-100"
+                }`}
             >
               {s}
             </button>

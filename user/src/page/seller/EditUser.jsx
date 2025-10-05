@@ -1,5 +1,5 @@
 import React from 'react'
-import SellerLayout from '../../component/SellerLayout'
+import SellerLayout from '../../component-seller-page/SellerLayout'
 
 const users = [
   { id: 1, name: 'Nguyễn Văn B', email: 'nvb@example.com', role: 'Nhân viên', active: true },

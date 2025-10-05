@@ -78,8 +78,8 @@
 
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "../../component/Header";
-import Footer from "../../component/Footer";
+import Header from "../../component-home-page/Header";
+import Footer from "../../component-home-page/Footer";
 
 const initialItems = [
   {

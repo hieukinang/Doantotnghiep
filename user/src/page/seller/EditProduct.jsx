@@ -1,5 +1,5 @@
 import React from 'react'
-import SellerLayout from '../../component/SellerLayout'
+import SellerLayout from '../../component-seller-page/SellerLayout'
 
 const EditProduct = () => {
   return (
