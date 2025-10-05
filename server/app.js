@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-import {fileURLToPath} from "url";
+import { fileURLToPath } from "url";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
@@ -29,9 +29,14 @@ app.use(cors());
 app.options("*", cors());
 
 //_________SERVE_STATIC_FILES_________//
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, "uploads")));
+// Serve /banners route from the correct physical folder
+app.use(
+  "/banners",
+  express.static(path.join(__dirname, "server", "uploads", "banners"))
+);
 
 //_________STRIPE_WEBHOOK_________//
 // app.post(
