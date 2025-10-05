@@ -6,13 +6,17 @@ import {
   resizeProductImages,
   getSingleProduct,
   updateSingleProduct,
+  deleteSingleProduct
 } from "../../controller/productController.js";
 
-import {createProductVariant} from "../../controller/productVariantController.js";
+import {createProductVariant,
+  getProductVariantOptions
+} from "../../controller/productVariantController.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
 import {
   createProductValidator,
+  IdValidator,
 } from "../../validators/product.validator.js";
 
 import { checkStoreStatus } from "../../validators/status.validator.js";
@@ -38,11 +42,19 @@ router
 router
   .route("/:id")
   .post(
+    IdValidator,
     createProductVariant
-  )
+  );
+
 
 router
-  .route("/:id")
+  .route("/:id/sku_code/:sku_code", IdValidator)
+  .get(
+    getProductVariantOptions
+  );
+
+router
+  .route("/:id", IdValidator)
   .get(getSingleProduct)
   .patch(
     uploadProductImages,
@@ -50,11 +62,8 @@ router
     resizeProductImages,
     updateSingleProduct
   )
-  // .delete(
-  //   isAuth,
-  //   allowedTo(USER_ROLES.ADMIN),
-  //   deleteProductValidator,
-  //   deleteSingleProduct
-  // );
-
+  .delete(
+    IdValidator,
+    deleteSingleProduct
+  );
 export default router;

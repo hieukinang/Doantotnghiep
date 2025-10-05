@@ -1,4 +1,5 @@
 import validatorMiddleware from "../middleware/validator.middleware.js";
+import { isExistInDB } from "./custom.validators.js";
 import { check } from "express-validator";
 
 // Middleware kiểm tra file ảnh cho product
@@ -57,5 +58,16 @@ export const createProductValidator = [
     .isLength({ max: 100 }).withMessage("Product origin maximum length 100 characters"),
     
   checkProductImages, // kiểm tra file ảnh
+  validatorMiddleware,
+];
+
+// Validator kiểm tra id có tồn tại trong database không
+export const IdValidator = [
+  check("id")
+    .custom((val) => {
+      console.log(val);
+      isExistInDB(val, Product);
+    })
+    .withMessage("Product not found"),
   validatorMiddleware,
 ];

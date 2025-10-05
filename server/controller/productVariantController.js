@@ -53,3 +53,29 @@ export const createProductVariant = asyncHandler(async (req, res, next) => {
     },
   });
 });
+
+export const getProductVariantOptions = asyncHandler(async (req, res, next) => {
+  const { sku_code } = req.params;
+  console.log(req.params);
+  if (!sku_code) {
+    return res.status(400).json({ message: "Missing sku_code" });
+  }
+
+  // Tìm ProductVariant theo sku_code
+  const productVariant = await ProductVariant.findOne({ where: { sku_code } });
+  if (!productVariant) {
+    return res.status(404).json({ message: "ProductVariant not found" });
+  }
+
+  // Lấy các VariantOption theo product_variantId
+  const variantOptions = await VariantOption.findAll({
+    where: { product_variantId: productVariant.id },
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      variantOptions,
+    },
+  });
+});

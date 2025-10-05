@@ -34,6 +34,7 @@ const VariantOption = sequelize.define(
         model: Attribute,
         key: "id",
       },
+      onDelete: "CASCADE",
     },
   },
   {
