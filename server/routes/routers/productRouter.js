@@ -1,0 +1,60 @@
+import express from "express";
+import {
+  createProduct,
+  getAllProducts,
+  uploadProductImages,
+  resizeProductImages,
+  getSingleProduct,
+  updateSingleProduct,
+} from "../../controller/productController.js";
+
+import {createProductVariant} from "../../controller/productVariantController.js";
+
+import { isAuth } from "../../middleware/auth.middleware.js";
+import {
+  createProductValidator,
+} from "../../validators/product.validator.js";
+
+import { checkStoreStatus } from "../../validators/status.validator.js";
+
+import Store from "../../model/storeModel.js";
+
+const router = express.Router();
+
+// NESTED_ROUTES_[GET reviews which belongs to specific product, CREATE a review on a specific product]
+
+router.use(isAuth(Store), checkStoreStatus);
+
+router
+  .route("/")
+  .get(getAllProducts)
+  .post(
+    uploadProductImages,
+    createProductValidator,
+    resizeProductImages,
+    createProduct
+  );
+
+router
+  .route("/:id")
+  .post(
+    createProductVariant
+  )
+
+router
+  .route("/:id")
+  .get(getSingleProduct)
+  .patch(
+    uploadProductImages,
+    createProductValidator,
+    resizeProductImages,
+    updateSingleProduct
+  )
+  // .delete(
+  //   isAuth,
+  //   allowedTo(USER_ROLES.ADMIN),
+  //   deleteProductValidator,
+  //   deleteSingleProduct
+  // );
+
+export default router;

@@ -4,6 +4,8 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import {generateSendToken} from "../utils/tokenHandler.utils.js";
 import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
 
+import { updateOne } from "../utils/refactorControllers.utils.js";
+
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
@@ -155,3 +157,5 @@ export const logout = asyncHandler(async (req, res, next) => {
     message: "Logged out successfully",
   });
 });
+
+export const updateStoreProfile = updateOne(Store);

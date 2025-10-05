@@ -8,7 +8,8 @@ import {
     logout,
     uploadShipperImages,
     resizeShipperImages,
-    getSingleShipper
+    getSingleShipper,
+    updateShipper
 } from "../../controller/shipperController.js";
 
 import {
@@ -16,11 +17,14 @@ import {
 } from "../../validators/auth.validator.js";
 
 import {
-  registerValidator
+  registerValidator,
 } from "../../validators/shipper.validator.js";
+
+import {checkShipperStatusBody} from "../../validators/status.validator.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
 import Shipper from "../../model/shipperModel.js";
+import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
@@ -30,5 +34,11 @@ router.route("/logout").post(isAuth(Shipper), logout);
 
 router.route("/:id")
   .get(isAuth(Shipper), getSingleShipper);
+router.route("/update-status/:id")
+  .patch(isAuth(Admin),
+    checkShipperStatusBody,
+    uploadShipperImages,
+    resizeShipperImages,
+    updateShipper);
 
 export default router;

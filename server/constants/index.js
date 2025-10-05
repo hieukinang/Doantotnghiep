@@ -1,10 +1,4 @@
 // ENUM gợi ý (có thể thay đổi theo yêu cầu thực tế)
-
-export const USER_ROLES = {
-  ADMIN: "admin",
-  USER: "user",
-};
-
 export const PAYMENT_METHODS = {
   CASH: "cash",
   CARD: "card",
@@ -15,10 +9,20 @@ export const ADMIN_ROLES = {
   STAFF: "staff",
 };
 
+export const ADMIN_STATUS = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  BANNED: "BANNED",
+  PROCESSING: "PROCESSING",
+  DESTROYED: "DESTROYED",
+};
+
 export const CLIENT_STATUS = {
   ACTIVE: "ACTIVE",
   INACTIVE: "INACTIVE",
   BANNED: "BANNED",
+  PROCESSING: "PROCESSING",
+  DESTROYED: "DESTROYED"
 };
 
 export const CLIENT_TYPE = {
@@ -27,9 +31,23 @@ export const CLIENT_TYPE = {
   PREMIUM: "PREMIUM",
 };
 
-export const STORE_STATUS = {
-  OPEN: "OPEN",
-  CLOSED: "CLOSED",
+export const SHIPPER_STATUS = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
   BANNED: "BANNED",
-  PROCESS: "PROCESS",
+  PROCESSING: "PROCESSING",
+  DESTROYED: "DESTROYED",
 };
+
+export const STORE_STATUS = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  BANNED: "BANNED",
+  PROCESSING: "PROCESSING",
+  DESTROYED: "DESTROYED",
+};
+
+export const PRODUCT_STATUS = {
+  ACTIVE: "ACTIVE",
+  BANNED: "BANNED",
+}

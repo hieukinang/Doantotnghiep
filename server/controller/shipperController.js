@@ -9,7 +9,7 @@ import path from "path";
 import sharp from "sharp";
 
 import { Op } from "sequelize";
-import { getOne } from "../utils/refactorControllers.utils.js";
+import { getOne, updateOne, getAll } from "../utils/refactorControllers.utils.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer) - upload đồng thời 4 ảnh: id_image, image, profile_image, health_image
@@ -96,9 +96,6 @@ export const resizeShipperImages = asyncHandler(async (req, res, next) => {
 });
 
 export const register = asyncHandler(async (req, res, next) => {
-    console.log('Register request body:', req.body);
-    console.log('Register request files:', req.files);
-
     const {
         citizen_id,
         id_image,
@@ -207,5 +204,9 @@ export const logout = asyncHandler(async (req, res, next) => {
         message: "Logged out successfully",
     });
 });
+
+export const updateShipper = updateOne(Shipper);
+
+export const getAllShippers = getAll(Shipper);
 
 export const getSingleShipper = getOne(Shipper);

@@ -2,6 +2,7 @@ import validatorMiddleware from "../middleware/validator.middleware.js";
 import { check } from "express-validator";
 import { isPasswordsMatches, isUnique } from "./custom.validators.js";
 import Shipper from "../model/shipperModel.js";
+import { SHIPPER_STATUS } from "../constants/index.js";
 
 // Custom middleware kiểm tra file ảnh
 const checkShipperImages = (req, res, next) => {

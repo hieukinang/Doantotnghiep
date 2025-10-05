@@ -2,6 +2,28 @@ import validatorMiddleware from "../middleware/validator.middleware.js";
 import { check } from "express-validator";
 import { isPasswordsMatches, isUnique } from "./custom.validators.js";
 import Store from "../model/storeModel.js";
+import { STORE_STATUS } from "../constants/index.js";
+
+// Custom middleware kiểm tra file ảnh cho store
+const checkStoreImages = (req, res, next) => {
+  const requiredFields = ["id_image", "image"];
+  const errors = [];
+
+  requiredFields.forEach((field) => {
+    if (!req.files || !req.files[field] || req.files[field].length === 0) {
+      errors.push({
+        msg: `${field.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())} is required`,
+        param: field,
+        location: "files",
+      });
+    }
+  });
+
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  }
+  next();
+};
 
 export const registerValidator = [
   check("name")
@@ -19,9 +41,6 @@ export const registerValidator = [
     .isString()
     .withMessage("Citizen ID must be a string")
     .custom((val) => isUnique(val, Store, "citizen_id")),
-  check("id_image")
-    .notEmpty()
-    .withMessage("ID image is required"),
   check("phone")
     .notEmpty()
     .withMessage("Phone is required")
@@ -72,6 +91,6 @@ export const registerValidator = [
   check("description")
     .notEmpty()
     .withMessage("Description is required"),
-  check("image").optional(),
+  checkStoreImages, // kiểm tra file ảnh
   validatorMiddleware,
 ];
