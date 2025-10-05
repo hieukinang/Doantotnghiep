@@ -20,7 +20,8 @@ import OrderDetail from "./page/customer/OrderDetail";
 import PrivacyPolicy from "./page/customer/PrivacyPolicy";
 import TermsOfUse from "./page/customer/TermsOfUse";
 
-import AddDeleteProduct from "./page/seller/AddDeleteProduct";
+import ListProduct from "./page/seller/ListProduct";
+import AddProduct from "./page/seller/AddProduct";
 import EditProduct from "./page/seller/EditProduct";
 import EditProfileSeller from "./page/seller/EditProfileSeller";
 import EditUser from "./page/seller/EditUser";
@@ -61,11 +62,9 @@ function App() {
           <Route path="/terms-of-use" element={<TermsOfUse />} />
 
           {/* Seller Routes */}
-          <Route path="/seller" element={<AddDeleteProduct />} />
-          <Route
-            path="/seller/add-delete-product"
-            element={<AddDeleteProduct />}
-          />
+          <Route path="/seller" element={<ListProduct />} />
+          <Route path="/seller/list-product" element={<ListProduct />} />
+          <Route path="/seller/add-product" element={<AddProduct />} />
           <Route path="/seller/update-product" element={<EditProduct />} />
           <Route path="/seller/edit-profile" element={<EditProfileSeller />} />
           <Route path="/seller/edit-user" element={<EditUser />} />

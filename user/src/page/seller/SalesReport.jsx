@@ -1,5 +1,5 @@
 import React from 'react'
-import SellerLayout from '../../component/SellerLayout'
+import SellerLayout from '../../component-seller-page/SellerLayout'
 
 const Card = ({ label, value, sub }) => (
   <div className="bg-white rounded-lg shadow p-4">
@@ -22,7 +22,7 @@ const SalesReport = () => {
       <div className="mt-6 bg-white rounded-lg shadow p-4">
         <div className="font-semibold mb-2">Doanh thu 7 ngày</div>
         <div className="h-64 bg-gradient-to-b from-[#116AD1]/20 to-transparent rounded flex items-end gap-2 p-3">
-          {['T2','T3','T4','T5','T6','T7','CN'].map((d, i) => (
+          {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((d, i) => (
             <div key={i} className="flex-1 flex flex-col justify-end">
               <div className="mx-auto w-6 bg-[#116AD1] rounded" style={{ height: `${30 + i * 8}px` }} />
               <div className="text-xs text-center mt-1 text-gray-500">{d}</div>

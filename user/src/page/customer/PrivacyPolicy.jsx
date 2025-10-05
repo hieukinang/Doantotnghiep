@@ -1,5 +1,5 @@
 import React from "react";
-import HeaderPolicy from "../../component/HeaderPolicy";
+import HeaderPolicy from "../../component-home-page/HeaderPolicy";
 
 const PrivacyPolicy = () => {
   return (

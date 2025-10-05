@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import Header from '../../component/Header'
-import Footer from '../../component/Footer'
+import Header from '../../component-home-page/Header'
+import Footer from '../../component-home-page/Footer'
 
 const shops = [
   { id: 1, name: 'KOHI Official', followers: '120k', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop' },
@@ -28,7 +28,7 @@ const FollowedShops = () => {
               </div>
             ))}
           </div>
-          
+
           <div className="mt-6 text-center">
             <Link to="/" className="inline-block px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]">
               Về trang chủ

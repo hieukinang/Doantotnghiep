@@ -101,8 +101,8 @@
 
 import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
-import Header from "../../component/Header";
-import Footer from "../../component/Footer";
+import Header from "../../component-home-page/Header";
+import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 
 const gallery = [
@@ -169,9 +169,8 @@ const ProductDetail = () => {
                 <button
                   key={i}
                   onClick={() => setActive(i)}
-                  className={`aspect-square rounded overflow-hidden border ${
-                    i === active ? "border-[#116AD1]" : "border-gray-200"
-                  }`}
+                  className={`aspect-square rounded overflow-hidden border ${i === active ? "border-[#116AD1]" : "border-gray-200"
+                    }`}
                 >
                   <img
                     src={src}
@@ -208,11 +207,10 @@ const ProductDetail = () => {
                       <button
                         key={i}
                         onClick={() => handleOptionChange(attr.name, option)}
-                        className={`px-3 py-1 border rounded ${
-                          selectedOptions[attr.name] === option
+                        className={`px-3 py-1 border rounded ${selectedOptions[attr.name] === option
                             ? "bg-[#116AD1] text-white border-[#116AD1]"
                             : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                        }`}
+                          }`}
                       >
                         {option}
                       </button>
