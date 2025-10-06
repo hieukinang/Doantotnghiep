@@ -42,6 +42,11 @@ export const checkEntityStatus = (statusEnum, statusKey = "status") => (req, res
       message: "Your account has been destroyed. Access denied."
     });
   }
+  if (status === statusEnum.PROCESSING) {
+    return res.status(403).json({
+      message: "Your account is processing. Please wait for approval."
+    });
+  }
   next();
 };
 

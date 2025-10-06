@@ -9,8 +9,7 @@ import {
   deleteSingleProduct
 } from "../../controller/productController.js";
 
-import {createProductVariant,
-  getProductVariantOptions
+import {createProductVariant
 } from "../../controller/productVariantController.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
@@ -44,13 +43,6 @@ router
   .post(
     IdValidator,
     createProductVariant
-  );
-
-
-router
-  .route("/:id/sku_code/:sku_code", IdValidator)
-  .get(
-    getProductVariantOptions
   );
 
 router

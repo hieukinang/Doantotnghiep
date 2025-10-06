@@ -24,10 +24,6 @@ export const createCategoryValidator = [
     .isLength({ min: 3, max: 30 })
     .withMessage("Category name must be between 3 and 30 characters")
     .custom((val) => isUnique(val, Category, "name")),
-  check("description")
-    .optional()
-    .isLength({ min: 20, max: 255 })
-    .withMessage("Category description must be between 20 and 255 characters"),
   validatorMiddleware,
 ];
 
@@ -40,10 +36,6 @@ export const updateCategoryValidator = [
     .isLength({ min: 3, max: 30 })
     .withMessage("Category name must be between 3 and 30 characters"),
   check("image").optional(),
-  check("description")
-    .optional()
-    .isLength({ min: 20, max: 255 })
-    .withMessage("Category description must be between 20 and 255 characters"),
   validatorMiddleware,
 ];
 

@@ -15,10 +15,6 @@ const VariantOption = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
-    stock_quantity: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
     product_variantId: {
       type: DataTypes.INTEGER,
       allowNull: true,
