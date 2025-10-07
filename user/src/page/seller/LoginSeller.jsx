@@ -1,17 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import logo from "../../assets/home/logo.svg";
 import signinImage from "../../assets/home/signin-up.png";
 import Footer from "../../component-home-page/Footer";
 
 const LoginSeller = () => {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = useState({
     emailOrPhone: "",
     password: "",
   });
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,46 +23,46 @@ const LoginSeller = () => {
     setError("");
     setSuccess("");
     setLoading(true);
+
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/stores/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccess("Đăng nhập thành công!");
-        localStorage.setItem("sellerToken", data.token);
-        setTimeout(() => {
-          window.location.replace("/seller");
-        }, 1000);
-      } else {
-        setError(data.message || "Đăng nhập thất bại");
-      }
+      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/stores/login`;
+      const res = await axios.post(
+        url,
+        form,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setSuccess("Đăng nhập thành công!");
+      localStorage.setItem("sellerToken", res.data.token);
+      const username =
+        res.data.data?.user?.name || res.data.data?.user?.email || "Store";
+      localStorage.setItem("storeName", username);
+
+      setTimeout(() => {
+        window.location.replace("/seller");
+      }, 1000);
     } catch (err) {
-      setError("Lỗi kết nối máy chủ");
+      // Lấy thông báo lỗi từ server, nếu có
+      setError(err.response?.data?.message || "Đăng nhập thất bại");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
-        {/* Logo + tên */}
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
           <span className="font-bold text-2xl">KOHI MALL</span>
         </Link>
-        {/* Chữ ĐĂNG NHẬP */}
         <h1 className="text-2xl font-bold">ĐĂNG NHẬP NGƯỜI BÁN</h1>
-        {/* Hỗ trợ */}
-        <Link
-          to="/contact"
-          className="cursor-pointer hover:underline text-base"
-        >
+        <Link to="/contact" className="cursor-pointer hover:underline text-base">
           Hỗ trợ
         </Link>
       </header>
@@ -69,7 +70,7 @@ const LoginSeller = () => {
       {/* Container chính */}
       <div className="flex flex-1 mt-5 justify-center items-center px-4">
         <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
-          {/* Left side - Hình ảnh */}
+          {/* Hình ảnh bên trái */}
           <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4">
             <img
               src={signinImage}
@@ -78,7 +79,7 @@ const LoginSeller = () => {
             />
           </div>
 
-          {/* Right side - Form đăng nhập */}
+          {/* Form đăng nhập */}
           <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-8 border-t md:border-t-0 md:border-l border-gray-300">
             <h2 className="text-2xl font-bold text-blue-600 mb-2">
               Đăng nhập người bán
@@ -107,9 +108,7 @@ const LoginSeller = () => {
                 required
               />
               {error && <div className="text-red-500 text-sm">{error}</div>}
-              {success && (
-                <div className="text-green-600 text-sm">{success}</div>
-              )}
+              {success && <div className="text-green-600 text-sm">{success}</div>}
               <div className="flex items-center justify-between">
                 <button
                   type="submit"

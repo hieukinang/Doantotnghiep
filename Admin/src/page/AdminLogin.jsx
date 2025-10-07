@@ -1,39 +1,46 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setLoading(true);
+    
+    const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/admins/login`;
+
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/admins/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
+      const res = await axios.post(url, {
+        username,
+        password,
       });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccess("Đăng nhập thành công!");
-        localStorage.setItem("adminToken", data.token);
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 1000);
+
+      if (res.status === 200 && res.data?.token) {
+        localStorage.setItem("adminToken", res.data.token);
+
+        // Lưu username vào localStorage
+        const usernameValue =
+          res.data.data?.user?.username ||
+          res.data.data?.user?.email ||
+          "Admin";
+        localStorage.setItem("adminUsername", usernameValue);
+
+        window.location.href = "/dashboard";
+        
       } else {
-        setError(data.message || "Sai tên đăng nhập hoặc mật khẩu");
+        setError(res.data?.message || "Sai tên đăng nhập hoặc mật khẩu");
       }
     } catch (err) {
+      console.error("Lỗi đăng nhập:", err);
       setError("Lỗi kết nối máy chủ");
     }
-    setLoading(false);
+
   };
 
   return (
@@ -109,6 +116,7 @@ const AdminLogin = () => {
               </a>
             </div>
           </div>
+
           {error && (
             <div className="text-red-500 text-sm text-center">{error}</div>
           )}
@@ -121,9 +129,8 @@ const AdminLogin = () => {
               type="submit"
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-bold text-white bg-opacity-90 hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out transform hover:scale-[1.00] 
                 bg-[#116AD1] focus:ring-[#116AD1]"
-              disabled={loading}
             >
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              Đăng nhập
             </button>
           </div>
         </form>

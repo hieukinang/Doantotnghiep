@@ -61,7 +61,8 @@ const RegisterToSeller = () => {
     form.append("image", formData.avatar);
 
     try {
-      await axios.post("http://127.0.0.1:5000/api/stores/register", form, {
+      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/stores/register`;
+      await axios.post(url, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setRegisterSuccess(true);

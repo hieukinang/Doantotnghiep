@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/home/logo.svg";
 import cartIcon from "../assets/home/cart.svg";
@@ -13,10 +13,10 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Kiểm tra token đăng nhập client
     const token = localStorage.getItem("token");
-    const userInfo = localStorage.getItem("userInfo");
+    const userInfo = localStorage.getItem("clientUsername");
     setIsLoggedIn(!!token);
     if (userInfo) {
       try {
@@ -28,10 +28,25 @@ const Header = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
-    window.location.href = "/login";
+  const handleLogout = async () => {
+    try {
+      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/clients/logout`;
+      const token = localStorage.getItem("token");
+      await axios.post(
+        url,
+        {},
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          withCredentials: true,
+        }
+      );
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("clientUsername");
+      window.location.href = "/login";
+    }
   };
 
   const handleSearch = async (e) => {

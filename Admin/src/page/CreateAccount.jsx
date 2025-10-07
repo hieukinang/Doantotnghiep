@@ -1,16 +1,5 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Grid,
-  Box,
-  MenuItem,
-  Alert,
-  Card,
-  Divider,
-} from "@mui/material";
+import axios from "axios";
 import {
   AccountCircle,
   Lock,
@@ -20,6 +9,8 @@ import {
   Work,
   CalendarToday,
   AttachMoney,
+  MonetizationOn,
+  Savings,
   LocationOn,
   AccountBalance,
   Image,
@@ -32,7 +23,7 @@ const roles = [
   { value: "manager", label: "Quản lý" },
 ];
 
-function CreateAccount() {
+const CreateAccount = () => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -54,7 +45,6 @@ function CreateAccount() {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [selectedImageName, setSelectedImageName] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,38 +61,14 @@ function CreateAccount() {
   const validate = () => {
     let newErrors = {};
     let isValid = true;
-    if (!formData.username) {
-      newErrors.username = "Tên đăng nhập bắt buộc.";
-      isValid = false;
-    }
-    if (!formData.password) {
-      newErrors.password = "Mật khẩu bắt buộc.";
-      isValid = false;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Mật khẩu xác nhận không khớp.";
-      isValid = false;
-    }
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ.";
-      isValid = false;
-    }
-    if (!formData.fullName) {
-      newErrors.fullName = "Họ và tên bắt buộc.";
-      isValid = false;
-    }
-    if (!formData.role) {
-      newErrors.role = "Vai trò bắt buộc.";
-      isValid = false;
-    }
-    if (!formData.job_title) {
-      newErrors.job_title = "Chức danh bắt buộc.";
-      isValid = false;
-    }
-    if (!formData.hire_date) {
-      newErrors.hire_date = "Ngày thuê bắt buộc.";
-      isValid = false;
-    }
+    if (!formData.username) { newErrors.username = "Tên đăng nhập bắt buộc."; isValid = false; }
+    if (!formData.password) { newErrors.password = "Mật khẩu bắt buộc."; isValid = false; }
+    if (formData.password !== formData.confirmPassword) { newErrors.confirmPassword = "Mật khẩu xác nhận không khớp."; isValid = false; }
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) { newErrors.email = "Email không hợp lệ."; isValid = false; }
+    if (!formData.fullName) { newErrors.fullName = "Họ và tên bắt buộc."; isValid = false; }
+    if (!formData.role) { newErrors.role = "Vai trò bắt buộc."; isValid = false; }
+    if (!formData.job_title) { newErrors.job_title = "Chức danh bắt buộc."; isValid = false; }
+    if (!formData.hire_date) { newErrors.hire_date = "Ngày thuê bắt buộc."; isValid = false; }
     setErrors(newErrors);
     return isValid;
   };
@@ -111,33 +77,18 @@ function CreateAccount() {
     e.preventDefault();
     setSuccessMessage("");
     if (!validate()) return;
-    setLoading(true);
     try {
-      // Tạo FormData đúng chuẩn cho backend
+
+      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/admins/register`
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === "fullName") {
-          data.append("fullname", value);
-        } else if (value !== undefined && value !== null && value !== "") {
-          data.append(key, value);
-        }
+        if (key === "fullName") data.append("fullname", value);
+        else if (value !== undefined && value !== null && value !== "") data.append(key, value);
       });
-      const res = await fetch("http://localhost:5000/api/admins/register", {
-        method: "POST",
-        body: data,
-      });
-      if (!res.ok) {
-        let err;
-        try {
-          err = await res.json();
-        } catch {
-          err = {};
-        }
-        throw new Error(err.message || "Đăng ký thất bại");
-      }
-      setSuccessMessage(
-        `Tài khoản "${formData.username}" đã được tạo thành công.`
-      );
+
+      await axios.post(url, data);
+
+      setSuccessMessage(`Tài khoản "${formData.username}" đã được tạo thành công.`);
       setFormData({
         username: "",
         password: "",
@@ -159,281 +110,255 @@ function CreateAccount() {
       setErrors({});
     } catch (err) {
       setSuccessMessage("");
-      setErrors({ api: err.message });
-    } finally {
-      setLoading(false);
-    }
+      setErrors({ api: err.response?.data?.message || err.message || "Đăng ký thất bại" });
+    } 
   };
 
   return (
-    <Box sx={{ flexGrow: 1, py: 4, overflowX: "hidden" }}>
-      <Container maxWidth="md">
-        <Typography
-          variant="h4"
-          align="center"
-          gutterBottom
-          sx={{ fontWeight: "bold", color: "primary.main" }}
-        >
-          Tạo Tài Khoản Quản Lý Mới
-        </Typography>
-        <Typography align="center" color="text.secondary" sx={{ mb: 3 }}>
-          Dùng cho Admin tạo tài khoản nhân viên có vai trò thấp hơn.
-        </Typography>
+    <div className="p-4 space-y-6">
+      <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-4 space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-blue-700 mb-2">Tạo Tài Khoản Quản Lý Mới</h2>
+          <p className="text-gray-600">Dùng cho Admin tạo tài khoản nhân viên có vai trò thấp hơn.</p>
+        </div>
 
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {successMessage}
-          </Alert>
-        )}
-        {errors.api && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {errors.api}
-          </Alert>
-        )}
+        {successMessage && <div className="text-green-600">{successMessage}</div>}
+        {errors.api && <div className="text-red-600">{errors.api}</div>}
 
-        <Card elevation={4} sx={{ p: 4, borderRadius: 3 }}>
-          <form onSubmit={handleSubmit}>
-            {/* Thông tin đăng nhập */}
-            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
-              1. Thông tin Đăng nhập
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Tên đăng nhập"
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Thông tin đăng nhập */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-blue-600">1. Thông tin Đăng nhập</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              {/* Username */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><AccountCircle /></span>
+                <input
+                  type="text"
                   name="username"
+                  placeholder="Tên đăng nhập"
                   value={formData.username}
                   onChange={handleChange}
-                  error={!!errors.username}
-                  helperText={errors.username}
-                  InputProps={{
-                    startAdornment: <AccountCircle sx={{ mr: 1 }} />,
-                  }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
+                {errors.username && <div className="text-red-600 mt-1">{errors.username}</div>}
+              </div>
+
+              {/* Email */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><Email /></span>
+                <input
                   type="email"
-                  label="Email"
                   name="email"
+                  placeholder="Email"
                   value={formData.email}
                   onChange={handleChange}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  InputProps={{ startAdornment: <Email sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
+                {errors.email && <div className="text-red-600 mt-1">{errors.email}</div>}
+              </div>
+
+              {/* Password */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><Lock /></span>
+                <input
                   type="password"
-                  label="Mật khẩu"
                   name="password"
+                  placeholder="Mật khẩu"
                   value={formData.password}
                   onChange={handleChange}
-                  error={!!errors.password}
-                  helperText={errors.password}
-                  InputProps={{ startAdornment: <Lock sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
+                {errors.password && <div className="text-red-600 mt-1">{errors.password}</div>}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><VpnKey /></span>
+                <input
                   type="password"
-                  label="Xác nhận mật khẩu"
                   name="confirmPassword"
+                  placeholder="Xác nhận mật khẩu"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  error={!!errors.confirmPassword}
-                  helperText={errors.confirmPassword}
-                  InputProps={{ startAdornment: <VpnKey sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-            </Grid>
+                {errors.confirmPassword && <div className="text-red-600 mt-1">{errors.confirmPassword}</div>}
+              </div>
 
-            <Divider sx={{ my: 4 }} />
+            </div>
+          </div>
 
-            {/* Cá nhân & công việc */}
-            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
-              2. Thông tin Cá nhân & Công việc
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Họ và Tên"
+          {/* Cá nhân & công việc */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-blue-600">2. Thông tin Cá nhân & Công việc</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* Full Name */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><Person /></span>
+                <input
+                  type="text"
                   name="fullName"
+                  placeholder="Họ và tên"
                   value={formData.fullName}
                   onChange={handleChange}
-                  error={!!errors.fullName}
-                  helperText={errors.fullName}
-                  InputProps={{ startAdornment: <Person sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Số điện thoại"
+                {errors.fullName && <div className="text-red-600 mt-1">{errors.fullName}</div>}
+              </div>
+
+              {/* Phone */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><Phone /></span>
+                <input
+                  type="text"
                   name="phone"
+                  placeholder="Số điện thoại"
                   value={formData.phone}
                   onChange={handleChange}
-                  InputProps={{ startAdornment: <Phone sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Vai trò"
+              </div>
+
+              {/* Role */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800">🔹</span>
+                <select
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  error={!!errors.role}
-                  helperText={errors.role}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {roles.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Chức danh"
+                  {roles.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </div>
+
+              {/* Job title */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><Work /></span>
+                <input
+                  type="text"
                   name="job_title"
+                  placeholder="Chức danh"
                   value={formData.job_title}
                   onChange={handleChange}
-                  error={!!errors.job_title}
-                  helperText={errors.job_title}
-                  InputProps={{ startAdornment: <Work sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
+              </div>
+
+              {/* Hire date */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><CalendarToday /></span>
+                <input
                   type="date"
-                  label="Ngày thuê"
                   name="hire_date"
                   value={formData.hire_date}
                   onChange={handleChange}
-                  error={!!errors.hire_date}
-                  helperText={errors.hire_date}
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    startAdornment: <CalendarToday sx={{ mr: 1 }} />,
-                  }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Mức lương"
+              </div>
+
+              {/* Salary */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><Savings /></span>
+                <input
                   type="number"
+                  min={0}
                   name="salary"
+                  placeholder="Mức lương (VNĐ)"
                   value={formData.salary}
                   onChange={handleChange}
-                  InputProps={{
-                    startAdornment: <AttachMoney sx={{ mr: 1 }} />,
-                  }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Địa chỉ"
+              </div>
+
+              {/* Address */}
+              <div className="relative sm:col-span-2">
+                <span className="absolute inset-y-0 left-0 flex items-start pt-2 pl-3 text-gray-800"><LocationOn /></span>
+                <textarea
                   name="address"
+                  placeholder="Địa chỉ"
                   value={formData.address}
                   onChange={handleChange}
-                  multiline
                   rows={2}
-                  InputProps={{ startAdornment: <LocationOn sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-            </Grid>
+              </div>
 
-            <Divider sx={{ my: 4 }} />
+            </div>
+          </div>
 
-            {/* Ngân hàng & ảnh */}
-            <Typography variant="h6" sx={{ mb: 2, color: "primary.main" }}>
-              3. Ngân hàng & Hình ảnh
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  label="Tên ngân hàng"
+          {/* Ngân hàng & hình ảnh */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-blue-600">3. Ngân hàng & Hình ảnh</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+              {/* Bank name */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><AccountBalance /></span>
+                <input
+                  type="text"
                   name="bank_name"
+                  placeholder="Tên ngân hàng"
                   value={formData.bank_name}
                   onChange={handleChange}
-                  InputProps={{
-                    startAdornment: <AccountBalance sx={{ mr: 1 }} />,
-                  }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  label="Số tài khoản"
+              </div>
+
+              {/* Bank account number */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><AccountBalanceWallet /></span>
+                <input
+                  type="text"
                   name="bank_account_number"
+                  placeholder="Số tài khoản"
                   value={formData.bank_account_number}
                   onChange={handleChange}
-                  InputProps={{
-                    startAdornment: <AccountBalanceWallet sx={{ mr: 1 }} />,
-                  }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  label="Chủ tài khoản"
+              </div>
+
+              {/* Bank account holder */}
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><Person /></span>
+                <input
+                  type="text"
                   name="bank_account_holder_name"
+                  placeholder="Chủ tài khoản"
                   value={formData.bank_account_holder_name}
                   onChange={handleChange}
-                  InputProps={{ startAdornment: <Person sx={{ mr: 1 }} /> }}
+                  className="w-full pl-10 pr-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  startIcon={<Image />}
-                >
-                  Tải lên hình ảnh
-                  <input
-                    type="file"
-                    hidden
-                    name="image"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                </Button>
-                <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
-                  {selectedImageName || "Chưa chọn file"}
-                </Typography>
-              </Grid>
-            </Grid>
+              </div>
 
-            <Box sx={{ textAlign: "center", mt: 4 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                size="large"
-                sx={{ px: 6, borderRadius: 3 }}
-                disabled={loading}
-              >
-                {loading ? "Đang tạo..." : "TẠO TÀI KHOẢN"}
-              </Button>
-            </Box>
-          </form>
-        </Card>
-      </Container>
-    </Box>
+              {/* Upload image */}
+              <div className="sm:col-span-3 mt-2">
+                <label className="flex items-center gap-2 cursor-pointer border p-2 rounded">
+                  <Image />
+                  {selectedImageName ? selectedImageName : "Tải lên hình ảnh"}
+                  <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                </label>
+              </div>
+
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="submit"
+              className="mt-4 px-10 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              Tạo tài khoản
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
   );
-}
-
+};
 export default CreateAccount;
