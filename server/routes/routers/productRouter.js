@@ -26,17 +26,19 @@ const router = express.Router();
 
 // NESTED_ROUTES_[GET reviews which belongs to specific product, CREATE a review on a specific product]
 
+//get products of a store
+router.route("/").get(getAllProducts);
+
 router.use(isAuth(Store), checkStoreStatus);
 
-router
-  .route("/")
-  .get(getAllProducts)
-  .post(
+router.post("/",
     uploadProductImages,
     createProductValidator,
     resizeProductImages,
     createProduct
   );
+
+router.route("/:id", IdValidator).get(getSingleProduct);
 
 router
   .route("/:id")
@@ -46,8 +48,6 @@ router
   );
 
 router
-  .route("/:id", IdValidator)
-  .get(getSingleProduct)
   .patch(
     uploadProductImages,
     createProductValidator,

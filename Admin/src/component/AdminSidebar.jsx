@@ -22,6 +22,8 @@ const navItems = [
   { name: "Quản lý Shipper", icon: ShippingIcon, path: "/shippers-management" },
   { name: "Tạo tài khoản", icon: PersonAddIcon, path: "/create-account" },
   { name: "Quản lý Banner", icon: BannerIcon, path: "/banners" },
+  { name: "Tạo mã giảm giá", icon: CreateCouponIcon, path: "/create-coupon" },
+  { name: "Thêm danh mục", icon: CreateCategoryIcon, path: "/create-category" },
   { name: "Duyệt sản phẩm", icon: ApproveIcon, path: "/product-approval" },
   { name: "Khiếu nại", icon: ComplaintIcon, path: "/complaints" },
   { name: "Vi phạm", icon: ViolationIcon, path: "/violations" },
@@ -36,9 +38,8 @@ const AdminSidebar = () => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 bottom-0 bg-white shadow-lg flex flex-col transition-all duration-300 ease-in-out z-40 overflow-hidden ${
-        isSidebarOpen ? "w-64" : "w-16"
-      }`}
+      className={`fixed top-16 left-0 bottom-0 bg-white shadow-lg flex flex-col transition-all duration-300 ease-in-out z-40 overflow-hidden ${isSidebarOpen ? "w-64" : "w-16"
+        }`}
     >
       {/* Nút thu gọn/mở rộng sidebar */}
       <div className="flex items-center p-2">
@@ -59,11 +60,10 @@ const AdminSidebar = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
-                  isActive
-                    ? "text-white font-semibold shadow-md"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
+                className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${isActive
+                  ? "text-white font-semibold shadow-md"
+                  : "text-gray-600 hover:bg-gray-100"
+                  }`}
                 style={{
                   backgroundColor: isActive ? PRIMARY_COLOR : "",
                 }}
@@ -84,6 +84,7 @@ const AdminSidebar = () => {
                 >
                   {item.name}
                 </span>
+
 
                 {/* Tooltip for collapsed state */}
                 {!isSidebarOpen && (

@@ -26,10 +26,10 @@ export const updateOrderStatusValidator = [
   validatorMiddleware,
 ];
 
-export const createCashOrderValidator = [
-  check("cartId")
-    .isMongoId()
-    .withMessage("Invalid id format")
-    .custom((val) => isExistInDB(val, Cart)),
-  validatorMiddleware,
-];
+// export const createCashOrderValidator = [
+//   check("cartId")
+//     .isMongoId()
+//     .withMessage("Invalid id format")
+//     .custom((val) => isExistInDB(val, Cart)),
+//   validatorMiddleware,
+// ];

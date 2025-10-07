@@ -26,6 +26,7 @@ router
   
 router.use(isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER));
 
+// Tạo category mới
 router
   .post("/",
     uploadCategoryImage,
@@ -33,6 +34,7 @@ router
     resizeCategoryImage,
     createCategory
   );
+// Các thao tác với category cụ thể
 router
   .route("/:id")
   .get(getCategoryValidator, getSingleCategory)
@@ -42,7 +44,7 @@ router
     resizeCategoryImage,
     updateSingleCategory
   )
-  .delete(
+  .delete( // Xóa category
     deleteCategoryValidator,
     deleteSingleCategory
   );

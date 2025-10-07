@@ -14,6 +14,8 @@ import CreateAccount from "./page/CreateAccount";
 import ShipperManagement from "./page/ShipperManagement";
 import StoreManagement from "./page/StoreManagement";
 import ShipperProfileDetail from "./page/ShipperProfileDetail";
+import CreateCoupon from "./page/CreateCoupon";
+import CreateCategory from "./page/CreateCategory";
 import Banners from "./page/Banners";
 
 function App() {
@@ -58,6 +60,8 @@ function App() {
           element={<ShipperProfileDetail />}
         />
         <Route path="/banners" element={<Banners />} />
+        <Route path="/create-coupon" element={<CreateCoupon />} />
+        <Route path="/create-category" element={<CreateCategory />} />
       </Route>
     </Routes>
   );

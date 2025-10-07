@@ -7,6 +7,8 @@ import shipperRouter from "./shipperRouter.js";
 import categoryRouter from "./categoryRouter.js";
 import bannerRouter from "./bannerRouter.js";
 import productRouter from "./productRouter.js";
+import orderRouter from "./orderRouter.js";
+// import couponRouter from "./couponRouter.js";
 
 const router = express.Router();
 
@@ -17,6 +19,8 @@ router.use(`/banners`, bannerRouter);
 router.use(`/categories`, categoryRouter);
 router.use(`/shippers`, shipperRouter);
 router.use(`/admins`, adminRouter);
+router.use(`/orders`, orderRouter);
+// router.use(`/coupons`, couponRouter);
 
 
 export default router;
