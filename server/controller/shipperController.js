@@ -4,6 +4,8 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import { generateSendToken } from "../utils/tokenHandler.utils.js";
 import { uploadMixOfImages } from "../middleware/imgUpload.middleware.js";
 
+import { SHIPPER_STATUS } from "../constants/index.js";
+
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
@@ -188,6 +190,10 @@ export const login = asyncHandler(async (req, res, next) => {
     });
     if (!shipper || !await shipper.isCorrectPassword(password)) {
         return next(new APIError("Email hoặc mật khẩu không đúng, vui lòng kiểm tra lại", 401));
+    }
+
+    if(shipper.status !== SHIPPER_STATUS.ACTIVE) {
+        return next(new APIError("Tài khoản của bạn hiện không hoạt động, vui lòng liên hệ quản trị viên", 403));
     }
 
     generateSendToken(res, shipper, 200);

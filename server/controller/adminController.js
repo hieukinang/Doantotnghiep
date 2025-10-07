@@ -3,6 +3,7 @@ import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import { generateSendToken } from "../utils/tokenHandler.utils.js";
 import { uploadSingleImage } from "../middleware/imgUpload.middleware.js";
+import { ADMIN_STATUS } from "../constants/index.js";
 
 import sharp from "sharp";
 
@@ -107,7 +108,6 @@ export const register = asyncHandler(async (req, res, next) => {
 });
 
 export const login = asyncHandler(async (req, res, next) => {
-  console.log(req.body);
   const { username, password } = req.body;
   // 1) If all data entered
   if (!username || !password) {
@@ -124,6 +124,12 @@ export const login = asyncHandler(async (req, res, next) => {
     return next(new APIError("Email hoặc mật khẩu không đúng, vui lòng kiểm tra lại", 401));
   }
 
+  console.log(admin.active);
+
+  if(!admin.active) {
+    return next(new APIError("Tài khoản của bạn hiện không hoạt động, vui lòng liên hệ quản trị viên", 403));
+  }
+
   generateSendToken(res, admin, 200);
 });
 
@@ -135,6 +141,6 @@ export const logout = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: "Logged out successfully",
+    message: "Đăng xuất thành công",
   });
 });

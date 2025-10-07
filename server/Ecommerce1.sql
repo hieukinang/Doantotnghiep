@@ -1,27 +1,4 @@
--- MySQL dump 10.13  Distrib 8.0.41, for Win64 (x86_64)
---
--- Host: localhost    Database: ecommerce1
--- ------------------------------------------------------
--- Server version	8.0.41
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `addresses`
---
-
 DROP TABLE IF EXISTS `addresses`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `addresses` (
   `id` int NOT NULL AUTO_INCREMENT,
   `city` varchar(100) DEFAULT NULL,
@@ -34,24 +11,12 @@ CREATE TABLE `addresses` (
   KEY `clientId` (`clientId`),
   CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`clientId`) REFERENCES `clients` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `addresses`
---
 
 LOCK TABLES `addresses` WRITE;
-/*!40000 ALTER TABLE `addresses` DISABLE KEYS */;
-/*!40000 ALTER TABLE `addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `admins`
---
-
 DROP TABLE IF EXISTS `admins`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+
 CREATE TABLE `admins` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(255) NOT NULL,
@@ -75,78 +40,45 @@ CREATE TABLE `admins` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `admins`
---
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 LOCK TABLES `admins` WRITE;
-/*!40000 ALTER TABLE `admins` DISABLE KEYS */;
-/*!40000 ALTER TABLE `admins` ENABLE KEYS */;
+INSERT INTO `admins` VALUES (1,'TriDM24','$2b$12$.SzItKbgxs0RkOgU/pxdHuqOMWI4lywEjN4fKjhZubhikxjRARCou','minhtri04062003@gmail.com','0343420503','Duong Minh Tri','manager','Intern','2024-09-25',1500000,'Thanh Tri',1,'TriDM24-Intern.jpeg','Vietcombank','9343420503','Duong Minh Tri','2025-10-05 09:56:03','2025-10-05 09:56:03','2025-10-05 09:56:03');
 UNLOCK TABLES;
 
---
--- Table structure for table `attributes`
---
-
 DROP TABLE IF EXISTS `attributes`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `attributes` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
-  `data_type` varchar(50) DEFAULT NULL,
-  `categoryId` int DEFAULT NULL,
+  `categoryId` int NOT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `categoryId` (`categoryId`),
-  CONSTRAINT `attributes_ibfk_1` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `attributes`
---
+  CONSTRAINT `attributes_ibfk_1` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 LOCK TABLES `attributes` WRITE;
-/*!40000 ALTER TABLE `attributes` DISABLE KEYS */;
-/*!40000 ALTER TABLE `attributes` ENABLE KEYS */;
+INSERT INTO `attributes` VALUES (1,'Size',1,'2025-10-05 09:59:57','2025-10-05 09:59:57'),(2,'Color',1,'2025-10-05 09:59:57','2025-10-05 09:59:57'),(3,'Origin',1,'2025-10-05 09:59:57','2025-10-05 09:59:57');
 UNLOCK TABLES;
 
---
--- Table structure for table `banners`
---
-
 DROP TABLE IF EXISTS `banners`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+
 CREATE TABLE `banners` (
   `id` int NOT NULL AUTO_INCREMENT,
   `image` varchar(255) NOT NULL,
+  `type` enum('sidebar','fixed') NOT NULL DEFAULT 'sidebar',
   `adminId` int DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `adminId` (`adminId`),
   CONSTRAINT `banners_ibfk_1` FOREIGN KEY (`adminId`) REFERENCES `admins` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `banners`
---
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 LOCK TABLES `banners` WRITE;
-/*!40000 ALTER TABLE `banners` DISABLE KEYS */;
-/*!40000 ALTER TABLE `banners` ENABLE KEYS */;
+INSERT INTO `banners` VALUES (1,'banner-1-1759751146556-0.jpeg','fixed',1,'2025-10-06 11:45:46','2025-10-06 11:45:46');
 UNLOCK TABLES;
-
---
--- Table structure for table `cart`
---
 
 DROP TABLE IF EXISTS `cart`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -216,11 +148,10 @@ CREATE TABLE `categories` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `image` varchar(255) NOT NULL,
-  `description` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -229,6 +160,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
+INSERT INTO `categories` VALUES (1,'giay dep','category-1-1759658397600.jpeg','2025-10-05 09:59:57','2025-10-05 09:59:57');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -249,7 +181,7 @@ CREATE TABLE `clients` (
   `gender` varchar(20) DEFAULT NULL,
   `scores` int DEFAULT '0',
   `type` enum('NORMAL','VIP','PREMIUM') DEFAULT 'NORMAL',
-  `status` enum('ACTIVE','INACTIVE','BANNED') DEFAULT 'ACTIVE',
+  `status` enum('ACTIVE','INACTIVE','BANNED','PROCESSING','DESTROYED') DEFAULT 'ACTIVE',
   `city` varchar(100) DEFAULT NULL,
   `village` varchar(100) DEFAULT NULL,
   `detail_address` varchar(100) DEFAULT NULL,
@@ -265,7 +197,7 @@ CREATE TABLE `clients` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `phone` (`phone`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -274,7 +206,6 @@ CREATE TABLE `clients` (
 
 LOCK TABLES `clients` WRITE;
 /*!40000 ALTER TABLE `clients` DISABLE KEYS */;
-INSERT INTO `clients` VALUES (1,'0989677012','$2b$12$nWCYnrITll1R6.ZjOSXnH.cdK8zvthVkE.yV4MnhDHgSOVVOI0kgq','minhtri04062003@gmail.com','Duong Minh Tri',NULL,NULL,0,'NORMAL','ACTIVE',NULL,NULL,NULL,'default-client.jpg',NULL,NULL,NULL,0,0,'2025-09-29 14:00:31','2025-09-29 14:00:31','2025-09-29 14:00:31');
 /*!40000 ALTER TABLE `clients` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -611,8 +542,8 @@ CREATE TABLE `product_images` (
   `updatedAt` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `productId` (`productId`),
-  CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -621,6 +552,7 @@ CREATE TABLE `product_images` (
 
 LOCK TABLES `product_images` WRITE;
 /*!40000 ALTER TABLE `product_images` DISABLE KEYS */;
+INSERT INTO `product_images` VALUES (1,'product-1-1759658445951-slide-2.jpeg',1,'2025-10-05 10:00:45','2025-10-05 10:00:45'),(2,'product-1-1759658445950-slide-1.jpeg',1,'2025-10-05 10:00:45','2025-10-05 10:00:45');
 /*!40000 ALTER TABLE `product_images` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -633,15 +565,15 @@ DROP TABLE IF EXISTS `product_variants`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `product_variants` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `sku_code` varchar(50) DEFAULT NULL,
   `price` float DEFAULT NULL,
+  `stock_quantity` int DEFAULT NULL,
   `productId` int DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `productId` (`productId`),
-  CONSTRAINT `product_variants_ibfk_1` FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `product_variants_ibfk_1` FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -650,6 +582,7 @@ CREATE TABLE `product_variants` (
 
 LOCK TABLES `product_variants` WRITE;
 /*!40000 ALTER TABLE `product_variants` DISABLE KEYS */;
+INSERT INTO `product_variants` VALUES (1,1500000,1300,1,'2025-10-05 10:01:36','2025-10-05 10:01:36');
 /*!40000 ALTER TABLE `product_variants` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -670,7 +603,7 @@ CREATE TABLE `products` (
   `rating_average` int DEFAULT '0',
   `review_numbers` int DEFAULT '0',
   `main_image` varchar(255) NOT NULL,
-  `status` varchar(50) DEFAULT NULL,
+  `status` enum('ACTIVE','BANNED') NOT NULL DEFAULT 'ACTIVE',
   `categoryId` int DEFAULT NULL,
   `storeId` int DEFAULT NULL,
   `createdAt` datetime NOT NULL,
@@ -680,7 +613,7 @@ CREATE TABLE `products` (
   KEY `storeId` (`storeId`),
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `products_ibfk_2` FOREIGN KEY (`storeId`) REFERENCES `stores` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -689,6 +622,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
+INSERT INTO `products` VALUES (1,'f15 ultra','Giay uy tin nhat Viet nam',NULL,0,0,0,0,'product-1-1759658445931-main.jpeg','ACTIVE',1,1,'2025-10-05 10:00:45','2025-10-05 10:00:45');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -745,7 +679,7 @@ CREATE TABLE `shippers` (
   `phone` varchar(20) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `fullname` varchar(255) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
+  `status` enum('ACTIVE','INACTIVE','BANNED','PROCESSING','DESTROYED') NOT NULL DEFAULT 'PROCESSING',
   `is_available` tinyint(1) DEFAULT '0',
   `vehicle_name` varchar(100) DEFAULT NULL,
   `license_plate` varchar(100) DEFAULT NULL,
@@ -824,7 +758,7 @@ CREATE TABLE `stores` (
   `rating` int DEFAULT '0',
   `total_sales` int DEFAULT '0',
   `number_of_products` int DEFAULT '0',
-  `status` varchar(50) DEFAULT 'PROCESS',
+  `status` enum('ACTIVE','INACTIVE','BANNED','PROCESSING','DESTROYED') NOT NULL DEFAULT 'PROCESSING',
   `city` varchar(100) DEFAULT NULL,
   `village` varchar(100) DEFAULT NULL,
   `detail_address` varchar(100) DEFAULT NULL,
@@ -838,7 +772,7 @@ CREATE TABLE `stores` (
   UNIQUE KEY `citizen_id` (`citizen_id`),
   UNIQUE KEY `phone` (`phone`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -847,6 +781,7 @@ CREATE TABLE `stores` (
 
 LOCK TABLES `stores` WRITE;
 /*!40000 ALTER TABLE `stores` DISABLE KEYS */;
+INSERT INTO `stores` VALUES (1,'038203023537','citizen_id-038203023537.jpeg','Bong Bo Bo','0585543383','$2b$12$qm8q1B2Q6RQxUd4UiNhrxeOzfnlIzWbFwg3mx9bIsHXLpq4WaGL0W','minhtri04062003@gmail.com','Vietcombank','9343420503','Duong Minh Tri',0,0,0,'PROCESSING','Ha Noi','Ha Dong','23 Yen Xa','avatar-038203023537.jpeg','Khong co',0,'2025-10-05 10:00:20','2025-10-05 10:00:20','2025-10-05 10:00:20');
 /*!40000 ALTER TABLE `stores` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -860,7 +795,6 @@ DROP TABLE IF EXISTS `variant_options`;
 CREATE TABLE `variant_options` (
   `id` int NOT NULL AUTO_INCREMENT,
   `value` varchar(50) DEFAULT NULL,
-  `stock_quantity` int DEFAULT NULL,
   `product_variantId` int DEFAULT NULL,
   `attributeId` int DEFAULT NULL,
   `createdAt` datetime NOT NULL,
@@ -869,8 +803,8 @@ CREATE TABLE `variant_options` (
   KEY `product_variantId` (`product_variantId`),
   KEY `attributeId` (`attributeId`),
   CONSTRAINT `variant_options_ibfk_1` FOREIGN KEY (`product_variantId`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `variant_options_ibfk_2` FOREIGN KEY (`attributeId`) REFERENCES `attributes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `variant_options_ibfk_2` FOREIGN KEY (`attributeId`) REFERENCES `attributes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -879,6 +813,7 @@ CREATE TABLE `variant_options` (
 
 LOCK TABLES `variant_options` WRITE;
 /*!40000 ALTER TABLE `variant_options` DISABLE KEYS */;
+INSERT INTO `variant_options` VALUES (1,'32',1,1,'2025-10-05 10:01:36','2025-10-05 10:01:36'),(2,'Xanh duong',1,2,'2025-10-05 10:01:36','2025-10-05 10:01:36'),(3,'Viet nam',1,3,'2025-10-05 10:01:36','2025-10-05 10:01:36');
 /*!40000 ALTER TABLE `variant_options` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -891,4 +826,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-29 21:01:52
+-- Dump completed on 2025-10-06 21:47:51

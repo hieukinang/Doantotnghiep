@@ -13,7 +13,6 @@ const Coupon = sequelize.define(
     code: {
       type: DataTypes.STRING(255),
       allowNull: true,
-      unique: true,
     },
     description: {
       type: DataTypes.STRING(255),
@@ -32,7 +31,7 @@ const Coupon = sequelize.define(
       allowNull: true,
     },
     expire: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
     },
     productId: {
