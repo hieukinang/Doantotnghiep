@@ -46,9 +46,6 @@ export const createManyBanners = asyncHandler(async (req, res, next) => {
   // Parse types nếu là JSON string
   let typesArr = types;
 
-  console.log("images:", images);
-  console.log("types:", typesArr);
-  
   if (typeof types === "string") {
     try {
       typesArr = JSON.parse(types);
