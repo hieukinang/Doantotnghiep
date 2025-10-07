@@ -3,16 +3,18 @@ import {
   STORE_STATUS,
   SHIPPER_STATUS,
   PRODUCT_STATUS,
-  ADMIN_STATUS
+  ADMIN_STATUS,
 } from "../constants/index.js";
 
 // --- Generic status validator for body ---
 export const checkStatus = (statusEnum) => (req, res, next) => {
   const { status } = req.body;
-  if (status && !Object.values(statusEnum).includes(status)) {
+  // ADMIN_STATUS là boolean, các status khác là string
+  const validValues = Object.values(statusEnum);
+  if (status !== undefined && !validValues.includes(status)) {
     return res.status(400).json({
       errors: [{
-        msg: `Status must be one of: ${Object.values(statusEnum).join(", ")}`,
+        msg: `Status must be one of: ${validValues.join(", ")}`,
         param: "status",
         location: "body"
       }]
@@ -21,73 +23,45 @@ export const checkStatus = (statusEnum) => (req, res, next) => {
   next();
 };
 
-// --- Generic status check for user object (req.user, req.store, req.shipper, etc.) ---
+// --- Generic status check for user/store/shipper/admin object ---
 export const checkEntityStatus = (statusEnum, statusKey = "status") => (req, res, next) => {
-  const user = req.user || req.store || req.shipper || req.admin;
-  if (!user) return next();
+  const entity = req.user || req.store || req.shipper || req.admin;
+  if (!entity) return next();
 
-  const status = user[statusKey];
-  if (status === statusEnum.INACTIVE) {
-    return res.status(403).json({
-      message: "Your account is inactive. Please contact support."
-    });
+  const status = entity[statusKey];
+
+  // ADMIN_STATUS là boolean
+  if (statusEnum === ADMIN_STATUS) {
+    if (status === ADMIN_STATUS.INACTIVE) {
+      return res.status(403).json({
+        message: "Admin account is inactive. Access denied."
+      });
+    }
+    return next();
   }
-  if (status === statusEnum.BANNED) {
+
+  // Các status khác là string
+  if (
+    status === statusEnum.INACTIVE ||
+    status === statusEnum.BANNED ||
+    status === statusEnum.DESTROYED ||
+    status === statusEnum.PROCESSING
+  ) {
     return res.status(403).json({
-      message: "Your account has been banned. Please contact support."
-    });
-  }
-  if (status === statusEnum.DESTROYED) {
-    return res.status(403).json({
-      message: "Your account has been destroyed. Access denied."
-    });
-  }
-  if (status === statusEnum.PROCESSING) {
-    return res.status(403).json({
-      message: "Your account is processing. Please wait for approval."
+      message: `Your account status is ${status}. Access denied.`
     });
   }
   next();
 };
 
-// --- Factory to combine multiple status check middlewares ---
-export const composeStatusChecks = (...checks) => {
-  return (req, res, next) => {
-    let idx = 0;
-    const run = () => {
-      if (idx >= checks.length) return next();
-      checks[idx++](req, res, (err) => {
-        if (err) return next(err);
-        run();
-      });
-    };
-    run();
-  };
-};
-
 // --- Usage examples ---
-// Validate status in body for client
-export const checkClientStatusBody = checkStatus(CLIENT_STATUS);
-// Validate status in body for store
-export const checkStoreStatusBody = checkStatus(STORE_STATUS);
-// Validate status in body for shipper
-export const checkShipperStatusBody = checkStatus(SHIPPER_STATUS);
+// export const checkClientStatusBody = checkStatus(CLIENT_STATUS);
+// export const checkStoreStatusBody = checkStatus(STORE_STATUS);
+// export const checkShipperStatusBody = checkStatus(SHIPPER_STATUS);
+// export const checkAdminStatusBody = checkStatus(ADMIN_STATUS);
 
-// Validate status in body for admin
-export const checkAdminStatusBody = checkStatus(ADMIN_STATUS);
-
-// Middleware: check status for logged-in client
 export const checkClientStatus = checkEntityStatus(CLIENT_STATUS);
-// Middleware: check status for logged-in store
 export const checkStoreStatus = checkEntityStatus(STORE_STATUS);
-// Middleware: check status for logged-in shipper
 export const checkShipperStatus = checkEntityStatus(SHIPPER_STATUS);
-
-// Middleware: check status for admin
-export const checkAdminStatus = checkEntityStatus(ADMIN_STATUS);
-
-// Middleware: check status for product
+export const checkAdminStatus = checkEntityStatus(ADMIN_STATUS, "active"); // admin dùng trường active (boolean)
 export const checkProductStatus = checkEntityStatus(PRODUCT_STATUS);
-
-// Compose multiple status checks if needed
-// Example: export const checkClientAndStoreStatus = composeStatusChecks(checkClientStatus, checkStoreStatus);

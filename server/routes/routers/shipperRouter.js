@@ -20,7 +20,7 @@ import {
   registerValidator,
 } from "../../validators/shipper.validator.js";
 
-import {checkShipperStatusBody} from "../../validators/status.validator.js";
+import {checkShipperStatus} from "../../validators/status.validator.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
 import Shipper from "../../model/shipperModel.js";
@@ -32,13 +32,15 @@ router.route("/register").post(uploadShipperImages, registerValidator, resizeShi
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Shipper), logout);
 
+router.use(isAuth(Admin), checkShipperStatus); // Các route bên dưới chỉ dành cho Admin
+
 router.route("/:id")
   .get(isAuth(Shipper), getSingleShipper);
 router.route("/update-status/:id")
-  .patch(isAuth(Admin),
-    checkShipperStatusBody,
+  .patch(
     uploadShipperImages,
     resizeShipperImages,
-    updateShipper);
+    updateShipper
+  );
 
 export default router;

@@ -10,11 +10,8 @@ export const ADMIN_ROLES = {
 };
 
 export const ADMIN_STATUS = {
-  ACTIVE: "ACTIVE",
-  INACTIVE: "INACTIVE",
-  BANNED: "BANNED",
-  PROCESSING: "PROCESSING",
-  DESTROYED: "DESTROYED",
+  ACTIVE: true,
+  INACTIVE: false,
 };
 
 export const CLIENT_STATUS = {
@@ -51,3 +48,11 @@ export const PRODUCT_STATUS = {
   ACTIVE: "ACTIVE",
   BANNED: "BANNED",
 }
+
+export const ORDER_STATUS = {
+  PROCESSING: "PROCESSING",
+  SHIPPED: "SHIPPED",
+  DELIVERED: "DELIVERED",
+  CANCELLED: "CANCELLED",
+  RETURNED: "RETURNED",
+};

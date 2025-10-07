@@ -1,7 +1,9 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, ENUM } from "sequelize";
 import { sequelize } from "../config/db.js";
 import Client from "./clientModel.js";
 import Shipper from "./shipperModel.js";
+import Store from "./storeModel.js";
+import { ORDER_STATUS } from "../constants/index.js";
 
 const Order = sequelize.define(
   "Order",
@@ -24,7 +26,8 @@ const Order = sequelize.define(
       allowNull: true,
     },
     status: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.ENUM(...Object.values(ORDER_STATUS)),
+      defaultValue: ORDER_STATUS.PROCESSING,
       allowNull: true,
     },
     shipping_address: {
@@ -59,6 +62,14 @@ const Order = sequelize.define(
         key: "id",
       },
     },
+    storeId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: Store,
+        key: "id",
+      },
+    }
   },
   {
     tableName: "orders",

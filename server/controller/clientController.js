@@ -3,6 +3,8 @@ import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {generateSendToken} from "../utils/tokenHandler.utils.js";
 
+import { CLIENT_STATUS } from "../constants/index.js";
+
 import { Op } from "sequelize";
 
 export const register = asyncHandler(async (req, res, next) => {
@@ -45,6 +47,9 @@ export const login = asyncHandler(async (req, res, next) => {
         return next(new APIError("Email hoặc mật khẩu không đúng, vui lòng kiểm tra lại", 401));
     }
 
+    if(client.status !== CLIENT_STATUS.ACTIVE) {
+        return next(new APIError("Tài khoản của bạn hiện không trong trạng thái hoạt động, vui lòng liên hệ quản trị viên", 403));
+    }
     generateSendToken(res, client, 200);
 });
 

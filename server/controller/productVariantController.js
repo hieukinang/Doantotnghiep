@@ -1,7 +1,6 @@
 import ProductVariant from "../model/productVariantModel.js";
 import VariantOption from "../model/variantOptionModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
-import Attribute from "../model/attributeModel.js";
 
 export const createProductVariant = asyncHandler(async (req, res, next) => {
 
