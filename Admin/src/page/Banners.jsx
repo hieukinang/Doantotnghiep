@@ -92,7 +92,7 @@ const Banners = () => {
     try {
       const token = localStorage.getItem("adminToken");
       const formData = new FormData();
-      formData.append("images", createForm.image); // backend nhận images (nhiều), nhưng gửi 1 file vẫn được
+      formData.append("images", createForm.image);
       formData.append("types", JSON.stringify([createForm.type])); // backend yêu cầu 'types' là chuỗi JSON mảng
       const res = await fetch("http://127.0.0.1:5000/api/banners/create", {
         method: "POST",
@@ -130,49 +130,49 @@ const Banners = () => {
       </div>
 
       {/* Danh sách banner */}
-      
-        {loading ? (
-          <div>Đang tải banner...</div>
-        ) : error ? (
-          <div className="text-red-500">{error}</div>
-        ) : banners.length === 0 ? (
-          <div>Không có banner nào.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {banners.map((banner) => (
-              <div
-                key={banner._id || banner.id}
-                className="bg-gray-50 rounded-lg shadow-sm p-4 flex flex-col items-center border border-gray-200 relative group transition hover:shadow-lg"
-              >
-                <img
-                  src={banner.image || "/default-banner.jpg"}
-                  alt="Banner"
-                  className="w-full h-40 object-cover rounded mb-3 border"
-                />
-                <div className="w-full flex flex-col items-center">
-                  <span className="text-sm text-gray-500 mb-1">
-                    Loại: <b>{banner.type}</b>
-                  </span>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-semibold"
-                      onClick={() => fetchBannerDetail(banner._id || banner.id)}
-                    >
-                      Xem chi tiết
-                    </button>
-                    <button
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs font-semibold"
-                      onClick={() => handleDelete(banner._id || banner.id)}
-                    >
-                      Xóa
-                    </button>
-                  </div>
+
+      {loading ? (
+        <div>Đang tải banner...</div>
+      ) : error ? (
+        <div className="text-red-500">{error}</div>
+      ) : banners.length === 0 ? (
+        <div>Không có banner nào.</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {banners.map((banner) => (
+            <div
+              key={banner._id || banner.id}
+              className="bg-gray-50 rounded-lg shadow-sm p-4 flex flex-col items-center border border-gray-200 relative group transition hover:shadow-lg"
+            >
+              <img
+                src={banner.image || "/default-banner.jpg"}
+                alt="Banner"
+                className="w-full h-40 object-cover rounded mb-3 border"
+              />
+              <div className="w-full flex flex-col items-center">
+                <span className="text-sm text-gray-500 mb-1">
+                  Loại: <b>{banner.type}</b>
+                </span>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-semibold"
+                    onClick={() => fetchBannerDetail(banner._id || banner.id)}
+                  >
+                    Xem chi tiết
+                  </button>
+                  <button
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs font-semibold"
+                    onClick={() => handleDelete(banner._id || banner.id)}
+                  >
+                    Xóa
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      
+            </div>
+          ))}
+        </div>
+      )}
+
 
       {/* Popup tạo banner mới */}
       {showCreateForm && (
