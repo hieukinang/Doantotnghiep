@@ -1,4 +1,4 @@
-import React, { useState }  from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import logo from "../../assets/home/logo.svg";
@@ -22,7 +22,7 @@ const Login = () => {
     setError("");
     setSuccess("");
     try {
-      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/clients/login`;
+      const url = `${import.meta.env.VITE_BACKEND_URL}/clients/login`;
 
       const res = await axios.post(url, form, {
         headers: {

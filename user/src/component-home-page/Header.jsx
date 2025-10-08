@@ -30,7 +30,7 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/clients/logout`;
+      const url = `${import.meta.env.VITE_BACKEND_URL}/clients/logout`;
       const token = localStorage.getItem("token");
       await axios.post(
         url,

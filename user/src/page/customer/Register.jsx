@@ -1,4 +1,4 @@
-import React, { useState }  from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import logo from "../../assets/home/logo.svg";
@@ -26,7 +26,7 @@ const Register = () => {
     setSuccess("");
     try {
       // URL đăng ký
-      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/clients/register`;
+      const url = `${import.meta.env.VITE_BACKEND_URL}/clients/register`;
 
       const res = await axios.post(url, form, {
         headers: { "Content-Type": "application/json" },

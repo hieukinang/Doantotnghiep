@@ -79,7 +79,7 @@ const CreateAccount = () => {
     if (!validate()) return;
     try {
 
-      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/admins/register`
+      const url = `${import.meta.env.VITE_BACKEND_URL}/admins/register`
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "fullName") data.append("fullname", value);
@@ -111,7 +111,7 @@ const CreateAccount = () => {
     } catch (err) {
       setSuccessMessage("");
       setErrors({ api: err.response?.data?.message || err.message || "Đăng ký thất bại" });
-    } 
+    }
   };
 
   return (
@@ -131,7 +131,7 @@ const CreateAccount = () => {
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-blue-600">1. Thông tin Đăng nhập</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
+
               {/* Username */}
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800"><AccountCircle /></span>

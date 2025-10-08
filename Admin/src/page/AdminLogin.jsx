@@ -6,14 +6,14 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    
-    const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/admins/login`;
+
+    const url = `${import.meta.env.VITE_BACKEND_URL}/admins/login`;
 
     try {
       const res = await axios.post(url, {
@@ -32,7 +32,7 @@ const AdminLogin = () => {
         localStorage.setItem("adminUsername", usernameValue);
 
         window.location.href = "/dashboard";
-        
+
       } else {
         setError(res.data?.message || "Sai tên đăng nhập hoặc mật khẩu");
       }

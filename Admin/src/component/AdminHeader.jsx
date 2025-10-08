@@ -10,9 +10,9 @@ import {
 
 const AdminHeader = () => {
   const PRIMARY_COLOR = "#116AD1";
-  const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/admins/logout`;
-;
-  
+  const url = `${import.meta.env.VITE_BACKEND_URL}/admins/logout`;
+  ;
+
 
   const handleLogout = async () => {
     try {

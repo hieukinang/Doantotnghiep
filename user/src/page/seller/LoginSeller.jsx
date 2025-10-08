@@ -25,7 +25,7 @@ const LoginSeller = () => {
     setLoading(true);
 
     try {
-      const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/stores/login`;
+      const url = `${import.meta.env.VITE_BACKEND_URL}/stores/login`;
       const res = await axios.post(
         url,
         form,

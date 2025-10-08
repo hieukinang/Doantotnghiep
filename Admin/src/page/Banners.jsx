@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-  const url = `${import.meta.env.VITE_BASE_URL}${import.meta.env.VITE_API_URL}/banners`;
+const url = `${import.meta.env.VITE_BACKEND_URL}/banners`;
 
 
 const Banners = () => {
@@ -148,11 +148,10 @@ const Banners = () => {
                     {loadingDetail ? "Đang tải..." : "Xem chi tiết"}
                   </button>
                   <button
-                    className={`px-3 py-1 rounded text-xs font-semibold ${
-                      loadingDelete === (banner._id || banner.id)
-                        ? "bg-gray-400 text-white cursor-not-allowed"
-                        : "bg-red-500 text-white hover:bg-red-600"
-                    }`}
+                    className={`px-3 py-1 rounded text-xs font-semibold ${loadingDelete === (banner._id || banner.id)
+                      ? "bg-gray-400 text-white cursor-not-allowed"
+                      : "bg-red-500 text-white hover:bg-red-600"
+                      }`}
                     onClick={() => handleDelete(banner._id || banner.id)}
                     disabled={loadingDelete === (banner._id || banner.id)}
                   >
@@ -206,9 +205,8 @@ const Banners = () => {
               {createSuccess && <div className="text-green-600 text-sm">{createSuccess}</div>}
               <button
                 type="submit"
-                className={`bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 ${
-                  loadingCreate ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 ${loadingCreate ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 disabled={loadingCreate}
               >
                 {loadingCreate ? "Đang tạo..." : "Tạo banner"}
