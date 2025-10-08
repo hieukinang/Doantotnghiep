@@ -47,7 +47,7 @@ const SellerLayout = ({ title = 'Bảng điều khiển', children }) => {
         <header className="h-16 bg-[#116AD1] text-white flex items-center justify-between px-4 md:px-6 shadow">
           <div className="font-semibold truncate">{title}</div>
           <div className="flex items-center gap-3 text-sm">
-            <span className="hidden sm:inline">Xin chào, Seller</span>
+            <span className="hidden sm:inline"> {`Xin chào ${localStorage.getItem('storeName') || 'Store'}`}</span>
             <img src={logo} alt="avatar" className="w-7 h-7 bg-white rounded-full p-1" />
           </div>
         </header>

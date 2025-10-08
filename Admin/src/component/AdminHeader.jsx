@@ -1,18 +1,37 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import Logo from "../assets/home/logo.svg";
 import {
   Search as SearchIcon,
-  Menu as MenuIcon,
+  // Menu as MenuIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 
-const AdminHeader = ({ isSidebarOpen, setIsSidebarOpen }) => {
+const AdminHeader = () => {
   const PRIMARY_COLOR = "#116AD1";
+  const url = `${import.meta.env.VITE_BACKEND_URL}/admins/logout`;
+  ;
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    window.location.href = "/";
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      await axios.post(
+        url,
+        {},
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          withCredentials: true,
+        }
+      );
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    } finally {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUsername");
+      window.location.href = "/";
+    }
   };
 
   return (
@@ -22,13 +41,13 @@ const AdminHeader = ({ isSidebarOpen, setIsSidebarOpen }) => {
     >
       {/* Left Section - Logo & Toggle Menu Button */}
       <div className="flex items-center">
-        <button
+        {/* <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 mr-4 transition duration-200 text-white"
         >
           <MenuIcon style={{ fontSize: 24 }} />
-        </button>
-        
+        </button> */}
+
         {/* Logo and Brand Name */}
         <div className="flex items-center gap-2 text-white text-xl font-bold">
           <img src={Logo} alt="KOHI Logo" className="h-8 w-auto" />
@@ -57,7 +76,9 @@ const AdminHeader = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
       {/* Right Section - User Info & Logout */}
       <div className="flex items-center text-white space-x-4">
-        <span className="text-sm font-medium">Xin chào Admin</span>
+        <span className="text-sm font-medium">
+          {`Xin chào ${localStorage.getItem("adminUsername") || "Admin"}`}
+        </span>
         <button
           onClick={handleLogout}
           className="flex items-center px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-150"

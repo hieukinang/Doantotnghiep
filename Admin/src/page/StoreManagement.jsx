@@ -77,7 +77,7 @@ const StoreManagement = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 space-y-6">
       {/* Nút thêm */}
       <div className="flex justify-end mb-4">
         <Button

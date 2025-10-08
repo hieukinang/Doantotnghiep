@@ -1,20 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import logo from "../../assets/home/logo.svg";
 import Footer from "../../component-home-page/Footer";
 import image from "../../../public/register.png";
 
 const Register = () => {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = useState({
     username: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
   });
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,51 +24,41 @@ const Register = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/client/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
+      // URL đăng ký
+      const url = `${import.meta.env.VITE_BACKEND_URL}/clients/register`;
+
+      const res = await axios.post(url, form, {
+        headers: { "Content-Type": "application/json" },
       });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccess("Đăng ký thành công!");
-        setForm({
-          username: "",
-          email: "",
-          phone: "",
-          password: "",
-          confirmPassword: "",
-        });
-      } else {
-        setError(data.message || "Đăng ký thất bại");
-      }
+
+      setSuccess("Đăng ký thành công!");
+      setForm({
+        username: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+      });
     } catch (err) {
-      setError("Lỗi kết nối máy chủ");
+      if (err.response) {
+        setError(err.response.data?.message || "Đăng ký thất bại");
+      } else {
+        setError("Lỗi kết nối máy chủ");
+      }
     }
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
-        {/* Logo + tên */}
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="w-10 h-10" />
           <span className="font-bold text-2xl">KOHI MALL</span>
         </Link>
-        {/* Title chính giữa */}
         <h1 className="text-2xl font-bold item-center text-center">ĐĂNG KÝ</h1>
-
-        {/* Hỗ trợ */}
-        <Link
-          to="/contact"
-          className="cursor-pointer hover:underline text-base"
-        >
+        <Link to="/contact" className="cursor-pointer hover:underline text-base">
           Hỗ trợ
         </Link>
       </header>
@@ -80,21 +70,17 @@ const Register = () => {
           <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4">
             <img
               src={image}
-              alt="Shopping"
+              alt="Register"
               className="w-full h-full max-h-[650px] object-fill"
             />
           </div>
 
           {/* Right side - Form đăng ký */}
           <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-8 border-t md:border-t-0 md:border-l border-gray-300">
-            <h2 className="text-2xl font-bold text-blue-600 mb-2">
-              Đăng ký tài khoản
-            </h2>
-            <p className="text-gray-500 mb-6">
-              Điền thông tin chi tiết bên dưới
-            </p>
+            <h2 className="text-2xl font-bold text-blue-600 mb-2">Đăng ký tài khoản</h2>
+            <p className="text-gray-500 mb-6">Điền thông tin chi tiết bên dưới</p>
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <input
                 type="text"
                 name="username"
@@ -140,16 +126,15 @@ const Register = () => {
                 className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+
               {error && <div className="text-red-500 text-sm">{error}</div>}
-              {success && (
-                <div className="text-green-600 text-sm">{success}</div>
-              )}
+              {success && <div className="text-green-600 text-sm">{success}</div>}
+
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700"
-                disabled={loading}
+                className="w-full bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? "Đang đăng ký..." : "Đăng ký"}
+                Đăng ký
               </button>
 
               <button
@@ -168,19 +153,13 @@ const Register = () => {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Đã có tài khoản?{" "}
-                <Link
-                  to="/login"
-                  className="text-blue-600 font-semibold hover:underline"
-                >
+                <Link to="/login" className="text-blue-600 font-semibold hover:underline">
                   Đăng nhập
                 </Link>
               </p>
               <p className="text-sm text-gray-600 mt-2">
                 Hoặc{" "}
-                <Link
-                  to="/register-to-seller"
-                  className="text-blue-600 font-semibold hover:underline"
-                >
+                <Link to="/register-to-seller" className="text-blue-600 font-semibold hover:underline">
                   Đăng ký làm người bán
                 </Link>
               </p>

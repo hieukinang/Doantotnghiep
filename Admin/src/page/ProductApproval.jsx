@@ -11,7 +11,7 @@ const ProductApproval = () => {
   const [products] = useState(mockProducts)
 
   return (
-    <div className="space-y-4">
+    <div className="p-4 space-y-6">
       <h2 className="text-xl font-semibold text-gray-800">Duyệt sản phẩm</h2>
       <div className="overflow-auto border rounded-lg">
         <table className="w-full text-left">
