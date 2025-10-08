@@ -92,7 +92,7 @@ With findByIdAndUpdate you could use { $inc: { friendsTotal: 1 } }. So, even if 
 export const createCashOrder = asyncHandler(async (req, res, next) => {
   let { products, shipping_address } = req.body;
 
-  // Support form-data where products may be a JSON string
+  // Chuyen doi du lieu neu can
   if (typeof products === "string") {
     try {
       products = JSON.parse(products);
@@ -105,16 +105,19 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     return next(new APIError("Products array is required", 400));
   }
 
-  // Validate each item and enrich with variant, product and store info
+  // Validate each item and enrich with variant, product and coupon info
   const enrichedItems = [];
   for (const item of products) {
-    const variantId = item.product_variantId || item.variantId || item.productVariantId;
+    const variantId = item.product_variantId || item.product_variant_id || item.variantId || item.variant_id || item.productVariantId;
     const quantity = parseInt(item.quantity || item.qty || 1, 10);
-    const couponId = item.couponId || item.coupon_id || item.coupon || null;
+    const storeIdFromRequest = item.storeId || item.store_id || null;
+    const couponIds = item.coupon_ids || item.couponIds || item.coupons || [];
 
     if (!variantId) return next(new APIError("product_variantId is required for each item", 400));
     if (!quantity || quantity <= 0) return next(new APIError("quantity must be a positive integer", 400));
+    if (!storeIdFromRequest) return next(new APIError("storeId is required for each item", 400));
 
+    // find variant and product
     const variant = await ProductVariant.findByPk(variantId, {
       include: [{ model: Product, as: "ProductVariantProduct" }],
     });
@@ -123,72 +126,79 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     const product = variant.ProductVariantProduct;
     if (!product) return next(new APIError(`Product for variant ${variantId} not found`, 404));
 
-    // Check stock
+    // Check variant stock
     if (variant.stock_quantity != null && variant.stock_quantity < quantity) {
       return next(new APIError(`Not enough stock for variant ${variantId}`, 400));
     }
 
-    let coupon = null;
-    if (couponId) {
-      coupon = await Coupon.findByPk(couponId);
-      if (!coupon) return next(new APIError(`No coupon match with id: ${couponId}`, 404));
-      // quantity available?
-      if (coupon.quantity != null && coupon.quantity <= 0) {
-        return next(new APIError(`Coupon ${couponId} is no longer available`, 400));
-      }
-      // expired?
-      if (coupon.expire) {
-        const expireDate = new Date(coupon.expire);
-        const today = new Date();
-        // normalize to date only
-        if (expireDate < new Date(today.toDateString())) {
-          return next(new APIError(`Coupon ${couponId} has expired`, 400));
+    // Check product belongs to provided storeId
+    if (product.storeId != storeIdFromRequest) {
+      return next(new APIError(`Product ${product.id} does not belong to store ${storeIdFromRequest}`, 400));
+    }
+
+    // Validate coupons array if provided
+    const couponsForItem = [];
+    if (couponIds && Array.isArray(couponIds) && couponIds.length > 0) {
+      for (const cId of couponIds) {
+        const coupon = await Coupon.findByPk(cId);
+        if (!coupon) return next(new APIError(`No coupon match with id: ${cId}`, 404));
+        // quantity available?
+        if (coupon.quantity != null && coupon.quantity <= 0) {
+          return next(new APIError(`Coupon ${cId} is no longer available`, 400));
         }
-      }
-      // product match: coupon.productId can be null (global) or must match
-      if (coupon.productId && coupon.productId !== product.id) {
-        return next(new APIError(`Coupon ${couponId} does not apply to this product`, 400));
+        // expired?
+        if (coupon.expire) {
+          const expireDate = new Date(coupon.expire);
+          const today = new Date();
+          if (expireDate < new Date(today.toDateString())) {
+            return next(new APIError(`Coupon ${cId} has expired`, 400));
+          }
+        }
+        // product match
+        if (coupon.productId && coupon.productId !== product.id) {
+          return next(new APIError(`Coupon ${cId} does not apply to this product`, 400));
+        }
+        couponsForItem.push(coupon);
       }
     }
 
-    enrichedItems.push({ item, variant, product, quantity, coupon });
+    enrichedItems.push({ item, variant, product, quantity, coupons: couponsForItem, storeId: storeIdFromRequest });
   }
 
   // Group items by storeId
   const groups = {};
   for (const it of enrichedItems) {
-    const storeId = it.product.storeId || null;
+    const storeId = it.storeId || null;
     if (!groups[storeId]) groups[storeId] = [];
     groups[storeId].push(it);
   }
 
   const createdOrders = [];
-
-  // Shipping fee fixed
   const SHIPPING_FEE = 30000;
 
-  // Process each store group in a transaction
   for (const storeId of Object.keys(groups)) {
     const items = groups[storeId];
     const t = await sequelize.transaction();
     try {
-      // compute subtotal and total discounts
       let subtotal = 0;
       let totalDiscount = 0;
 
+      // compute subtotal and discounts (sum discounts from all coupons)
       for (const it of items) {
         const price = parseFloat(it.variant.price || 0);
         subtotal += price * it.quantity;
-        if (it.coupon) {
-          const discountPercent = parseFloat(it.coupon.discount || 0) / 100;
-          totalDiscount += price * it.quantity * discountPercent;
+        if (it.coupons && it.coupons.length > 0) {
+          for (const coupon of it.coupons) {
+            const discountPercent = parseFloat(coupon.discount || 0) / 100;
+            totalDiscount += price * it.quantity * discountPercent;
+          }
         }
       }
 
       const shipping_fee = SHIPPING_FEE;
-      const total_price = Math.max(0, subtotal + shipping_fee - totalDiscount);
+      const total_price = Math.max(0, subtotal - totalDiscount);
 
-      // Create order
+      // create order
       const order = await Order.create(
         {
           payment_method: PAYMENT_METHODS.CASH,
@@ -202,7 +212,6 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
         { transaction: t }
       );
 
-      // Prepare order items and perform updates (stock, sold, coupon qty)
       const orderItemsToCreate = [];
       for (const it of items) {
         const unitPrice = parseFloat(it.variant.price || 0);
@@ -213,7 +222,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
           product_variantId: it.variant.id,
         });
 
-        // decrement stock
+        // decrement variant stock
         if (it.variant.stock_quantity != null) {
           await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
         }
@@ -223,9 +232,11 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
           await it.product.increment("sold", { by: it.quantity, transaction: t });
         }
 
-        // decrement coupon quantity if used
-        if (it.coupon) {
-          await it.coupon.decrement("quantity", { by: 1, transaction: t });
+        // decrement each coupon quantity used for this item
+        if (it.coupons && it.coupons.length > 0) {
+          for (const coupon of it.coupons) {
+            await coupon.decrement("quantity", { by: 1, transaction: t });
+          }
         }
       }
 
@@ -242,7 +253,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
       }
 
       await t.commit();
-      // reload order with order items
+
       const created = await Order.findByPk(order.id, { include: [{ model: OrderItem, as: "OrderItems" }, { model: Store, as: "OrderStore" } ] });
       createdOrders.push(created);
     } catch (err) {
