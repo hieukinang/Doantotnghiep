@@ -13,6 +13,8 @@ import {
   BarChart as ReportIcon,
   Settings as SettingsIcon,
   Menu as MenuIcon,
+  LocalActivity as CreateCouponIcon,
+  Inventory2 as CreateCategoryIcon,
 } from "@mui/icons-material";
 
 // Navigation items configuration
@@ -70,17 +72,15 @@ const AdminSidebar = () => {
                 title={!isSidebarOpen ? item.name : ""}
               >
                 <item.icon
-                  className={`flex-shrink-0 ${
-                    isSidebarOpen ? "mr-3" : "mx-auto"
-                  } transition-all duration-200`}
+                  className={`flex-shrink-0 ${isSidebarOpen ? "mr-3" : "mx-auto"
+                    } transition-all duration-200`}
                   style={{ fontSize: 20 }}
                 />
                 <span
-                  className={`transition-all duration-300 ${
-                    isSidebarOpen
+                  className={`transition-all duration-300 ${isSidebarOpen
                       ? "opacity-100"
                       : "opacity-0 w-0 overflow-hidden"
-                  }`}
+                    }`}
                 >
                   {item.name}
                 </span>
