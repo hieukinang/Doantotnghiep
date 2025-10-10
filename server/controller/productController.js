@@ -11,9 +11,6 @@ import sharp from "sharp";
 
 import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
-import VariantOption from "../model/variantOptionModel.js";
-import Attribute from "../model/attributeModel.js";
-
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer)
@@ -105,46 +102,13 @@ export const createProduct = asyncHandler(async (req, res, next) => {
 // @route   GET /api/products
 // @access  Public
 export const getAllProducts = getAll(Product, {
-  include: [{ model: ProductImage, as: "ProductImages" },
-            { model: ProductVariant, as: "ProductVariants" },
-  ],
+  include: [{ model: ProductImage, as: "ProductImages" }],
 });
 
 // @desc    GET Single Product
 // @route   GET /api/products/:id
 // @access  Public
-export const getSingleProduct = asyncHandler(async (req, res, next) => {
-  const product = await Product.findByPk(req.params.id, {
-    include: [
-      { model: ProductImage, as: "ProductImages" },
-      { 
-        model: ProductVariant, 
-        as: "ProductVariants",
-        include: [
-          {
-            model: VariantOption,
-            as: "ProductVariantOptions",
-            include: [{ model: Attribute, as: "VariantOptionAttribute" }]
-          }
-        ]
-      }
-    ]
-  });
-
-  if (!product) {
-    return res.status(404).json({ message: "Product not found" });
-  }
-
-  // Convert to plain object for manipulation
-  const productObj = product.toJSON();
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      doc: productObj,
-    },
-  });
-});
+export const getSingleProduct = getOne(Product);
 
 // @desc    UPDATE Single Product
 // @route   PATCH /api/products/:id
@@ -159,16 +123,3 @@ export const deleteSingleProduct = deleteOne(Product, {
             { model: ProductVariant, as: "ProductVariants" },
   ],
 });
-
-// @desc    GET Top Aliases(Rated-Sold-Sales) Product
-// @route   ex: GET /api/products?sort=-ratingAverage&limit=7 GET /api/products/top-rated
-// @access  Public
-// export const getTopAliases = (sortOption) => {
-//   return (req, res, next) => {
-//     req.query.limit = "7";
-//     req.query.sort = `${sortOption}`;
-//     req.query.fields =
-//       "name price image discount ratingAverage reviewsNumber quantityInStock";
-//     next();
-//   };
-// };

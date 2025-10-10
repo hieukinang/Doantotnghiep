@@ -53,34 +53,34 @@ export const createProductVariant = asyncHandler(async (req, res, next) => {
   });
 });
 
-// export const getProductVariantOptions = asyncHandler(async (req, res, next) => {
-//   const { product_variant_id } = req.params;
-//   if (!product_variant_id) {
-//     return res.status(400).json({ message: "Missing product_variant_id" });
-//   }
+export const getProductVariantOptions = asyncHandler(async (req, res, next) => {
+  const { product_variant_id } = req.params;
+  if (!product_variant_id) {
+    return res.status(400).json({ message: "Missing product_variant_id" });
+  }
 
-//   // Tìm ProductVariant theo product_variant_id
-//   const productVariant = await ProductVariant.findOne({ where: { id: product_variant_id } });
-//   if (!productVariant) {
-//     return res.status(404).json({ message: "ProductVariant not found" });
-//   }
+  // Tìm ProductVariant theo product_variant_id
+  const productVariant = await ProductVariant.findOne({ where: { id: product_variant_id } });
+  if (!productVariant) {
+    return res.status(404).json({ message: "ProductVariant not found" });
+  }
 
-//   // Lấy các VariantOption theo product_variantId
-//   const variantOptions = await VariantOption.findAll({
-//     where: { product_variantId: productVariant.id },
-//       attributes: { exclude: ["__v"] },
-//       include: [{ model: Attribute, as: "VariantOptionAttribute" }],
-//   });
+  // Lấy các VariantOption theo product_variantId
+  const variantOptions = await VariantOption.findAll({
+    where: { product_variantId: productVariant.id },
+      attributes: { exclude: ["__v"] },
+      include: [{ model: Attribute, as: "VariantOptionAttribute" }],
+  });
 
-//   // Map lại thành [{name: value}]
-//   const mappedOptions = variantOptions.map(opt => ({
-//     [opt.VariantOptionAttribute?.name]: opt.value
-//   }));
+  // Map lại thành [{name: value}]
+  const mappedOptions = variantOptions.map(opt => ({
+    [opt.VariantOptionAttribute?.name]: opt.value
+  }));
 
-//   res.status(200).json({
-//     status: "success",
-//     data: {
-//       variantOptions: mappedOptions,
-//     },
-//   });
-// });
+  res.status(200).json({
+    status: "success",
+    data: {
+      variantOptions: mappedOptions,
+    },
+  });
+});

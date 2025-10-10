@@ -21,6 +21,20 @@ export const createCouponforStore = createOne(Coupon);
 export const getAllCouponsForAdmin = getAll(Coupon, {
   where: { productId: null }
 });
+
+export const getCouponByCode = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    const coupon = await Coupon.findOne({ where: { code } });
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+    res.status(200).json({ data: coupon });
+  } catch (error) {
+    next(error);
+  } 
+};
+
 // @desc    GET Single Coupon
 // @route   GET /api/coupons/:id
 // @access  Private("ADMIN")
