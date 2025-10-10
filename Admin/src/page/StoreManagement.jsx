@@ -1,245 +1,356 @@
 import React, { useState } from "react";
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  IconButton,
-  Menu,
-  MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { useNavigate, Link } from "react-router-dom";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 const StoreManagement = () => {
+  const navigate = useNavigate();
+
   const [stores, setStores] = useState([
-    { id: 1, name: "Cửa hàng A", address: "Hà Nội", owner: "Nguyễn Văn A" },
-    { id: 2, name: "Cửa hàng B", address: "TP.HCM", owner: "Trần Thị B" },
+    { id: 1, name: "Cửa hàng Minh Quân Mobile", address: "Cầu Giấy, Hà Nội", owner: "Phạm Minh Quân" },
+    { id: 2, name: "Tạp hóa Thu Trang", address: "Hoàn Kiếm, Hà Nội", owner: "Nguyễn Thị Thu Trang" },
+    { id: 3, name: "Shop Thời Trang Hùng", address: "Hải Châu, Đà Nẵng", owner: "Lê Văn Hùng" },
+    { id: 4, name: "Cửa hàng Xe Máy Khánh", address: "Thanh Khê, Đà Nẵng", owner: "Trần Quốc Khánh" },
+    { id: 5, name: "Bách Hóa Nam Đặng", address: "Quận 1, TP. Hồ Chí Minh", owner: "Đặng Hoàng Nam" },
+    { id: 6, name: "Minimart Mai Linh", address: "Bình Thạnh, TP. Hồ Chí Minh", owner: "Võ Thị Mai Linh" },
+    { id: 7, name: "Điện Thoại Phước Ngô", address: "Ninh Kiều, Cần Thơ", owner: "Ngô Văn Phước" },
+    { id: 8, name: "Tiệm Mỹ Phẩm Thu Hằng", address: "Thành phố Thanh Hóa, Thanh Hóa", owner: "Lý Thu Hằng" },
+    { id: 9, name: "Cửa hàng Dũng Store", address: "TP Ninh Bình, Ninh Bình", owner: "Trịnh Công Dũng" },
+    { id: 10, name: "Quán Ăn Hải Yến", address: "Tây Hồ, Hà Nội", owner: "Bùi Hải Yến" },
+    { id: 11, name: "Cửa hàng Văn Phòng Phúc", address: "Hồng Bàng, Hải Phòng", owner: "Nguyễn Văn Phúc" },
+    { id: 12, name: "Tiệm Giày Thanh Hòa", address: "Lê Chân, Hải Phòng", owner: "Trần Thị Hòa" },
+    { id: 13, name: "Siêu Thị Bắc An", address: "TP Bắc Ninh, Bắc Ninh", owner: "Hoàng Văn An" },
+    { id: 14, name: "Cửa hàng Nội Thất Lan", address: "Thủ Dầu Một, Bình Dương", owner: "Phan Thị Lan" },
+    { id: 15, name: "Cà phê & Tiệm Bánh Tuấn", address: "Biên Hòa, Đồng Nai", owner: "Nguyễn Tuấn" },
+    { id: 16, name: "Nhà Thuốc Đức Hòa", address: "Vinh, Nghệ An", owner: "Đỗ Đức Hòa" },
+    { id: 17, name: "Siêu Thị Huế Central", address: "TP Huế, Thừa Thiên Huế", owner: "Lê Thị Hương" },
+    { id: 18, name: "Cửa hàng Hải Sản Hương", address: "Nha Trang, Khánh Hòa", owner: "Phạm Thị Hương" },
+    { id: 19, name: "Shop Thời Trang Vân", address: "Vũng Tàu, Bà Rịa - Vũng Tàu", owner: "Nguyễn Thị Vân" },
+    { id: 20, name: "Tạp Hóa Minh Tâm", address: "Nam Định, Nam Định", owner: "Lưu Minh Tâm" },
+    { id: 21, name: "Cửa hàng Điện Gia Dụng Hùng Sơn", address: "Hải Dương, Hải Dương", owner: "Trương Hùng Sơn" },
+    { id: 22, name: "MiniMart Thanh Kiều", address: "Thủ đô Hà Nội, Hà Nội", owner: "Vũ Thị Thanh Kiều" }
   ]);
 
-  const [openForm, setOpenForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openDetail, setOpenDetail] = useState(false);
-
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [openAdd, setOpenAdd] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
-  const [storeForm, setStoreForm] = useState({ name: "", address: "", owner: "" });
+  const [menuOpen, setMenuOpen] = useState(null);
+  const [newStore, setNewStore] = useState({ name: "", address: "", owner: "" });
 
-  // Menu hành động
-  const handleMenuClick = (event, store) => {
-    setAnchorEl(event.currentTarget);
+  const handleMenuClick = (store, index) => {
     setSelectedStore(store);
-  };
-  const handleMenuClose = () => setAnchorEl(null);
-
-  // Xem chi tiết
-  const handleDetail = () => {
-    setOpenDetail(true);
-    handleMenuClose();
+    setMenuOpen(menuOpen === index ? null : index);
   };
 
-  // Cập nhật
+  const handleDetail = (id) => {
+    navigate(`/store/profile-detail/${id}`);
+    setMenuOpen(null);
+  };
+
   const handleUpdate = () => {
-    setStoreForm({ ...selectedStore });
     setOpenUpdate(true);
-    handleMenuClose();
+    setMenuOpen(null);
   };
-  const handleUpdateSubmit = () => {
-    setStores(stores.map((s) => (s.id === storeForm.id ? storeForm : s)));
+
+  const handleUpdateSubmit = (updatedStore) => {
+    setStores(stores.map((s) => (s.id === updatedStore.id ? updatedStore : s)));
     setOpenUpdate(false);
   };
 
-  // Xóa
   const handleDelete = () => {
     setOpenDelete(true);
-    handleMenuClose();
+    setMenuOpen(null);
   };
+
   const confirmDelete = () => {
     setStores(stores.filter((s) => s.id !== selectedStore.id));
     setOpenDelete(false);
   };
 
-  // Thêm cửa hàng
-  const handleAddStore = () => {
-    setStores([...stores, { ...storeForm, id: Date.now() }]);
-    setStoreForm({ name: "", address: "", owner: "" });
-    setOpenForm(false);
+  const handleAdd = () => {
+    setOpenAdd(true);
   };
+
+  const handleAddSubmit = () => {
+    if (!newStore.name || !newStore.address || !newStore.owner) return;
+    setStores([...stores, { ...newStore, id: Date.now() }]);
+    setNewStore({ name: "", address: "", owner: "" });
+    setOpenAdd(false);
+  };
+
+  // Lọc cửa hàng theo từ khóa
+  const filteredStores = stores.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.owner.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Phân trang
+  const totalPages = Math.ceil(filteredStores.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentStores = filteredStores.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="p-4 space-y-6">
-      {/* Nút thêm */}
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="contained"
-          style={{ backgroundColor: "#116AD1" }}
-          onClick={() => setOpenForm(true)}
+      {/* Thanh tìm kiếm + Nút thêm */}
+      <div className="flex justify-end items-center mb-4 gap-3 ">
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên, địa chỉ, chủ cửa hàng..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border border-gray-300 rounded-full px-6 py-2.5 w-1/3 text-sm"
+        />
+
+        <Link to="/list-pending-store"
+          onClick={handleAdd}
+          className="
+            relative
+            px-6 py-2.5
+            bg-gradient-to-r from-[#116AD1] to-[#1E88E5]
+            text-white font-semibold text-sm
+            rounded-full
+            shadow-md
+            hover:shadow-lg
+            transition-all duration-300 ease-in-out
+            hover:scale-105
+            focus:outline-none focus:ring-2 focus:ring-blue-300
+            overflow-hidden
+          "
         >
-          + Thêm Cửa hàng
-        </Button>
+          <span className="relative z-10">Cửa hàng cần duyệt</span>
+        </Link>
       </div>
 
-      {/* Bảng danh sách */}
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead style={{ backgroundColor: "#116AD1" }}>
-            <TableRow>
-              <TableCell style={{ color: "white" }}>Tên cửa hàng</TableCell>
-              <TableCell style={{ color: "white" }}>Địa chỉ</TableCell>
-              <TableCell style={{ color: "white" }}>Chủ cửa hàng</TableCell>
-              <TableCell style={{ color: "white" }}>Hành động</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {stores.map((store) => (
-              <TableRow key={store.id}>
-                <TableCell>{store.name}</TableCell>
-                <TableCell>{store.address}</TableCell>
-                <TableCell>{store.owner}</TableCell>
-                <TableCell>
-                  <IconButton onClick={(e) => handleMenuClick(e, store)}>
-                    <MoreVertIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
+      {/* Bảng danh sách cửa hàng */}
+      <div className="overflow-x-auto bg-white rounded-xl shadow-md">
+        <table className="min-w-full text-sm text-gray-800">
+          <thead className="bg-blue-600 text-white">
+            <tr>
+              <th className="p-3 text-left w-[300px]">Tên cửa hàng</th>
+              <th className="p-3 text-left w-[250px]">Địa chỉ</th>
+              <th className="p-3 text-left w-[200px]">Chủ cửa hàng</th>
+              <th className="p-3 text-center w-[150px]">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentStores.map((store, index) => (
+              <tr
+                key={store.id}
+                className="border-t hover:bg-gray-50 transition relative"
+              >
+                <td className="p-3 text-left">{store.name}</td>
+                <td className="p-3 text-left">{store.address}</td>
+                <td className="p-3 text-left">{store.owner}</td>
+                <td className="p-3 text-center">
+                  <button
+                    onClick={() => handleMenuClick(store, index)}
+                    className="p-2 rounded-full hover:bg-gray-200"
+                  >
+                    <MoreVertIcon fontSize="small" />
+                  </button>
+
+                  {menuOpen === index && (
+                    <div className="absolute right-8 mt-1 bg-white border rounded-md shadow-lg z-50">
+                    <button
+                        onClick={() => handleDetail(store.id)}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Xem chi tiết
+                      </button>
+                      <button
+                        onClick={handleUpdate}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Cập nhật
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
 
-      {/* Menu hành động */}
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-        <MenuItem onClick={handleDetail}>Xem chi tiết</MenuItem>
-        <MenuItem onClick={handleUpdate}>Cập nhật</MenuItem>
-        <MenuItem onClick={handleDelete}>Xóa</MenuItem>
-      </Menu>
+            {currentStores.length === 0 && (
+              <tr>
+                <td colSpan="4" className="text-center p-4 text-gray-500">
+                  Không tìm thấy cửa hàng nào phù hợp.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Popup thêm */}
-      <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="sm" fullWidth>
-        <DialogTitle style={{ color: "#116AD1" }}>Thêm Cửa hàng mới</DialogTitle>
-        <DialogContent dividers>
-          <div className="grid grid-cols-1 gap-4">
-            <TextField
-              fullWidth
-              label="Tên cửa hàng"
-              value={storeForm.name}
-              onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Địa chỉ"
-              value={storeForm.address}
-              onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Chủ cửa hàng"
-              value={storeForm.owner}
-              onChange={(e) => setStoreForm({ ...storeForm, owner: e.target.value })}
-            />
+      {/* --- PHÂN TRANG --- */}
+      {totalPages > 1 && (
+        <div className="flex justify-end items-center mt-4 space-x-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className={`px-3 py-1 rounded-lg ${
+              currentPage === 1
+                ? "bg-gray-200 text-gray-400"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            ←
+          </button>
+
+          <span className="text-sm text-gray-700">
+            Trang {currentPage} / {totalPages}
+          </span>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className={`px-3 py-1 rounded-lg ${
+              currentPage === totalPages
+                ? "bg-gray-200 text-gray-400"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            →
+          </button>
+        </div>
+      )}
+
+      {/* Popup Xóa */}
+      {openDelete && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-96">
+            <h2 className="text-lg font-bold text-red-600 mb-3">
+              Xác nhận xóa
+            </h2>
+            <p>
+              Bạn có chắc chắn muốn xóa cửa hàng{" "}
+              <b>{selectedStore?.name}</b> không?
+            </p>
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                onClick={() => setOpenDelete(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                onClick={confirmDelete}
+              >
+                Xóa
+              </button>
+            </div>
           </div>
-          <div className="flex justify-end mt-6">
-            <Button onClick={() => setOpenForm(false)} color="error">
-              Hủy
-            </Button>
-            <Button
-              variant="contained"
-              style={{ backgroundColor: "#116AD1", marginLeft: "10px" }}
-              onClick={handleAddStore}
-            >
-              Lưu
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* Popup cập nhật */}
-      <Dialog open={openUpdate} onClose={() => setOpenUpdate(false)} maxWidth="sm" fullWidth>
-        <DialogTitle style={{ color: "#116AD1" }}>Cập nhật Cửa hàng</DialogTitle>
-        <DialogContent dividers>
-          <div className="grid grid-cols-1 gap-4">
-            <TextField
-              fullWidth
-              label="Tên cửa hàng"
-              value={storeForm.name}
-              onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Địa chỉ"
-              value={storeForm.address}
-              onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              label="Chủ cửa hàng"
-              value={storeForm.owner}
-              onChange={(e) => setStoreForm({ ...storeForm, owner: e.target.value })}
-            />
-          </div>
-          <div className="flex justify-end mt-6">
-            <Button onClick={() => setOpenUpdate(false)} color="error">
-              Hủy
-            </Button>
-            <Button
-              variant="contained"
-              style={{ backgroundColor: "#116AD1", marginLeft: "10px" }}
-              onClick={handleUpdateSubmit}
-            >
-              Lưu
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {openUpdate && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-[600px]">
+            <h2 className="text-xl font-bold text-blue-600 mb-4">
+              Cập nhật cửa hàng
+            </h2>
 
-      {/* Popup xem chi tiết */}
-      <Dialog open={openDetail} onClose={() => setOpenDetail(false)} maxWidth="sm" fullWidth>
-        <DialogTitle style={{ color: "#116AD1" }}>Chi tiết Cửa hàng</DialogTitle>
-        <DialogContent dividers>
-          {selectedStore && (
-            <>
-              <Typography>
-                <b>Tên cửa hàng:</b> {selectedStore.name}
-              </Typography>
-              <Typography>
-                <b>Địa chỉ:</b> {selectedStore.address}
-              </Typography>
-              <Typography>
-                <b>Chủ cửa hàng:</b> {selectedStore.owner}
-              </Typography>
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDetail(false)}>Đóng</Button>
-        </DialogActions>
-      </Dialog>
+            <div className="grid grid-cols-1 gap-4 text-left">
+              {[
+                { key: "name", label: "Tên cửa hàng" },
+                { key: "address", label: "Địa chỉ" },
+                { key: "owner", label: "Chủ cửa hàng" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm mb-1">{field.label}</label>
+                  <input
+                    type="text"
+                    value={selectedStore?.[field.key] || ""}
+                    onChange={(e) =>
+                      setSelectedStore({
+                        ...selectedStore,
+                        [field.key]: e.target.value,
+                      })
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              ))}
+            </div>
 
-      {/* Popup xóa */}
-      <Dialog open={openDelete} onClose={() => setOpenDelete(false)} maxWidth="xs" fullWidth>
-        <DialogTitle style={{ color: "red" }}>Xác nhận xóa</DialogTitle>
-        <DialogContent dividers>
-          <Typography>
-            Bạn có chắc chắn muốn xóa cửa hàng <b>{selectedStore?.name}</b> không?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDelete(false)}>Hủy</Button>
-          <Button variant="contained" color="error" onClick={confirmDelete}>
-            Xóa
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                onClick={() => setOpenUpdate(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={() => handleUpdateSubmit(selectedStore)}
+              >
+                Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup thêm mới */}
+      {openAdd && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-[600px]">
+            <h2 className="text-xl font-bold text-blue-600 mb-4">
+              Thêm cửa hàng mới
+            </h2>
+
+            <div className="grid grid-cols-1 gap-4 text-left">
+              {[
+                { key: "name", label: "Tên cửa hàng" },
+                { key: "address", label: "Địa chỉ" },
+                { key: "owner", label: "Chủ cửa hàng" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm mb-1">{field.label}</label>
+                  <input
+                    type="text"
+                    value={newStore[field.key]}
+                    onChange={(e) =>
+                      setNewStore({ ...newStore, [field.key]: e.target.value })
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                onClick={() => setOpenAdd(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={handleAddSubmit}
+              >
+                Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
