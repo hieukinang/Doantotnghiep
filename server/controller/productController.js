@@ -101,8 +101,29 @@ export const createProduct = asyncHandler(async (req, res, next) => {
 // @desc    GET All Products
 // @route   GET /api/products
 // @access  Public
-export const getAllProducts = getAll(Product, {
-  include: [{ model: ProductImage, as: "ProductImages" }],
+export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
+  const { storeId } = req.query;
+
+  if (!storeId) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Missing storeId in query params",
+    });
+  }
+
+  const products = await Product.findAll({
+    where: { storeId },
+    include: [{ model: ProductImage, as: "ProductImages" }],
+    order: [["createdAt", "DESC"]],
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: products.length,
+    data: {
+      products,
+    },
+  });
 });
 
 // @desc    GET Single Product

@@ -10,6 +10,7 @@ import productRouter from "./productRouter.js";
 import orderRouter from "./orderRouter.js";
 import couponRouter from "./couponRouter.js";
 import cartRouter from "./cartRouter.js";
+import productVariantRouter from "./productVariantRouter.js";
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.use(`/admins`, adminRouter);
 router.use(`/orders`, orderRouter);
 router.use(`/coupons`, couponRouter);
 router.use("/carts", cartRouter);
+router.use("/product-variants", productVariantRouter);
 
 export default router;
