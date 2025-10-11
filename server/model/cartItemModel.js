@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
 import Cart from "./cartModel.js";
-import Product from "./productModel.js";
+import ProductVariant from "./productVariantModel.js";
 
 const CartItem = sequelize.define(
   "CartItem",
@@ -23,11 +23,11 @@ const CartItem = sequelize.define(
         key: "id",
       },
     },
-    productId: {
+    product_variantId: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: Product,
+        model: ProductVariant,
         key: "id",
       },
     },

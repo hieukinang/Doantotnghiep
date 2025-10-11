@@ -1,16 +1,13 @@
 import express from "express";
 import {
   createProduct,
-  getAllProducts,
   uploadProductImages,
   resizeProductImages,
   getSingleProduct,
   updateSingleProduct,
-  deleteSingleProduct
+  deleteSingleProduct,
+  getAllProductsByStore
 } from "../../controller/productController.js";
-
-import {createProductVariant
-} from "../../controller/productVariantController.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
 import {
@@ -24,30 +21,23 @@ import Store from "../../model/storeModel.js";
 
 const router = express.Router();
 
-// NESTED_ROUTES_[GET reviews which belongs to specific product, CREATE a review on a specific product]
+router.route("/:id", IdValidator).get(getSingleProduct);
 
-//get products of a store
-router.route("/").get(getAllProducts);
-
-router.use(isAuth(Store), checkStoreStatus);
-
-router.post("/",
+router.post("/", // Store tạo sản phẩm
+    isAuth(Store),
+    checkStoreStatus,
     uploadProductImages,
     createProductValidator,
     resizeProductImages,
     createProduct
   );
 
-router.route("/:id", IdValidator).get(getSingleProduct);
+router.route("/").get(isAuth(Store), checkStoreStatus, getAllProductsByStore); // lay tat ca san phan theo store
+
+router.route("/:id", IdValidator).get(getSingleProduct); // Lấy từng sản phẩm
 
 router
-  .route("/:id")
-  .post(
-    IdValidator,
-    createProductVariant
-  );
-
-router
+  .route("/:id", isAuth(Store), checkStoreStatus, IdValidator) // Cập nhật, xóa sản phẩm
   .patch(
     uploadProductImages,
     createProductValidator,
@@ -55,7 +45,6 @@ router
     updateSingleProduct
   )
   .delete(
-    IdValidator,
     deleteSingleProduct
   );
 export default router;
