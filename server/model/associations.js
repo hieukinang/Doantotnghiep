@@ -35,7 +35,7 @@ Attribute.belongsTo(Category, { foreignKey: "categoryId", as: "AttributeCategory
 Attribute.hasMany(VariantOption, { foreignKey: "attributeId", as: "AttributeVariantOptions" });
 Banner.belongsTo(Admin, { foreignKey: "adminId", as: "BannerAdmin" });
 CartItem.belongsTo(Cart, { foreignKey: "cartId", as: "CartItemCart" });
-CartItem.belongsTo(Product, { foreignKey: "productId", as: "CartItemProduct" });
+CartItem.belongsTo(ProductVariant, { foreignKey: "product_variantId", as: "CartItemProductVariant" });
 Cart.belongsTo(Client, { foreignKey: "clientId", as: "CartClient" });
 Cart.hasMany(CartItem, { foreignKey: "cartId", as: "CartItems" });
 Category.hasMany(Attribute, { foreignKey: "categoryId", as: "CategoryAttributes", onDelete: "CASCADE" });
@@ -71,7 +71,6 @@ Order.hasMany(OrderItem, { foreignKey: "orderId", as: "OrderItems" });
 ProductImage.belongsTo(Product, { foreignKey: "productId", as: "ProductImageProduct" });
 Product.belongsTo(Category, { foreignKey: "categoryId", as: "ProductCategory" });
 Product.belongsTo(Store, { foreignKey: "storeId", as: "ProductStore" });
-Product.hasMany(CartItem, { foreignKey: "productId", as: "ProductCartItems" });
 Product.hasMany(Coupon, { foreignKey: "productId", as: "ProductCoupons" });
 Product.hasMany(Favorite, { foreignKey: "productId", as: "ProductFavorites" });
 Product.hasMany(ProductImage, { foreignKey: "productId", as: "ProductImages", onDelete: "CASCADE" });

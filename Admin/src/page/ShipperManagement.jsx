@@ -1,25 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  IconButton,
-  Menu,
-  MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
-  Paper,
-  DialogActions,
-  Typography,
-} from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useNavigate, Link } from "react-router-dom";
+import IconView from '../assets/home/icon-view.svg'
+import IconDelete from "../assets/home/icon-delete.svg";
+import IconEdit from '../assets/home/icon-edit.svg'
 
 const ShipperManagement = () => {
   const navigate = useNavigate();
@@ -27,169 +10,264 @@ const ShipperManagement = () => {
   const [shippers, setShippers] = useState([
     {
       id: 1,
-      fullname: "Nguyễn Văn A",
-      phone: "0901234567",
-      email: "shipperA@gmail.com",
+      fullname: "Phạm Minh Quân",
+      phone: "0905123456",
+      email: "quanpham@gmail.com",
       vehicle_name: "Wave Alpha",
-      license_plate: "30A-12345",
+      license_plate: "29A-12345",
       work_area_city: "Hà Nội",
-      work_area_village: "Hoàn Kiếm",
+      work_area_village: "Cầu Giấy",
       status: "Hoạt động",
     },
     {
       id: 2,
-      fullname: "Trần Thị B",
-      phone: "0912345678",
-      email: "shipperB@gmail.com",
+      fullname: "Nguyễn Thị Thu Trang",
+      phone: "0916234567",
+      email: "trangnguyen@gmail.com",
       vehicle_name: "Vision",
-      license_plate: "29B-98765",
+      license_plate: "30B-67890",
       work_area_city: "Hà Nội",
-      work_area_village: "Cầu Giấy",
+      work_area_village: "Hoàn Kiếm",
       status: "Tạm nghỉ",
     },
     {
-      id: 1,
-      fullname: "Nguyễn Văn A",
-      phone: "0901234567",
-      email: "shipperA@gmail.com",
-      vehicle_name: "Wave Alpha",
-      license_plate: "30A-12345",
-      work_area_city: "Hà Nội",
-      work_area_village: "Hoàn Kiếm",
+      id: 3,
+      fullname: "Lê Văn Hùng",
+      phone: "0978456123",
+      email: "hunglv@gmail.com",
+      vehicle_name: "SH Mode",
+      license_plate: "31C-54321",
+      work_area_city: "Đà Nẵng",
+      work_area_village: "Hải Châu",
       status: "Hoạt động",
     },
     {
-      id: 2,
-      fullname: "Trần Thị B",
-      phone: "0912345678",
-      email: "shipperB@gmail.com",
-      vehicle_name: "Vision",
-      license_plate: "29B-98765",
-      work_area_city: "Hà Nội",
-      work_area_village: "Cầu Giấy",
+      id: 4,
+      fullname: "Trần Quốc Khánh",
+      phone: "0987654321",
+      email: "khanhtran@gmail.com",
+      vehicle_name: "Exciter 155",
+      license_plate: "43A-67812",
+      work_area_city: "Đà Nẵng",
+      work_area_village: "Thanh Khê",
+      status: "Đang giao hàng",
+    },
+    {
+      id: 5,
+      fullname: "Đặng Hoàng Nam",
+      phone: "0904345678",
+      email: "namdh@gmail.com",
+      vehicle_name: "Air Blade",
+      license_plate: "50B-99887",
+      work_area_city: "TP. Hồ Chí Minh",
+      work_area_village: "Quận 1",
+      status: "Hoạt động",
+    },
+    {
+      id: 6,
+      fullname: "Võ Thị Mai Linh",
+      phone: "0936123987",
+      email: "linhvo@gmail.com",
+      vehicle_name: "Lead",
+      license_plate: "51F-76543",
+      work_area_city: "TP. Hồ Chí Minh",
+      work_area_village: "Bình Thạnh",
       status: "Tạm nghỉ",
     },
     {
-      id: 1,
-      fullname: "Nguyễn Văn A",
-      phone: "0901234567",
-      email: "shipperA@gmail.com",
-      vehicle_name: "Wave Alpha",
-      license_plate: "30A-12345",
-      work_area_city: "Hà Nội",
-      work_area_village: "Hoàn Kiếm",
+      id: 7,
+      fullname: "Ngô Văn Phước",
+      phone: "0908123987",
+      email: "phuocngo@gmail.com",
+      vehicle_name: "Future Neo",
+      license_plate: "65B-43210",
+      work_area_city: "Cần Thơ",
+      work_area_village: "Ninh Kiều",
+      status: "Đang giao hàng",
+    },
+    {
+      id: 8,
+      fullname: "Lý Thu Hằng",
+      phone: "0917456789",
+      email: "hangly@gmail.com",
+      vehicle_name: "Grande",
+      license_plate: "36A-98765",
+      work_area_city: "Thanh Hóa",
+      work_area_village: "Thành phố Thanh Hóa",
       status: "Hoạt động",
     },
     {
-      id: 2,
-      fullname: "Trần Thị B",
-      phone: "0912345678",
-      email: "shipperB@gmail.com",
+      id: 9,
+      fullname: "Trịnh Công Dũng",
+      phone: "0978345123",
+      email: "dungtc@gmail.com",
+      vehicle_name: "Wave RSX",
+      license_plate: "35B-67854",
+      work_area_city: "Ninh Bình",
+      work_area_village: "TP Ninh Bình",
+      status: "Đang giao hàng",
+    },
+    {
+      id: 10,
+      fullname: "Bùi Hải Yến",
+      phone: "0936345678",
+      email: "yenbui@gmail.com",
       vehicle_name: "Vision",
-      license_plate: "29B-98765",
+      license_plate: "30E-55677",
       work_area_city: "Hà Nội",
-      work_area_village: "Cầu Giấy",
+      work_area_village: "Tây Hồ",
       status: "Tạm nghỉ",
     },
     {
-      id: 1,
-      fullname: "Nguyễn Văn A",
-      phone: "0901234567",
-      email: "shipperA@gmail.com",
+      id: 11,
+      fullname: "Phạm Minh Quân",
+      phone: "0905123456",
+      email: "quanpham@gmail.com",
       vehicle_name: "Wave Alpha",
-      license_plate: "30A-12345",
+      license_plate: "29A-12345",
       work_area_city: "Hà Nội",
-      work_area_village: "Hoàn Kiếm",
+      work_area_village: "Cầu Giấy",
       status: "Hoạt động",
     },
     {
-      id: 2,
-      fullname: "Trần Thị B",
-      phone: "0912345678",
-      email: "shipperB@gmail.com",
+      id: 12,
+      fullname: "Nguyễn Thị Thu Trang",
+      phone: "0916234567",
+      email: "trangnguyen@gmail.com",
       vehicle_name: "Vision",
-      license_plate: "29B-98765",
+      license_plate: "30B-67890",
       work_area_city: "Hà Nội",
-      work_area_village: "Cầu Giấy",
+      work_area_village: "Hoàn Kiếm",
       status: "Tạm nghỉ",
     },
     {
-      id: 1,
-      fullname: "Nguyễn Văn A",
-      phone: "0901234567",
-      email: "shipperA@gmail.com",
-      vehicle_name: "Wave Alpha",
-      license_plate: "30A-12345",
-      work_area_city: "Hà Nội",
-      work_area_village: "Hoàn Kiếm",
+      id: 13,
+      fullname: "Lê Văn Hùng",
+      phone: "0978456123",
+      email: "hunglv@gmail.com",
+      vehicle_name: "SH Mode",
+      license_plate: "31C-54321",
+      work_area_city: "Đà Nẵng",
+      work_area_village: "Hải Châu",
       status: "Hoạt động",
     },
     {
-      id: 2,
-      fullname: "Trần Thị B",
-      phone: "0912345678",
-      email: "shipperB@gmail.com",
-      vehicle_name: "Vision",
-      license_plate: "29B-98765",
-      work_area_city: "Hà Nội",
-      work_area_village: "Cầu Giấy",
+      id: 14,
+      fullname: "Trần Quốc Khánh",
+      phone: "0987654321",
+      email: "khanhtran@gmail.com",
+      vehicle_name: "Exciter 155",
+      license_plate: "43A-67812",
+      work_area_city: "Đà Nẵng",
+      work_area_village: "Thanh Khê",
+      status: "Đang giao hàng",
+    },
+    {
+      id: 15,
+      fullname: "Đặng Hoàng Nam",
+      phone: "0904345678",
+      email: "namdh@gmail.com",
+      vehicle_name: "Air Blade",
+      license_plate: "50B-99887",
+      work_area_city: "TP. Hồ Chí Minh",
+      work_area_village: "Quận 1",
+      status: "Hoạt động",
+    },
+    {
+      id: 16,
+      fullname: "Võ Thị Mai Linh",
+      phone: "0936123987",
+      email: "linhvo@gmail.com",
+      vehicle_name: "Lead",
+      license_plate: "51F-76543",
+      work_area_city: "TP. Hồ Chí Minh",
+      work_area_village: "Bình Thạnh",
       status: "Tạm nghỉ",
     },
     {
-      id: 1,
-      fullname: "Nguyễn Văn A",
-      phone: "0901234567",
-      email: "shipperA@gmail.com",
-      vehicle_name: "Wave Alpha",
-      license_plate: "30A-12345",
-      work_area_city: "Hà Nội",
-      work_area_village: "Hoàn Kiếm",
+      id: 17,
+      fullname: "Ngô Văn Phước",
+      phone: "0908123987",
+      email: "phuocngo@gmail.com",
+      vehicle_name: "Future Neo",
+      license_plate: "65B-43210",
+      work_area_city: "Cần Thơ",
+      work_area_village: "Ninh Kiều",
+      status: "Đang giao hàng",
+    },
+    {
+      id: 18,
+      fullname: "Lý Thu Hằng",
+      phone: "0917456789",
+      email: "hangly@gmail.com",
+      vehicle_name: "Grande",
+      license_plate: "36A-98765",
+      work_area_city: "Thanh Hóa",
+      work_area_village: "Thành phố Thanh Hóa",
       status: "Hoạt động",
     },
     {
-      id: 2,
-      fullname: "Trần Thị B",
-      phone: "0912345678",
-      email: "shipperB@gmail.com",
+      id: 19,
+      fullname: "Trịnh Công Dũng",
+      phone: "0978345123",
+      email: "dungtc@gmail.com",
+      vehicle_name: "Wave RSX",
+      license_plate: "35B-67854",
+      work_area_city: "Ninh Bình",
+      work_area_village: "TP Ninh Bình",
+      status: "Đang giao hàng",
+    },
+    {
+      id: 20,
+      fullname: "Bùi Hải Yến",
+      phone: "0936345678",
+      email: "yenbui@gmail.com",
       vehicle_name: "Vision",
-      license_plate: "29B-98765",
+      license_plate: "30E-55677",
       work_area_city: "Hà Nội",
-      work_area_village: "Cầu Giấy",
+      work_area_village: "Tây Hồ",
+      status: "Tạm nghỉ",
+    },
+     {
+      id: 21,
+      fullname: "Vũ Thị Thanh Kim Hoàn",
+      phone: "0936345678",
+      email: "hoanvu@gmail.com",
+      vehicle_name: "Vision",
+      license_plate: "30E-55677",
+      work_area_city: "Hà Nội",
+      work_area_village: "Tây Hồ",
       status: "Tạm nghỉ",
     },
   ]);
 
-  const [openForm, setOpenForm] = useState(false); // popup thêm shipper
-  const [openUpdate, setOpenUpdate] = useState(false); // popup cập nhật
-  const [openDelete, setOpenDelete] = useState(false); // popup xóa
-  const [openDetail, setOpenDetail] = useState(false); // popup xem chi tiết
+  // --- STATE ---
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [openForm, setOpenForm] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const [selectedShipper, setSelectedShipper] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(null);
 
-  // Menu hành động
-  const handleMenuClick = (event, shipper) => {
-    setAnchorEl(event.currentTarget);
+  const handleMenuClick = (shipper, index) => {
     setSelectedShipper(shipper);
+    setMenuOpen(menuOpen === index ? null : index);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Xem chi tiết
   const handleDetail = (id) => {
     navigate(`/shipper/profile-detail/${id}`);
-    handleMenuClose();
+    setMenuOpen(null);
   };
 
-  // Mở popup cập nhật
-  const handleUpdate = () => {
-    setOpenUpdate(true);
-    handleMenuClose();
-  };
+  // const handleUpdate = () => {
+  //   setOpenUpdate(true);
+  //   setMenuOpen(null);
+  // };
 
-  // Lưu cập nhật
+
   const handleUpdateSubmit = (updatedShipper) => {
     setShippers(
       shippers.map((s) => (s.id === updatedShipper.id ? updatedShipper : s))
@@ -197,153 +275,236 @@ const ShipperManagement = () => {
     setOpenUpdate(false);
   };
 
-  // Mở popup xóa
-  const handleDelete = () => {
-    setOpenDelete(true);
-    handleMenuClose();
-  };
+  // const handleDelete = () => {
+  //   setOpenDelete(true);
+  //   setMenuOpen(null);
+  // };
 
-  // Xác nhận xóa
+  // --- Cập nhật handleUpdate và handleDelete ---
+const handleUpdate = (shipper) => {
+  setSelectedShipper(shipper); 
+  setOpenUpdate(true);
+  setMenuOpen(null);
+};
+
+const handleDelete = (shipper) => {
+  setSelectedShipper(shipper);
+  setOpenDelete(true);
+  setMenuOpen(null);
+};
+
+
   const confirmDelete = () => {
     setShippers(shippers.filter((s) => s.id !== selectedShipper.id));
     setOpenDelete(false);
   };
 
+  // Lọc shipper theo từ khóa
+  const filteredShippers = shippers.filter(
+    (s) =>
+      s.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.phone.includes(searchTerm) ||
+      s.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Phân trang
+  const totalPages = Math.ceil(filteredShippers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentShippers = filteredShippers.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
   return (
     <div className="p-4 space-y-6">
-      {/* Nút thêm shipper góc trên bên phải */}
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="contained"
-          style={{ backgroundColor: "#116AD1" }}
-          className="rounded-2xl"
+      {/* Thanh tìm kiếm + Nút Shipper cần duyệt */}
+      <div className="flex justify-end items-center mb-4 gap-3 ">
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên, SĐT, email..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // reset về trang 1 khi tìm kiếm
+          }}
+          className="border border-gray-300 rounded-full px-6 py-2.5 w-1/3 text-sm"
+        />
+
+        <Link to="/list-pending-shipper"
           onClick={() => setOpenForm(true)}
+          className="
+            relative
+            px-6 py-2.5
+            bg-gradient-to-r from-[#116AD1] to-[#1E88E5]
+            text-white font-semibold text-sm
+            rounded-full
+            shadow-md
+            hover:shadow-lg
+            transition-all duration-300 ease-in-out
+            hover:scale-105
+            focus:outline-none focus:ring-2 focus:ring-blue-300
+            overflow-hidden
+          "
         >
-          + Thêm Shipper
-        </Button>
+          <span className="relative z-10">🚚 Shipper cần duyệt</span>
+        
+        </Link>
       </div>
 
       {/* Bảng danh sách shipper */}
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead style={{ backgroundColor: "#116AD1" }}>
-            <TableRow>
-              <TableCell style={{ color: "white" }}>Họ và tên</TableCell>
-              <TableCell style={{ color: "white" }}>Số điện thoại</TableCell>
-              <TableCell style={{ color: "white" }}>Email</TableCell>
-              <TableCell style={{ color: "white" }}>Trạng thái</TableCell>
-              <TableCell style={{ color: "white" }}>Hành động</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {shippers.map((shipper) => (
-              <TableRow key={shipper.id}>
-                <TableCell>{shipper.fullname}</TableCell>
-                <TableCell>{shipper.phone}</TableCell>
-                <TableCell>{shipper.email}</TableCell>
-                <TableCell>{shipper.status}</TableCell>
-                <TableCell>
-                  <IconButton onClick={(e) => handleMenuClick(e, shipper)}>
-                    <MoreVertIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
+      <div className="overflow-x-auto bg-white rounded-xl shadow-md">
+        <table className="min-w-full text-sm text-gray-800">
+          <thead className="bg-blue-600 text-white">
+            <tr>
+              <th className="p-3 text-left w-[250px]">Họ và tên</th>
+              <th className="p-3 text-left w-[200px]">Số điện thoại</th>
+              <th className="p-3 text-left w-[350px]">Email</th>
+              <th className="p-3 text-left w-[200px]">Trạng thái</th>
+              <th className="p-3 text-center w-[150px]">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentShippers.map((shipper, index) => (
+              <tr
+                key={`${shipper.id}-${index}`}
+                className="border-t hover:bg-gray-50 transition relative"
+              >
+                <td className="p-3 text-left">{shipper.fullname}</td>
+                <td className="p-3 text-left">{shipper.phone}</td>
+                <td className="p-3 text-left">{shipper.email}</td>
+                <td className="p-3 text-left">{shipper.status}</td>
+                <td className="p-3 text-center flex justify-center gap-0.1">
+                  {/* Xem chi tiết */}
+                  <div className="relative group">
+                    <button
+                      onClick={() => handleDetail(shipper.id)}
+                      className="p-2 rounded-full hover:bg-gray-200"
+                    >
+                      <img src={IconView} alt="Xem chi tiết" className="w-5 h-5" />
+                    </button>
+                    <span className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                                    bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                                    group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Xem chi tiết
+                    </span>
+                  </div>
+
+                  {/* Cập nhật */}
+                  <div className="relative group">
+                    <button
+                      onClick={() => handleUpdate(shipper)}
+                      className="p-2 rounded-full hover:bg-gray-200"
+                    >
+                      <img src={IconEdit} alt="Cập nhật" className="w-5 h-5" />
+                    </button>
+                    <span className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                                    bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                                    group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Cập nhật
+                    </span>
+                  </div>
+
+                  {/* Xóa */}
+                  <div className="relative group">
+                    <button
+                      onClick={() => handleDelete(shipper)}
+                      className="p-2 rounded-full hover:bg-gray-200"
+                    >
+                      <img src={IconDelete} alt="Xóa" className="w-5 h-5" />
+                    </button>
+                    <span className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                                    bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                                    group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Xóa
+                    </span>
+                  </div>
+                </td>
+
+              </tr>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
 
-      {/* Menu hành động */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={handleDetail}>Xem chi tiết</MenuItem>
-        <MenuItem onClick={handleUpdate}>Cập nhật</MenuItem>
-        <MenuItem onClick={handleDelete}>Xóa</MenuItem>
-      </Menu>
+            {currentShippers.length === 0 && (
+              <tr>
+                <td colSpan="5" className="text-center p-4 text-gray-500">
+                  Không tìm thấy shipper nào phù hợp.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Popup thêm shipper */}
-      <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="md" fullWidth>
-        <DialogTitle style={{ color: "#116AD1", fontWeight: "bold" }}>
-          Thêm Shipper mới
-        </DialogTitle>
-        <DialogContent dividers>
-          <Typography>Form thêm shipper sẽ đặt ở đây...</Typography>
-          <div className="flex justify-end mt-6">
-            <Button onClick={() => setOpenForm(false)} color="error">
-              Hủy
-            </Button>
-            <Button
-              variant="contained"
-              style={{ backgroundColor: "#116AD1", marginLeft: "10px" }}
-              onClick={() => setOpenForm(false)}
-            >
-                Lưu
-            </Button>
+      {/* --- PHÂN TRANG --- */}
+      {totalPages > 1 && (
+        <div className="flex justify-end items-center mt-4 space-x-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className={`px-3 py-1 rounded-lg ${
+              currentPage === 1
+                ? "bg-gray-200 text-gray-400"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            ←
+          </button>
+
+          <span className="text-sm text-gray-700">
+            Trang {currentPage} / {totalPages}
+          </span>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className={`px-3 py-1 rounded-lg ${
+              currentPage === totalPages
+                ? "bg-gray-200 text-gray-400"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            →
+          </button>
+        </div>
+      )}
+
+      {/* Popup xác nhận xóa */}
+      {openDelete && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-96">
+            <h2 className="text-lg font-bold text-red-600 mb-3">
+              Xác nhận xóa
+            </h2>
+            <p>
+              Bạn có chắc chắn muốn xóa shipper{" "}
+              <b>{selectedShipper?.fullname}</b> không?
+            </p>
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                onClick={() => setOpenDelete(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                onClick={confirmDelete}
+              >
+                Xóa
+              </button>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Popup xem chi tiết */}
-      <Dialog
-        open={openDetail}
-        onClose={() => setOpenDetail(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle style={{ color: "#116AD1", fontWeight: "bold" }}>
-          Chi tiết Shipper
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedShipper && (
-            <>
-              <Typography>
-                <b>Họ và tên:</b> {selectedShipper.fullname}
-              </Typography>
-              <Typography>
-                <b>Số điện thoại:</b> {selectedShipper.phone}
-              </Typography>
-              <Typography>
-                <b>Email:</b> {selectedShipper.email}
-              </Typography>
-              <Typography>
-                <b>Tên phương tiện:</b> {selectedShipper.vehicle_name}
-              </Typography>
-              <Typography>
-                <b>Biển số xe:</b> {selectedShipper.license_plate}
-              </Typography>
-              <Typography>
-                <b>Thành phố:</b> {selectedShipper.work_area_city}
-              </Typography>
-              <Typography>
-                <b>Xã/Phường:</b> {selectedShipper.work_area_village}
-              </Typography>
-              <Typography>
-                <b>Trạng thái:</b> {selectedShipper.status}
-              </Typography>
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDetail(false)}>Đóng</Button>
-        </DialogActions>
-      </Dialog>
+        </div>
+      )}
 
       {/* Popup cập nhật */}
-      <Dialog
-        open={openUpdate}
-        onClose={() => setOpenUpdate(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle style={{ color: "#116AD1", fontWeight: "bold" }}>
-          Cập nhật Shipper
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedShipper && (
-            <div className="grid grid-cols-2 gap-4">
+      {openUpdate && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-[600px]">
+            <h2 className="text-xl font-bold text-blue-600 mb-4">
+              Cập nhật Shipper
+            </h2>
+
+            <div className="grid grid-cols-2 gap-4 text-left">
               {[
                 { key: "fullname", label: "Họ và tên" },
                 { key: "phone", label: "Số điện thoại" },
@@ -353,97 +514,40 @@ const ShipperManagement = () => {
                 { key: "work_area_city", label: "Thành phố" },
                 { key: "work_area_village", label: "Xã/Phường" },
               ].map((field) => (
-                <TextField
-                  key={field.key}
-                  fullWidth
-                  label={field.label}
-                  value={selectedShipper[field.key] || ""}
-                  onChange={(e) =>
-                    setSelectedShipper({
-                      ...selectedShipper,
-                      [field.key]: e.target.value,
-                    })
-                  }
-                />
+                <div key={field.key}>
+                  <label className="block text-sm mb-1">{field.label}</label>
+                  <input
+                    type="text"
+                    value={selectedShipper?.[field.key] || ""}
+                    onChange={(e) =>
+                      setSelectedShipper({
+                        ...selectedShipper,
+                        [field.key]: e.target.value,
+                      })
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
               ))}
             </div>
-          )}
-          <div className="flex justify-end mt-6">
-            <Button onClick={() => setOpenUpdate(false)} color="error">
-              Hủy
-            </Button>
-            <Button
-              variant="contained"
-              style={{ backgroundColor: "#116AD1", marginLeft: "10px" }}
-              onClick={() => handleUpdateSubmit(selectedShipper)}
-            >
-              Lưu
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
-      {/* Popup xác nhận xóa */}
-      <Dialog
-        open={openDelete}
-        onClose={() => setOpenDelete(false)}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle style={{ color: "red", fontWeight: "bold" }}>
-          Xác nhận xóa
-        </DialogTitle>
-        <DialogContent dividers>
-          <Typography>
-            Bạn có chắc chắn muốn xóa shipper{" "}
-            <b>{selectedShipper?.fullname}</b> không?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDelete(false)}>Hủy</Button>
-          <Button variant="contained" color="error" onClick={confirmDelete}>
-            Xóa
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {/* Form thêm shipper */}
-      <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="md" fullWidth>
-        <DialogTitle style={{ color: "#116AD1", fontWeight: "bold" }}>
-          Thêm Shipper mới
-        </DialogTitle>
-        <DialogContent dividers>
-          <div className="grid grid-cols-2 gap-4">
-            <TextField fullWidth label="Căn cước công dân" variant="outlined" required />
-            <TextField fullWidth label="Mặt trước căn cước công dân" type="file" InputLabelProps={{ shrink: true }} required />
-            <TextField fullWidth label="Ảnh chân dung" type="file" InputLabelProps={{ shrink: true }} required />
-            <TextField fullWidth label="Ảnh đăng ký" type="file" InputLabelProps={{ shrink: true }} required />
-            <TextField fullWidth label="Ảnh giấy khám sức khỏe" type="file" InputLabelProps={{ shrink: true }} required />
-            <TextField fullWidth label="Số điện thoại" variant="outlined" required />
-            <TextField fullWidth label="Email" variant="outlined" required />
-            <TextField fullWidth label="Mật khẩu" type="password" variant="outlined" required />
-            <TextField fullWidth label="Họ và tên" variant="outlined" required />
-            <TextField fullWidth label="Tên phương tiện" variant="outlined" required />
-            <TextField fullWidth label="Biển số xe" variant="outlined" required />
-            <TextField fullWidth label="Khu vực (Thành phố)" variant="outlined" required />
-            <TextField fullWidth label="Khu vực (Xã/Phường)" variant="outlined" required />
-            <TextField fullWidth label="Ngân hàng" variant="outlined" required />
-            <TextField fullWidth label="Số tài khoản" variant="outlined" required />
-            <TextField fullWidth label="Chủ tài khoản" variant="outlined" required />
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                onClick={() => setOpenUpdate(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={() => handleUpdateSubmit(selectedShipper)}
+              >
+                Lưu
+              </button>
+            </div>
           </div>
-          <div className="flex justify-end mt-6">
-            <Button onClick={() => setOpenForm(false)} color="error">
-              Hủy
-            </Button>
-            <Button
-              variant="contained"
-              style={{ backgroundColor: "#116AD1", marginLeft: "10px" }}
-              onClick={() => setOpenForm(false)}
-            >
-                Thêm mới
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div> 
+      )};
     </div>
   );
 };
