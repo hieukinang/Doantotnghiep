@@ -11,6 +11,7 @@ import sharp from "sharp";
 
 import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
+import Category from "../model/categoryModel.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer)
@@ -129,7 +130,13 @@ export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
 // @desc    GET Single Product
 // @route   GET /api/products/:id
 // @access  Public
-export const getSingleProduct = getOne(Product);
+export const getSingleProduct = getOne(Product, {
+  include: [
+    { model: ProductImage, as: "ProductImages" },
+    // { model: ProductVariant, as: "ProductVariants" },
+    { model: Category, as: "ProductCategory" }
+  ]
+});
 
 // @desc    UPDATE Single Product
 // @route   PATCH /api/products/:id
