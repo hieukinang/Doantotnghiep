@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import IconView from '../assets/home/icon-view.svg'
+import IconDelete from "../assets/home/icon-delete.svg";
+import IconEdit from '../assets/home/icon-edit.svg'
 
 const StoreManagement = () => {
   const navigate = useNavigate();
@@ -51,7 +54,8 @@ const StoreManagement = () => {
     setMenuOpen(null);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = (store) => {
+    setSelectedStore(store);
     setOpenUpdate(true);
     setMenuOpen(null);
   };
@@ -61,7 +65,8 @@ const StoreManagement = () => {
     setOpenUpdate(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = (store) => {
+    setSelectedStore(store);
     setOpenDelete(true);
     setMenuOpen(null);
   };
@@ -151,36 +156,60 @@ const StoreManagement = () => {
                 <td className="p-3 text-left">{store.address}</td>
                 <td className="p-3 text-left">{store.owner}</td>
                 <td className="p-3 text-center">
-                  <button
-                    onClick={() => handleMenuClick(store, index)}
-                    className="p-2 rounded-full hover:bg-gray-200"
-                  >
-                    <MoreVertIcon fontSize="small" />
-                  </button>
-
-                  {menuOpen === index && (
-                    <div className="absolute right-8 mt-1 bg-white border rounded-md shadow-lg z-50">
-                    <button
+                  <div className="flex justify-center items-center gap-0.1">
+                    {/* Xem chi tiết */}
+                    <div className="relative group">
+                      <button
                         onClick={() => handleDetail(store.id)}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        className="p-2 rounded-full hover:bg-gray-200 transition"
+                      >
+                        <img src={IconView} alt="Xem chi tiết" className="w-5 h-5" />
+                      </button>
+                      <span
+                        className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                        bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                        group-hover:opacity-100 transition-opacity whitespace-nowrap"
                       >
                         Xem chi tiết
-                      </button>
+                      </span>
+                    </div>
+
+                    {/* Cập nhật */}
+                    <div className="relative group">
                       <button
-                        onClick={handleUpdate}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        onClick={() => handleUpdate(store)}
+                        className="p-2 rounded-full hover:bg-gray-200 transition"
+                      >
+                        <img src={IconEdit} alt="Cập nhật" className="w-5 h-5" />
+                      </button>
+                      <span
+                        className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                        bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                        group-hover:opacity-100 transition-opacity whitespace-nowrap"
                       >
                         Cập nhật
-                      </button>
+                      </span>
+                    </div>
+
+                    {/* Xóa */}
+                    <div className="relative group">
                       <button
-                        onClick={handleDelete}
-                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                        onClick={() => handleDelete(store)}
+                        className="p-2 rounded-full hover:bg-gray-200 transition"
+                      >
+                        <img src={IconDelete} alt="Xóa" className="w-5 h-5" />
+                      </button>
+                      <span
+                        className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                        bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                        group-hover:opacity-100 transition-opacity whitespace-nowrap"
                       >
                         Xóa
-                      </button>
+                      </span>
                     </div>
-                  )}
+                  </div>
                 </td>
+
               </tr>
             ))}
 

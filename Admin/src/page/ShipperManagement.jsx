@@ -282,13 +282,13 @@ const ShipperManagement = () => {
 
   // --- Cập nhật handleUpdate và handleDelete ---
 const handleUpdate = (shipper) => {
-  setSelectedShipper(shipper); // Gán shipper hiện tại
+  setSelectedShipper(shipper); 
   setOpenUpdate(true);
   setMenuOpen(null);
 };
 
 const handleDelete = (shipper) => {
-  setSelectedShipper(shipper); // Gán shipper hiện tại
+  setSelectedShipper(shipper);
   setOpenDelete(true);
   setMenuOpen(null);
 };
