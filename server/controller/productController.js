@@ -102,7 +102,7 @@ export const createProduct = asyncHandler(async (req, res, next) => {
 // @route   GET /api/products
 // @access  Public
 export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
-  const { storeId } = req.query;
+  const storeId  = req.user.id;
 
   if (!storeId) {
     return res.status(400).json({
