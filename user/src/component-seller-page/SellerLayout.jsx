@@ -7,6 +7,7 @@ const navItems = [
   { label: 'Danh sách sản phẩm', href: '/seller/list-product' },
   { label: 'Thêm sản phẩm', href: '/seller/add-product' },
   { label: 'Chỉnh sửa sản phẩm', href: '/seller/update-product' },
+  { label: 'Thêm mã giảm giá', href: '/seller/add-coupon' },
   { label: 'Báo cáo doanh số', href: '/seller/sales-report' },
   { label: 'Đánh giá', href: '/seller/rating' },
   { label: 'Tài chính', href: '/seller/finance' },

@@ -31,7 +31,7 @@ import Rating from "./page/seller/Rating";
 import SalesReport from "./page/seller/SalesReport";
 import ForgotPassword from "./page/customer/ForgotPassword";
 import OrderDetailSeller from "./page/seller/OrderDetailSeller";
-
+import AddCoupon from "./page/seller/AddCoupon";
 import ShopContextProvider from "./context/ShopContext";
 import LoginSeller from "./page/seller/LoginSeller";
 
@@ -74,6 +74,7 @@ function App() {
           <Route path="/seller/sales-report" element={<SalesReport />} />
           <Route path="/seller/order-detail" element={<OrderDetailSeller />} />
           <Route path="/seller/login" element={<LoginSeller />} />
+          <Route path="/seller/add-coupon" element={<AddCoupon />} />
         </Routes>
       </div>
     </ShopContextProvider>
