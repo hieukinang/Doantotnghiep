@@ -32,7 +32,7 @@ const OrdersSeller = () => {
   const [active, setActive] = useState("Tất cả");
 
   return (
-    <SellerLayout title="Đơn hàng">
+    <div className="p-14 space-y-6">
       <div className="bg-white rounded-lg shadow overflow-auto">
         <div className="p-4 flex items-center gap-2 border-b">
           {statuses.map((s) => (
@@ -93,7 +93,7 @@ const OrdersSeller = () => {
           </tbody>
         </table>
       </div>
-    </SellerLayout>
+    </div>
   );
 };
 

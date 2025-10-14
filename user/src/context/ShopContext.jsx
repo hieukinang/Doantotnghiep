@@ -124,7 +124,7 @@ const ShopContextProvider = (props) => {
   // ✅ Lấy danh sách sản phẩm
   const getProductsData = async () => {
     try {
-      const response = await axios.get(backendUrl + "/api/product/list");
+      const response = await axios.get(backendUrl + "/products");
       if (response.data.success) {
         setProducts(response.data.products);
       } else {

@@ -12,7 +12,7 @@ const format = (v) => v.toLocaleString('vi-VN') + '₫'
 
 const Finance = () => {
   return (
-    <SellerLayout title="Tài chính">
+    <div className="p-14 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {cards.map((c, i) => (
           <div key={i} className={`rounded p-4 ${c.color}`}>
@@ -52,7 +52,7 @@ const Finance = () => {
         <button className="px-4 py-2 bg-[#116AD1] text-white rounded">Rút tiền</button>
         <Link to="/seller/sales-report" className="px-4 py-2 border rounded">Xem báo cáo</Link>
       </div>
-    </SellerLayout>
+    </div>
   )
 }
 
