@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const CreateCoupon = () => {
     const backendURL = import.meta.env.VITE_BACKEND_URL;
@@ -9,7 +11,7 @@ const CreateCoupon = () => {
         description: "",
         discount: "",
         quantity: "",
-        expire: "", // để trống ban đầu, user sẽ chọn
+        expire: null, // sẽ lưu Date object
     });
 
     const [message, setMessage] = useState("");
@@ -22,7 +24,14 @@ const CreateCoupon = () => {
         }));
     };
 
-    // 🔥 Format lại ngày trước khi gửi
+    const handleDateChange = (date) => {
+        setFormData((prev) => ({
+            ...prev,
+            expire: date,
+        }));
+    };
+
+    // 🔥 Format lại ngày trước khi gửi (YYYY-MM-DD HH:mm:ss)
     const formatDateTime = (datetime) => {
         const date = new Date(datetime);
         const pad = (n) => (n < 10 ? "0" + n : n);
@@ -75,7 +84,7 @@ const CreateCoupon = () => {
                 description: "",
                 discount: "",
                 quantity: "",
-                expire: "",
+                expire: null,
             });
         } catch (error) {
             console.error(error);
@@ -137,17 +146,20 @@ const CreateCoupon = () => {
                         />
                     </div>
                 </div>
-
                 <div>
                     <label className="block mb-1 font-medium">
                         Ngày hết hạn (chọn ngày & giờ) *
                     </label>
-                    <input
-                        type="datetime-local"
-                        name="expire"
-                        value={formData.expire}
-                        onChange={handleChange}
-                        className="w-full border p-2 rounded-md bg-gray-50"
+                    <DatePicker
+                        selected={formData.expire}
+                        onChange={handleDateChange}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        dateFormat="dd/MM/yyyy HH:mm"
+                        placeholderText="Chọn ngày & giờ hết hạn"
+                        className="w-full border border-gray-300 p-2 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        minDate={new Date()}
                     />
                 </div>
 
