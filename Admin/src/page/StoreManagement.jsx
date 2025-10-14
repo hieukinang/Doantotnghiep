@@ -163,7 +163,7 @@ const StoreManagement = () => {
                         onClick={() => handleDetail(store.id)}
                         className="p-2 rounded-full hover:bg-gray-200 transition"
                       >
-                        <img src={IconView} alt="Xem chi tiết" className="w-5 h-5" />
+                        <img src={IconView} alt="Xem chi tiết" className="w-4 h-4" />
                       </button>
                       <span
                         className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
@@ -180,7 +180,7 @@ const StoreManagement = () => {
                         onClick={() => handleUpdate(store)}
                         className="p-2 rounded-full hover:bg-gray-200 transition"
                       >
-                        <img src={IconEdit} alt="Cập nhật" className="w-5 h-5" />
+                        <img src={IconEdit} alt="Cập nhật" className="w-4 h-4" />
                       </button>
                       <span
                         className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
@@ -197,7 +197,7 @@ const StoreManagement = () => {
                         onClick={() => handleDelete(store)}
                         className="p-2 rounded-full hover:bg-gray-200 transition"
                       >
-                        <img src={IconDelete} alt="Xóa" className="w-5 h-5" />
+                        <img src={IconDelete} alt="Xóa" className="w-4 h-4" />
                       </button>
                       <span
                         className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 

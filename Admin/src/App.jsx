@@ -118,12 +118,12 @@ function App() {
     JSON.parse(localStorage.getItem("isSidebarOpen")) ?? true
   );
 
-  // ✅ Lưu trạng thái sidebar mỗi khi thay đổi
+  //  Lưu trạng thái sidebar mỗi khi thay đổi
   useEffect(() => {
     localStorage.setItem("isSidebarOpen", JSON.stringify(isSidebarOpen));
   }, [isSidebarOpen]);
 
-  // ✅ Route bảo vệ
+  // Route bảo vệ
   const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem("adminToken");
     return token ? children : <Navigate to="/" replace />;
@@ -131,7 +131,7 @@ function App() {
 
   return (
     <Routes>
-      {/* ✅ Nếu đã đăng nhập thì chặn quay lại trang login */}
+      {/*  Nếu đã đăng nhập thì chặn quay lại trang login */}
       <Route
         path="/"
         element={
@@ -143,7 +143,7 @@ function App() {
         }
       />
 
-      {/* ✅ Layout chính */}
+      {/*  Layout chính */}
       <Route
         element={
           <ProtectedRoute>

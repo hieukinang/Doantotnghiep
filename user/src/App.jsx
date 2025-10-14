@@ -1,5 +1,5 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 import Home from "./page/customer/Home";
 import Register from "./page/customer/Register";
@@ -19,6 +19,7 @@ import About from "./page/customer/About";
 import OrderDetail from "./page/customer/OrderDetail";
 import PrivacyPolicy from "./page/customer/PrivacyPolicy";
 import TermsOfUse from "./page/customer/TermsOfUse";
+import ForgotPassword from "./page/customer/ForgotPassword";
 
 import ListProduct from "./page/seller/ListProduct";
 import AddProduct from "./page/seller/AddProduct";
@@ -29,54 +30,109 @@ import Finance from "./page/seller/Finance";
 import OrdersSeller from "./page/seller/OrdersSeller";
 import Rating from "./page/seller/Rating";
 import SalesReport from "./page/seller/SalesReport";
-import ForgotPassword from "./page/customer/ForgotPassword";
 import OrderDetailSeller from "./page/seller/OrderDetailSeller";
 
-import ShopContextProvider from "./context/ShopContext";
 import LoginSeller from "./page/seller/LoginSeller";
+import SellerHeader from "./component-seller-page/SellerHeader";
+import SellerSidebar from "./component-seller-page/SellerSidebar";
+
+import ShopContextProvider from "./context/ShopContext";
 
 function App() {
-  return (
-    <ShopContextProvider>
-      <div>
-        <Routes>
-          {/* Customer Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register-to-seller" element={<RegisterToSeller />} />
-          <Route path="/product/:productId" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/place-order" element={<PlaceOrder />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/update-profile" element={<EditProfile />} />
-          <Route path="/followed-shops" element={<FollowedShops />} />
-          <Route path="/exchange-request" element={<ExchangeRequest />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/order-detail" element={<OrderDetail />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-use" element={<TermsOfUse />} />
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    JSON.parse(localStorage.getItem("isSidebarOpen")) ?? true
+  );
 
-          {/* Seller Routes */}
-          <Route path="/seller" element={<ListProduct />} />
+  // Lưu trạng thái sidebar mỗi khi thay đổi
+  useEffect(() => {
+    localStorage.setItem("isSidebarOpen", JSON.stringify(isSidebarOpen));
+  }, [isSidebarOpen]);
+
+  // Route bảo vệ cho seller
+  const ProtectedRoute = ({ children }) => {
+    const token = localStorage.getItem("sellerToken");
+    return token ? children : <Navigate to="/seller/login" replace />;
+  };
+
+  return (
+    // <ShopContextProvider>
+      <Routes>
+        {/* ---------- CUSTOMER ROUTES ---------- */}
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/register-to-seller" element={<RegisterToSeller />} />
+        <Route path="/product/:productId" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/place-order" element={<PlaceOrder />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/update-profile" element={<EditProfile />} />
+        <Route path="/followed-shops" element={<FollowedShops />} />
+        <Route path="/exchange-request" element={<ExchangeRequest />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/order-detail" element={<OrderDetail />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-use" element={<TermsOfUse />} />
+
+        {/* ---------- SELLER ROUTES ---------- */}
+        {/* Nếu đã đăng nhập, chặn truy cập lại trang login */}
+        <Route
+          path="/seller/login"
+          element={
+            localStorage.getItem("sellerToken") ? (
+              <Navigate to="/seller/orders" replace />
+            ) : (
+              <LoginSeller />
+            )
+          }
+        />
+
+        {/* Layout chính cho Seller */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <div className="flex min-h-screen bg-gray-100 overflow-hidden">
+                {/* Sidebar */}
+                <SellerSidebar
+                  isSidebarOpen={isSidebarOpen}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+
+                {/* Nội dung chính */}
+                <div
+                  className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${
+                    isSidebarOpen ? "ml-64" : "ml-16"
+                  }`}
+                >
+                  <SellerHeader
+                    isSidebarOpen={isSidebarOpen}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                  <main className="flex-1 p-6 overflow-y-auto">
+                    <Outlet />
+                  </main>
+                </div>
+              </div>
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/seller/orders" element={<OrdersSeller />} />
           <Route path="/seller/list-product" element={<ListProduct />} />
           <Route path="/seller/add-product" element={<AddProduct />} />
           <Route path="/seller/update-product" element={<EditProduct />} />
           <Route path="/seller/edit-profile" element={<EditProfileSeller />} />
           <Route path="/seller/edit-user" element={<EditUser />} />
           <Route path="/seller/finance" element={<Finance />} />
-          <Route path="/seller/orders" element={<OrdersSeller />} />
           <Route path="/seller/rating" element={<Rating />} />
           <Route path="/seller/sales-report" element={<SalesReport />} />
           <Route path="/seller/order-detail" element={<OrderDetailSeller />} />
-          <Route path="/seller/login" element={<LoginSeller />} />
-        </Routes>
-      </div>
-    </ShopContextProvider>
+        </Route>
+      </Routes>
+    // </ShopContextProvider>
   );
 }
 
