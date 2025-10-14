@@ -30,7 +30,7 @@ const users = [
 
 const EditUser = () => {
   return (
-    <SellerLayout title="Quản lý người dùng">
+    <div className="p-14 space-y-6">
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 flex items-center justify-between border-b">
           <div className="font-semibold">Danh sách người dùng</div>
@@ -75,7 +75,7 @@ const EditUser = () => {
           </table>
         </div>
       </div>
-    </SellerLayout>
+    </div>
   )
 }
 

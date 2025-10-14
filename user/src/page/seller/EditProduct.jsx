@@ -89,7 +89,7 @@ const EditProduct = () => {
   };
 
   return (
-    <SellerLayout title="Chỉnh sửa sản phẩm">
+    <div className="p-14 space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-lg shadow p-5">
           <div className="font-semibold mb-4">Thông tin cơ bản</div>
@@ -207,7 +207,7 @@ const EditProduct = () => {
           </button>
         </div>
       </div>
-    </SellerLayout>
+    </div>
   );
 };
 

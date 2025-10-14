@@ -51,7 +51,7 @@ const ListProduct = () => {
   );
 
   return (
-    <SellerLayout title="Sản phẩm">
+    <div className="p-14 space-y-6">
       <div className="bg-white rounded-lg shadow w-full">
         {/* Header */}
         <div className="p-4 border-b">
@@ -127,7 +127,7 @@ const ListProduct = () => {
           )}
         </div>
       </div>
-    </SellerLayout>
+    </div>
   );
 };
 

@@ -11,7 +11,7 @@ const Card = ({ label, value, sub }) => (
 
 const SalesReport = () => {
   return (
-    <SellerLayout title="Báo cáo doanh số">
+    <div className="p-14 space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card label="Doanh thu hôm nay" value="12.500.000₫" sub="+8% vs hôm qua" />
         <Card label="Đơn hàng hôm nay" value="86" sub="+12%" />
@@ -52,7 +52,7 @@ const SalesReport = () => {
           </tbody>
         </table>
       </div>
-    </SellerLayout>
+    </div>
   )
 }
 

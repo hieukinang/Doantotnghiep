@@ -3,7 +3,7 @@ import SellerLayout from '../../component-seller-page/SellerLayout'
 
 const EditProfileSeller = () => {
   return (
-    <SellerLayout title="Hồ sơ cửa hàng">
+    <div className="p-14 space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-5 lg:col-span-2">
           <div className="font-semibold mb-4">Thông tin cửa hàng</div>
@@ -40,7 +40,7 @@ const EditProfileSeller = () => {
           </form>
         </div>
       </div>
-    </SellerLayout>
+    </div>
   )
 }
 

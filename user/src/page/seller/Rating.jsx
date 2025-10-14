@@ -20,7 +20,7 @@ const Star = ({ n }) => (
 
 const Rating = () => {
   return (
-    <SellerLayout title="Đánh giá">
+    <div className="p-14 space-y-6">
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="p-4 flex items-center justify-between border-b">
           <div className="font-semibold">Phản hồi của khách hàng</div>
@@ -45,7 +45,7 @@ const Rating = () => {
           ))}
         </div>
       </div>
-    </SellerLayout>
+    </div>
   )
 }
 

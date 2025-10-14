@@ -94,7 +94,7 @@ const AddCoupon = () => {
     };
 
     return (
-        <SellerLayout title="Tạo mã giảm giá">
+        <div className="p-14 space-y-6">
             <div className="bg-white shadow rounded-lg p-6 max-w-3xl mx-auto">
                 <h2 className="text-lg font-semibold mb-4 text-center">
                     Thêm mã giảm giá mới
@@ -175,7 +175,7 @@ const AddCoupon = () => {
                     <p className="mt-4 text-center text-sm font-medium">{message}</p>
                 )}
             </div>
-        </SellerLayout>
+        </div>
     );
 };
 
