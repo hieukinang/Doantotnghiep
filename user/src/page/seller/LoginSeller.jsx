@@ -46,7 +46,7 @@ const LoginSeller = () => {
       localStorage.setItem("storeId", storeId);
 
       setTimeout(() => {
-        window.location.replace("/seller");
+        window.location.replace("/seller/orders");
       }, 1000);
     } catch (err) {
       // Lấy thông báo lỗi từ server, nếu có
