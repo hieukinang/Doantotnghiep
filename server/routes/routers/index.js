@@ -11,6 +11,7 @@ import orderRouter from "./orderRouter.js";
 import couponRouter from "./couponRouter.js";
 import cartRouter from "./cartRouter.js";
 import productVariantRouter from "./productVariantRouter.js";
+import superCategoryRouter from "./superCategoryRouter.js";
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.use(`/orders`, orderRouter);
 router.use(`/coupons`, couponRouter);
 router.use("/carts", cartRouter);
 router.use("/product-variants", productVariantRouter);
+router.use("/supercategories", superCategoryRouter);
 
 export default router;

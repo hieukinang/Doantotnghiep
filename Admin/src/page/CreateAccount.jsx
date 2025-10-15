@@ -116,7 +116,7 @@ const CreateAccount = () => {
 
   return (
     <div className="p-4 space-y-6">
-      <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-4 space-y-8">
+      <div className="w-full max-w-4xl bg-gray-100 rounded-xl shadow-lg p-4 space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-blue-700 mb-2">Tạo Tài Khoản Quản Lý Mới</h2>
           <p className="text-gray-600">Dùng cho Admin tạo tài khoản nhân viên có vai trò thấp hơn.</p>

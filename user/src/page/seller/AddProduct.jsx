@@ -211,16 +211,26 @@ const AddProduct = () => {
 
     try {
       const token = localStorage.getItem("sellerToken");
-      const payload = variants.map((variant) => ({
-        price: Number(variant.price),
-        stock_quantity: Number(variant.stock),
-        variant_options: [
-          {
-            attributeIds: categoryAttributesValues.map(attr => attr.id),
-            values: categoryAttributesValues.map(attr => variant[attr.name]),
-          },
-        ],
-      }));
+      const payload = variants.map((variant) => {
+        const attributeIds = [];
+        const values = [];
+
+        categoryAttributesValues.forEach((attr) => {
+          attributeIds.push(attr.id);
+          values.push(variant[attr.name]);
+        });
+
+        return {
+          price: Number(variant.price),
+          stock_quantity: Number(variant.stock),
+          variant_options: [
+            {
+              attributeIds,
+              values,
+            },
+          ],
+        };
+      });
       for (const variantData of payload) {
         await axios.post(
           `${backendURL}/product-variants/${createdProductId}`,
@@ -228,7 +238,6 @@ const AddProduct = () => {
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
             },
           }
         );
@@ -414,7 +423,7 @@ const AddProduct = () => {
                         <input
                           type="number"
                           min={1}
-                          value={variant.price > 0 ? variant.price : 1}
+                          value={variant.price > 0 ? variant.stock : 1}
                           onKeyDown={(e) => {
                             if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); // ✅ chặn nhập số âm & ký tự e
                           }}

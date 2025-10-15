@@ -24,6 +24,7 @@ import Review from "./reviewModel.js";
 import Shipper from "./shipperModel.js";
 import Store from "./storeModel.js";
 import Notification from "./notificationModel.js";
+import SuperCategory from "./superCategoryModel.js";
 
 // Define associations
 
@@ -92,3 +93,5 @@ Store.hasMany(Order, { foreignKey: "storeId", as: "StoreOrders" });
 Store.hasMany(StoreBanner, { foreignKey: "storeId", as: "StoreBanners" });
 VariantOption.belongsTo(ProductVariant, { foreignKey: "product_variantId", as: "VariantOptionProductVariant" });
 VariantOption.belongsTo(Attribute, { foreignKey: "attributeId", as: "VariantOptionAttribute" });
+SuperCategory.hasMany(Category, { foreignKey: "superCategoryId", as: "SuperCategoryCategories" });
+Category.belongsTo(SuperCategory, { foreignKey: "superCategoryId", as: "CategorySuperCategory" });

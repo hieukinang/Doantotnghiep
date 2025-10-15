@@ -12,7 +12,6 @@ import {
 } from "../../controller/categoryController.js";
 import {checkAdminStatus} from "../../validators/status.validator.js";
 import {
-  getCategoryValidator,
   createCategoryValidator,
   updateCategoryValidator,
   deleteCategoryValidator,
@@ -24,11 +23,9 @@ router
   .route("/")
   .get(getAllCategories);
   
-router.use(isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER));
-
 // Tạo category mới
 router
-  .post("/",
+  .post("/", isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER),
     uploadCategoryImage,
     createCategoryValidator,
     resizeCategoryImage,
@@ -37,14 +34,14 @@ router
 // Các thao tác với category cụ thể
 router
   .route("/:id")
-  .get(getCategoryValidator, getSingleCategory)
-  .patch(
+  .get(getSingleCategory)
+  .patch(isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER),
     uploadCategoryImage,
     updateCategoryValidator,
     resizeCategoryImage,
     updateSingleCategory
   )
-  .delete( // Xóa category
+  .delete(isAuth(Admin), checkAdminStatus, allowedTo(ADMIN_ROLES.MANAGER), // Xóa category
     deleteCategoryValidator,
     deleteSingleCategory
   );

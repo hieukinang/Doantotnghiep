@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
 
-const Category = sequelize.define(
-  "Category",
+const SuperCategory = sequelize.define(
+  "SuperCategory",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -17,10 +17,10 @@ const Category = sequelize.define(
         this.setDataValue("name", value.trim().toLowerCase());
       },
       validate: {
-        notNull: { msg: "Category name is required" },
+        notNull: { msg: "SuperCategory name is required" },
         len: {
           args: [3, 30],
-          msg: "Category name must be between 3 and 30 characters",
+          msg: "SuperCategory name must be between 3 and 30 characters",
         },
       },
     },
@@ -28,30 +28,20 @@ const Category = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        notNull: { msg: "Category must have image" },
+        notNull: { msg: "SuperCategory must have image" },
       },
       get() {
         const rawValue = this.getDataValue("image");
         if (!rawValue) return null;
         if (rawValue.startsWith("http")) return rawValue;
-        return `${process.env.BASE_URL}/categories/${rawValue}`;
+        return `${process.env.BASE_URL}/supercategories/${rawValue}`;
       },
-    },
-    superCategoryId: {
-      type: DataTypes.INTEGER,
-      allowNull: true, // Cho phép null
-      references: {
-        model: "supercategories",
-        key: "id",
-      },
-      onDelete: "SET NULL", // Khi xóa superCategory, set null
-      onUpdate: "CASCADE",
     },
   },
   {
-    tableName: "categories",
+    tableName: "supercategories",
     timestamps: true,
   }
 );
 
-export default Category;
+export default SuperCategory;
