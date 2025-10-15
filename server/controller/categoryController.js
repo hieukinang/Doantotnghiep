@@ -49,6 +49,12 @@ export const createCategory = asyncHandler(async (req, res, next) => {
     return res.status(400).json({ message: "name_attributes must be a non-empty array" });
   }
 
+  // Xử lý superCategoryId: nếu không truyền hoặc là chuỗi rỗng/null thì set null
+  let { superCategoryId } = req.body;
+  if (superCategoryId === undefined || superCategoryId === "" || superCategoryId === "null" || superCategoryId === null) {
+    req.body.superCategoryId = null;
+  }
+
   // Tạo category trước
   const category = await Category.create(req.body);
 

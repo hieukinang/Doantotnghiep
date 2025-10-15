@@ -12,13 +12,11 @@ import {
 } from "../../controller/categoryController.js";
 import {checkAdminStatus} from "../../validators/status.validator.js";
 import {
-  getCategoryValidator,
   createCategoryValidator,
   updateCategoryValidator,
   deleteCategoryValidator,
 } from "../../validators/category.validator.js";
 import Admin from "../../model/adminModel.js";
-import Store from "../../model/storeModel.js";
 const router = express.Router();
 
 router

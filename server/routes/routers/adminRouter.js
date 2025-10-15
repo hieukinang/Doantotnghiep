@@ -14,7 +14,7 @@ import {
   registerValidator
 } from "../../validators/admin.validator.js";
 
-import { allowedTo, isAuth } from "../../middleware/auth.middleware.js";
+import { isAuth } from "../../middleware/auth.middleware.js";
 import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
