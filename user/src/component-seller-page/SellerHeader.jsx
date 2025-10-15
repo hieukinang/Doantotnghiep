@@ -95,19 +95,33 @@
 
 // export default SellerHeader;
 
-import React from "react";
-import { Link } from "react-router-dom";
+import React, {useState, useEffect, useRef} from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Logo from "../assets/home/logo.svg";
 import {
   Search as SearchIcon,
-  // Menu as MenuIcon,
+   Home as HomeIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 
 const SellerHeader = () => {
   const PRIMARY_COLOR = "#116AD1";
   const url = `${import.meta.env.VITE_BACKEND_URL}/stores/logout`;
+
+  const navigate = useNavigate();
+  const menuRef = useRef(null);
+  const [isToggleOpen, setIsToggleOpen] = useState(false);
+
+  const handleToggle = () => {
+    setIsToggleOpen(!isToggleOpen);
+  };
+
+
+  const handleDetailProfile = () => {
+    navigate("/seller/edit-profile");
+    setIsToggleOpen(false);
+  };
 
   const handleLogout = async () => {
     try {
@@ -128,6 +142,16 @@ const SellerHeader = () => {
       window.location.href = "/";
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsToggleOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   return (
     <header
@@ -172,15 +196,29 @@ const SellerHeader = () => {
         <span className="text-sm font-medium">
           {`Xin chào ${localStorage.getItem("storeName") || "Seller"}`}
         </span>
-        <button
-          onClick={handleLogout}
-          className="flex items-center px-3 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition duration-150"
-        >
-          <span className="font-medium text-sm hidden sm:inline mr-2">
-            Đăng xuất
-          </span>
-          <LogoutIcon style={{ fontSize: 18 }} />
-        </button>
+        <div ref={menuRef} className="relative">
+          <button onClick={handleToggle} className="flex items-center">
+            <HomeIcon />
+          </button>
+        
+          {isToggleOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg text-gray-700 z-50">
+              <button
+                onClick={handleDetailProfile}
+                className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
+              >
+                Trang cá nhân
+              </button>
+        
+              <button
+                onClick={handleLogout}
+                className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-b-lg"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
