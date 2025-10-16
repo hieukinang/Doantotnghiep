@@ -1,291 +1,12 @@
-// import React, { useState, useEffect } from "react";
-// import SellerLayout from "../../component-seller-page/SellerLayout";
-// import axios from "axios";
-
-// const AddProduct = () => {
-//     const backendURL =
-//         import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
-
-//     const [product, setProduct] = useState({
-//         name: "",
-//         description: "",
-//         origin: "",
-//         categoryId: "",
-//     });
-
-//     const [slideImages, setSlideImages] = useState([]);
-//     const [categories, setCategories] = useState([]);
-//     const [mainImage, setMainImage] = useState(null);
-//     const [previewMainImage, setPreviewMainImage] = useState(null);
-//     const [previewSlideImages, setPreviewSlideImages] = useState([]);
-//     const [message, setMessage] = useState("");
-
-//     useEffect(() => {
-//         const fetchCategories = async () => {
-//             try {
-//                 const res = await axios.get(`${backendURL}/categories`);
-//                 const docs = res.data?.data?.docs || [];
-//                 setCategories(docs);
-//             } catch (err) {
-//                 // Handle error silently
-//             }
-//         };
-//         fetchCategories();
-//     }, [backendURL]);
-
-//     const handleInputChange = (e) => {
-//         const { name, value } = e.target;
-//         setProduct((prev) => ({ ...prev, [name]: value }));
-//     };
-
-//     const handleMainImageChange = (e) => {
-//         const file = e.target.files?.[0];
-//         if (file) {
-//             setMainImage(file);
-//             setPreviewMainImage(URL.createObjectURL(file));
-//         }
-//     };
-
-//     const handleSlideImagesChange = (e) => {
-//         const files = Array.from(e.target.files);
-//         if (files.length === 0) return;
-
-//         const newFiles = [...slideImages, ...files];
-
-//         if (newFiles.length > 5) {
-//             setMessage("Chỉ được chọn tối đa 5 ảnh phụ!");
-//             setTimeout(() => setMessage(""), 3000);
-//             return;
-//         }
-
-//         setSlideImages(newFiles);
-
-//         const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
-//         setPreviewSlideImages(newPreviews);
-
-//         e.target.value = "";
-//     };
-
-//     const removeSlideImage = (index) => {
-//         const newFiles = slideImages.filter((_, i) => i !== index);
-//         setSlideImages(newFiles);
-
-//         const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
-//         setPreviewSlideImages(newPreviews);
-//     };
-
-//     const handleSubmit = async (e) => {
-//         e.preventDefault();
-
-//         if (!mainImage) {
-//             setMessage("Vui lòng chọn ảnh chính!");
-//             setTimeout(() => setMessage(""), 3000);
-//             return;
-//         }
-
-//         if (product.description.length < 20) {
-//             setMessage("Mô tả sản phẩm phải có ít nhất 20 ký tự!");
-//             setTimeout(() => setMessage(""), 3000);
-//             return;
-//         }
-
-//         if (product.description.length > 255) {
-//             setMessage("Mô tả sản phẩm không được quá 255 ký tự!");
-//             setTimeout(() => setMessage(""), 3000);
-//             return;
-//         }
-
-//         try {
-//             const formData = new FormData();
-//             formData.append("name", product.name.trim());
-//             formData.append("description", product.description.trim());
-//             formData.append("origin", product.origin.trim());
-//             formData.append("categoryId", product.categoryId);
-
-//             if (mainImage) {
-//                 formData.append("main_image", mainImage);
-//             }
-
-//             slideImages.forEach((file) => {
-//                 formData.append("slide_images", file);
-//             });
-
-//             const token = localStorage.getItem("sellerToken");
-
-//             const res = await axios.post(`${backendURL}/products`, formData, {
-//                 headers: {
-//                     "Authorization": `Bearer ${token}`,
-//                     "Content-Type": "multipart/form-data",
-//                 },
-//             });
-
-//             setMessage("Thêm sản phẩm thành công!");
-
-//             setProduct({
-//                 name: "",
-//                 description: "",
-//                 origin: "",
-//                 categoryId: "",
-//             });
-//             setMainImage(null);
-//             setSlideImages([]);
-//             setPreviewMainImage(null);
-//             setPreviewSlideImages([]);
-
-//             setTimeout(() => setMessage(""), 2500);
-//         } catch (err) {
-//             if (err.response?.data?.errors) {
-//                 const errorMessages = err.response.data.errors.map(error => error.msg).join(", ");
-//                 setMessage(`${errorMessages}`);
-//             } else if (err.response?.data?.message) {
-//                 setMessage(`${err.response.data.message}`);
-//             } else {
-//                 setMessage("Thêm sản phẩm thất bại!");
-//             }
-//         }
-//     };
-
-//     return (
-//         <div className="p-14 space-y-6">
-//             <div className="bg-white shadow rounded-lg p-6 max-w-3xl mx-auto">
-//                 <h2 className="text-lg font-semibold mb-4">Thêm sản phẩm mới</h2>
-
-//                 {message && (
-//                     <div
-//                         className={`mb-3 text-center text-sm font-medium ${message.includes("✅")
-//                             ? "text-green-600"
-//                             : "text-red-600"
-//                             }`}
-//                     >
-//                         {message}
-//                     </div>
-//                 )}
-
-//                 <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
-//                     <input
-//                         name="name"
-//                         placeholder="Tên sản phẩm"
-//                         value={product.name}
-//                         onChange={handleInputChange}
-//                         className="border rounded px-3 py-2"
-//                         required
-//                     />
-
-//                     <input
-//                         name="origin"
-//                         placeholder="Xuất xứ sản phẩm"
-//                         value={product.origin}
-//                         onChange={handleInputChange}
-//                         className="border rounded px-3 py-2"
-//                         required
-//                     />
-
-//                     <select
-//                         name="categoryId"
-//                         value={product.categoryId}
-//                         onChange={handleInputChange}
-//                         className="border rounded px-3 py-2 w-full"
-//                         required
-//                     >
-//                         <option value="">-- Chọn danh mục --</option>
-//                         {categories.map((cate) => (
-//                             <option key={cate.id} value={cate.id}>
-//                                 {cate.name}
-//                             </option>
-//                         ))}
-//                     </select>
-
-//                     <div>
-//                         <label className="block mb-1 text-gray-700 font-medium">
-//                             Ảnh chính
-//                         </label>
-//                         <input
-//                             type="file"
-//                             accept="image/*"
-//                             onChange={handleMainImageChange}
-//                             className="border rounded px-3 py-2 w-full"
-//                             required
-//                         />
-//                         {previewMainImage && (
-//                             <img
-//                                 src={previewMainImage}
-//                                 alt="Preview"
-//                                 className="mt-3 w-32 h-32 object-cover rounded"
-//                             />
-//                         )}
-//                     </div>
-
-//                     <div>
-//                         <label className="block mb-1 text-gray-700 font-medium">
-//                             Ảnh phụ (có thể chọn nhiều)
-//                         </label>
-//                         <input
-//                             type="file"
-//                             accept="image/*"
-//                             multiple
-//                             onChange={handleSlideImagesChange}
-//                             className="border rounded px-3 py-2 w-full"
-//                         />
-//                         {previewSlideImages.length > 0 && (
-//                             <div className="flex gap-2 mt-3 flex-wrap">
-//                                 {previewSlideImages.map((src, index) => (
-//                                     <div key={index} className="relative">
-//                                         <img
-//                                             src={src}
-//                                             alt={`Slide ${index}`}
-//                                             className="w-24 h-24 object-cover rounded"
-//                                         />
-//                                         <button
-//                                             type="button"
-//                                             onClick={() => removeSlideImage(index)}
-//                                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-//                                         >
-//                                             ×
-//                                         </button>
-//                                     </div>
-//                                 ))}
-//                             </div>
-//                         )}
-//                     </div>
-
-//                     <div>
-//                         <textarea
-//                             name="description"
-//                             rows="3"
-//                             placeholder="Mô tả sản phẩm (tối thiểu 20 ký tự, tối đa 255 ký tự)"
-//                             value={product.description}
-//                             onChange={handleInputChange}
-//                             className="border rounded px-3 py-2 w-full"
-//                             required
-//                         ></textarea>
-//                         <div className="text-sm text-gray-500 mt-1">
-//                             {product.description.length}/255 ký tự
-//                             {product.description.length < 20 && product.description.length > 0 && (
-//                                 <span className="text-red-500 ml-2">(Cần ít nhất 20 ký tự)</span>
-//                             )}
-//                         </div>
-//                     </div>
-
-//                     <button
-//                         type="submit"
-//                         className="mt-4 bg-[#116AD1] text-white rounded px-4 py-2 hover:bg-[#0e57aa] w-full"
-//                     >
-//                         Thêm sản phẩm
-//                     </button>
-//                 </form>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default AddProduct;
-
 import React, { useState, useEffect } from "react";
-import SellerLayout from "../../component-seller-page/SellerLayout";
 import axios from "axios";
+import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const AddProduct = () => {
-  const backendURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
+  const backendURL =
+    import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
 
   const [product, setProduct] = useState({
     name: "",
@@ -293,17 +14,17 @@ const AddProduct = () => {
     origin: "",
     categoryId: "",
   });
-
   const [categories, setCategories] = useState([]);
-  const [attributes, setAttributes] = useState([]); // danh sách thuộc tính lấy từ category
-  const [selectedValues, setSelectedValues] = useState({}); // giá trị người bán chọn cho mỗi attribute
-  const [variants, setVariants] = useState([]); // danh sách biến thể sinh ra
-
-  const [mainImage, setMainImage] = useState(null);
+  const [variants, setVariants] = useState([]);
+  const [main_image, setMainImage] = useState(null);
   const [previewMainImage, setPreviewMainImage] = useState(null);
+  const [slide_images, setslide_images] = useState([]);
+  const [previewslide_images, setPreviewslide_images] = useState([]);
   const [message, setMessage] = useState("");
+  const [createdProductId, setCreatedProductId] = useState(null);
+  const [categoryAttributesValues, setCategoryAttributesValues] = useState([]);
+  const [showVariantModal, setShowVariantModal] = useState(false);
 
-  // Lấy danh mục
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -316,265 +37,457 @@ const AddProduct = () => {
     fetchCategories();
   }, [backendURL]);
 
-  // Khi chọn category → tải attributes tương ứng
   const handleCategoryChange = async (e) => {
     const categoryId = e.target.value;
     setProduct((prev) => ({ ...prev, categoryId }));
-
-    if (!categoryId) return;
+    if (!categoryId) {
+      setCategoryAttributesValues([]);
+      return;
+    }
 
     try {
-      const res = await axios.get(`${backendURL}/categories/${categoryId}/attributes`);
-      const attrs = res.data?.data || [];
-      setAttributes(attrs);
-      setSelectedValues({});
-      setVariants([]);
+      const res = await axios.get(`${backendURL}/categories/${categoryId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("sellerToken")}`,
+        },
+      });
+      const attrs = res.data?.data?.doc?.CategoryAttributes || [];
+
+      const formattedAttrs = attrs.map(attr => ({
+        id: attr.id,
+        name: attr.name,
+        values: [],
+      }));
+
+      setCategoryAttributesValues(formattedAttrs);
     } catch (err) {
       console.error("Lỗi tải thuộc tính:", err);
     }
   };
 
-  // Khi chọn giá trị attribute
-  const handleAttributeValueChange = (attrName, value) => {
-    setSelectedValues((prev) => ({
-      ...prev,
-      [attrName]: value.split(",").map((v) => v.trim()),
-    }));
+  const handleAddValue = (index) => {
+    const newAttrs = [...categoryAttributesValues];
+    newAttrs[index].values.push("");
+    setCategoryAttributesValues(newAttrs);
   };
 
-  // Sinh các variant từ attributes
-  const generateVariants = () => {
-    const attrNames = Object.keys(selectedValues);
-    if (attrNames.length === 0) return;
+  const handleRemoveValue = (attrIndex, valIndex) => {
+    const newAttrs = [...categoryAttributesValues];
+    newAttrs[attrIndex].values.splice(valIndex, 1);
+    setCategoryAttributesValues(newAttrs);
+  };
 
-    // Sinh tổ hợp variant
-    const combine = (lists) => {
-      if (lists.length === 0) return [[]];
-      const [first, ...rest] = lists;
-      const combos = combine(rest);
-      return first.flatMap((val) => combos.map((combo) => [val, ...combo]));
-    };
+  const handleValueChange = (attrIndex, valIndex, val) => {
+    const newAttrs = [...categoryAttributesValues];
+    newAttrs[attrIndex].values[valIndex] = val;
+    setCategoryAttributesValues(newAttrs);
+  };
 
-    const allValues = attrNames.map((k) => selectedValues[k]);
-    const combos = combine(allValues);
+  const createVariants = () => {
+    if (categoryAttributesValues.length === 0) return [];
+    const arrays = categoryAttributesValues.map(attr => attr.values.filter(v => v.trim() !== ""));
+    if (arrays.some(arr => arr.length === 0)) return [];
 
-    const newVariants = combos.map((values, idx) => ({
-      id: idx + 1,
-      combination: attrNames.map((attr, i) => `${attr}: ${values[i]}`).join(" | "),
-      price: "",
-      stock: "",
-    }));
+    const cartesian = (arr) => arr.reduce((a, b) =>
+      a.flatMap(d => b.map(e => [...d, e])), [[]]);
 
-    setVariants(newVariants);
+    return cartesian(arrays).map(combo => {
+      const variant = {};
+      categoryAttributesValues.forEach((attr, idx) => variant[attr.name] = combo[idx]);
+      return { ...variant, price: "", stock: "" };
+    });
   };
 
   const handleVariantChange = (index, field, value) => {
-    const updated = [...variants];
-    updated[index][field] = value;
-    setVariants(updated);
+    const newVariants = [...variants];
+    newVariants[index][field] = value;
+    setVariants(newVariants);
+  };
+
+  const validateProduct = () => {
+    if (product.name.trim().length < 3 || product.name.trim().length > 30)
+      return "Tên sản phẩm phải từ 3–30 ký tự!";
+    if (product.description.trim().length < 20 || product.description.trim().length > 255)
+      return "Mô tả phải từ 20–255 ký tự!";
+    if (product.origin.trim().length > 100)
+      return "Xuất xứ không vượt quá 100 ký tự!";
+    if (!product.categoryId)
+      return "Vui lòng chọn danh mục!";
+    if (!main_image)
+      return "Vui lòng chọn ảnh chính!";
+    for (const attr of categoryAttributesValues) {
+      if (attr.values.some(v => !v.trim()))
+        return `Vui lòng nhập đầy đủ giá trị cho thuộc tính "${attr.name}"`;
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!mainImage) {
-      setMessage("❌ Vui lòng chọn ảnh chính!");
+    const error = validateProduct();
+    if (error) {
+      setMessage(`${error}`);
+      setTimeout(() => setMessage(""), 4000);
+      return;
+    }
+    if (!main_image) {
+      setMessage("Vui lòng chọn ảnh chính!");
       setTimeout(() => setMessage(""), 3000);
       return;
     }
+    const combos = createVariants();
+    if (combos.length > 0) {
+      setVariants(combos);
+      await submitToServer();
+      setShowVariantModal(true);
+    } else {
+      submitToServer();
+    }
+  };
 
+  const submitToServer = async () => {
     try {
       const formData = new FormData();
       formData.append("name", product.name.trim());
       formData.append("description", product.description.trim());
       formData.append("origin", product.origin.trim());
-      formData.append("categoryId", product.categoryId);
-      formData.append("main_image", mainImage);
-
-      // Gửi attributes và variants dưới dạng JSON
-      formData.append("attributes", JSON.stringify(selectedValues));
-      formData.append("variants", JSON.stringify(variants));
+      formData.append("categoryId", product.categoryId || "");
+      if (main_image) formData.append("main_image", main_image);
+      slide_images.forEach(slide_images => {
+        if (slide_images) formData.append("slide_images", slide_images);
+      });
 
       const token = localStorage.getItem("sellerToken");
-      await axios.post(`${backendURL}/products`, formData, {
+      const res = await axios.post(`${backendURL}/products`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
+      const newId = res.data?.data?.product?.id;
+      setCreatedProductId(newId);
 
-      setMessage("✅ Thêm sản phẩm và biến thể thành công!");
+      setMessage("Thêm sản phẩm thành công!");
       setTimeout(() => setMessage(""), 3000);
-
-      setProduct({ name: "", description: "", origin: "", categoryId: "" });
-      setAttributes([]);
-      setSelectedValues({});
-      setVariants([]);
-      setMainImage(null);
-      setPreviewMainImage(null);
     } catch (err) {
-      console.error(err);
-      setMessage("❌ Thêm sản phẩm thất bại!");
-      setTimeout(() => setMessage(""), 3000);
+      if (err.response) {
+        console.error('Lỗi server trả về:', err.response.data);
+      } else if (err.request) {
+        console.error('Không nhận được phản hồi:', err.request);
+      } else {
+        console.error('Lỗi Axios:', err.message);
+      }
     }
   };
 
-  return (
-    <div className="p-14 space-y-6">
-      <div className="bg-white shadow rounded-lg p-6 max-w-3xl mx-auto">
-        <h2 className="text-lg font-semibold mb-4">Thêm sản phẩm mới</h2>
+  const handleCancelProduct = async () => {
+    if (!createdProductId) {
+      setShowVariantModal(false);
+      return;
+    }
 
+    const confirmDelete = window.confirm("Bạn có chắc muốn hủy sản phẩm này không?");
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem("sellerToken");
+      await axios.delete(`${backendURL}/products/${createdProductId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessage("Sản phẩm đã bị hủy!");
+      setTimeout(() => setMessage(""), 3000);
+
+      // Xóa form & reset toàn bộ state
+      setProduct({ name: "", description: "", origin: "", categoryId: "" });
+      setMainImage(null);
+      setPreviewMainImage(null);
+      setslide_images([]);
+      setPreviewslide_images([]);
+      setCategoryAttributesValues([]);
+      setVariants([]);
+      setCreatedProductId(null);
+      setShowVariantModal(false);
+    } catch (err) {
+      console.error("Lỗi khi xóa sản phẩm:", err);
+    }
+  };
+
+  const handleCloseModal = async () => {
+  if (!createdProductId) {
+    setShowVariantModal(false);
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("sellerToken");
+    await axios.delete(`${backendURL}/products/${createdProductId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // Chỉ reset ID sản phẩm, form bên ngoài vẫn giữ nguyên dữ liệu
+    setCreatedProductId(null);
+    setVariants([]); // Clear các biến thể hiện tại trong popup
+    setShowVariantModal(false);
+    setMessage("Sản phẩm hiện tại đã bị xóa khỏi DB. Bạn có thể chỉnh sửa và thêm lại.");
+    setTimeout(() => setMessage(""), 3000);
+  } catch (err) {
+    console.error("Lỗi khi xóa sản phẩm:", err);
+  }
+};
+
+  const submitVariantsToServer = async () => {
+    if (!createdProductId) {
+      alert("Chưa có sản phẩm để tạo biến thể!");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("sellerToken");
+      const payload = variants.map((variant) => {
+        const attributeIds = [];
+        const values = [];
+
+        categoryAttributesValues.forEach((attr) => {
+          attributeIds.push(attr.id);
+          values.push(variant[attr.name]);
+        });
+
+        return {
+          price: Number(variant.price),
+          stock_quantity: Number(variant.stock),
+          variant_options: [
+            {
+              attributeIds,
+              values,
+            },
+          ],
+        };
+      });
+
+      for (const variantData of payload) {
+        await axios.post(
+          `${backendURL}/product-variants/${createdProductId}`,
+          variantData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      setMessage("Đã tạo tất cả biến thể thành công!");
+      setTimeout(() => setMessage(""), 3000);
+      setShowVariantModal(false);
+      setProduct({ name: "", description: "", origin: "", categoryId: "" });
+      setMainImage(null);
+      setPreviewMainImage(null);
+      setslide_images([]);
+      setPreviewslide_images([]);
+      setCategoryAttributesValues([]);
+      setVariants([]);
+      setCreatedProductId(null);
+    } catch (err) {
+      console.error("Lỗi khi tạo biến thể:", err);
+      setMessage("Tạo biến thể thất bại!");
+      setTimeout(() => setMessage(""), 3000);
+    }
+  };
+  return (
+    <div className="p-8 flex gap-4 items-start text-sm mt-6">
+      <div className="flex-[3] bg-white shadow rounded-lg p-4">
+        <h2 className="text-base font-semibold mb-3">🛍️ Thêm sản phẩm mới</h2>
         {message && (
-          <div
-            className={`mb-3 text-center text-sm font-medium ${
-              message.includes("✅") ? "text-green-600" : "text-red-600"
-            }`}
-          >
+          <div className={`mb-2 text-center text-xs font-medium ${message.includes("✅") ? "text-green-600" : "text-red-600"}`}>
             {message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
-          <input
-            name="name"
-            placeholder="Tên sản phẩm"
-            value={product.name}
-            onChange={(e) => setProduct({ ...product, name: e.target.value })}
-            className="border rounded px-3 py-2"
-            required
-          />
-
-          <input
-            name="origin"
-            placeholder="Xuất xứ sản phẩm"
-            value={product.origin}
-            onChange={(e) => setProduct({ ...product, origin: e.target.value })}
-            className="border rounded px-3 py-2"
-            required
-          />
-
-          <select
-            name="categoryId"
-            value={product.categoryId}
-            onChange={handleCategoryChange}
-            className="border rounded px-3 py-2 w-full"
-            required
-          >
-            <option value="">-- Chọn danh mục --</option>
-            {categories.map((cate) => (
-              <option key={cate.id} value={cate.id}>
-                {cate.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Hiển thị attributes */}
-          {attributes.length > 0 && (
-            <div className="space-y-3 border-t pt-4">
-              <h3 className="font-semibold text-gray-700">Thuộc tính sản phẩm</h3>
-              {attributes.map((attr) => (
-                <div key={attr.id}>
-                  <label className="block text-sm font-medium">{attr.name}</label>
-                  <input
-                    type="text"
-                    placeholder="Nhập các giá trị, cách nhau bằng dấu phẩy (ví dụ: Đỏ, Xanh, Đen)"
-                    onChange={(e) =>
-                      handleAttributeValueChange(attr.name, e.target.value)
-                    }
-                    className="border rounded px-3 py-2 w-full"
-                  />
-                </div>
-              ))}
-
-              <button
-                type="button"
-                onClick={generateVariants}
-                className="mt-2 bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-              >
-                Sinh biến thể
-              </button>
-            </div>
-          )}
-
-          {/* Danh sách variant */}
-          {variants.length > 0 && (
-            <div className="space-y-2 border-t pt-4">
-              <h3 className="font-semibold text-gray-700">Các biến thể</h3>
-              {variants.map((variant, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 border p-2 rounded"
-                >
-                  <span className="flex-1 text-sm">{variant.combination}</span>
-                  <input
-                    type="number"
-                    placeholder="Giá"
-                    value={variant.price}
-                    onChange={(e) =>
-                      handleVariantChange(idx, "price", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 w-24"
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="Tồn kho"
-                    value={variant.stock}
-                    onChange={(e) =>
-                      handleVariantChange(idx, "stock", e.target.value)
-                    }
-                    className="border rounded px-2 py-1 w-20"
-                    required
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div>
-            <label className="block mb-1 text-gray-700 font-medium">Ảnh chính</label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="border rounded-lg p-3 space-y-2">
+            <h3 className="font-medium text-gray-700 text-sm mb-2">📄 Thông tin chung</h3>
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setMainImage(file);
-                  setPreviewMainImage(URL.createObjectURL(file));
-                }
-              }}
-              className="border rounded px-3 py-2 w-full"
+              placeholder="Tên sản phẩm"
+              value={product.name}
+              onChange={(e) => setProduct({ ...product, name: e.target.value })}
+              className="border rounded px-3 py-2 w-full text-sm"
               required
             />
-            {previewMainImage && (
-              <img
-                src={previewMainImage}
-                alt="Preview"
-                className="mt-3 w-32 h-32 object-cover rounded"
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                placeholder="Xuất xứ"
+                value={product.origin}
+                onChange={(e) => setProduct({ ...product, origin: e.target.value })}
+                className="border rounded px-3 py-2 w-full text-sm"
+                required
               />
-            )}
+              <select
+                value={product.categoryId}
+                onChange={handleCategoryChange}
+                className="border rounded px-3 py-2 w-full text-sm"
+                required
+              >
+                <option value="">-- Chọn danh mục --</option>
+                {categories.map(cate => <option key={cate.id} value={cate.id}>{cate.name}</option>)}
+              </select>
+            </div>
           </div>
 
-          <textarea
-            name="description"
-            rows="3"
-            placeholder="Mô tả sản phẩm"
-            value={product.description}
-            onChange={(e) =>
-              setProduct({ ...product, description: e.target.value })
-            }
-            className="border rounded px-3 py-2 w-full"
-            required
-          ></textarea>
+          {/* Ảnh chính & phụ */}
+          <div className="grid grid-cols-6 gap-3">
+            <div className="col-span-1">
+              <label className="block text-sm font-medium mb-1 text-center">Ảnh chính</label>
+              <div
+                className="border-2 border-dashed w-[100px] h-[100px] rounded-lg p-2 text-center cursor-pointer hover:bg-gray-50 transition"
+                onClick={() => document.getElementById("mainImageInput").click()}
+              >
+                {previewMainImage ? (
+                  <img src={previewMainImage} alt="preview" className="mx-auto w-[85px] h-[85px] object-cover rounded-lg shadow-sm" />
+                ) : (
+                  <div className="text-gray-500 text-xs">📷 <br /> Chọn ảnh</div>
+                )}
+              </div>
+              <input id="mainImageInput" type="file" accept="image/*"
+                onChange={(e) => { const file = e.target.files?.[0]; if (file) { setMainImage(file); setPreviewMainImage(URL.createObjectURL(file)); } }}
+                className="hidden"
+              />
+            </div>
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className="col-span-1 text-center relative">
+                <label className="block text-sm font-medium mb-1">Ảnh phụ {i + 1}</label>
+                <div className="border-2 border-dashed rounded-lg w-[100px] h-[100px] flex items-center justify-center cursor-pointer hover:bg-gray-50 transition relative"
+                  onClick={() => document.getElementById(`slideImageInput-${i}`).click()}>
+                  {previewslide_images[i] ? (
+                    <>
+                      <img src={previewslide_images[i]} alt={`slide-${i}`} className="w-full h-full object-contain rounded-lg" />
+                      <button type="button" className="absolute top-0 right-0 m-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
+                        onClick={(e) => { e.stopPropagation(); const newFiles = [...slide_images]; const newPreviews = [...previewslide_images]; newFiles[i] = null; newPreviews[i] = null; setslide_images(newFiles); setPreviewslide_images(newPreviews); }}>
+                        <CloseIcon style={{ fontSize: '14px' }} />
+                      </button>
+                    </>
+                  ) : <div className="text-gray-500 w-[85px] h-[85px] text-xs text-center">🖼️ <br /> Chọn ảnh</div>}
+                </div>
+                <input id={`slideImageInput-${i}`} type="file" accept="image/*"
+                  onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; const newFiles = [...slide_images]; const newPreviews = [...previewslide_images]; newFiles[i] = file; newPreviews[i] = URL.createObjectURL(file); setslide_images(newFiles); setPreviewslide_images(newPreviews); }}
+                  className="hidden" />
+              </div>
+            ))}
+          </div>
 
-          <button
-            type="submit"
-            className="mt-4 bg-[#116AD1] text-white rounded px-4 py-2 hover:bg-[#0e57aa] w-full"
-          >
+          <textarea rows="3" placeholder="Mô tả sản phẩm"
+            value={product.description}
+            onChange={(e) => setProduct({ ...product, description: e.target.value })}
+            className="border rounded px-3 py-2 w-full" required />
+
+          <button type="submit"
+            className="mt-2 bg-[#116AD1] text-white rounded px-3 py-2 hover:bg-[#0e57aa] w-full text-sm font-medium">
             Thêm sản phẩm
           </button>
         </form>
       </div>
+
+      {/* Cột phải */}
+      <div className="flex-[2] bg-white shadow rounded-lg p-4 max-h-[85vh] overflow-y-auto">
+        <h3 className="text-base font-semibold text-gray-700 mb-3">Loại thuộc tính</h3>
+        {categoryAttributesValues.length === 0 && <div className="text-gray-400 text-sm">Chọn danh mục để thêm thuộc tính</div>}
+        {categoryAttributesValues.map((attr, index) => (
+          <div key={attr.id} className="mb-4 bg-gray-50 p-3 rounded-lg border">
+            <h4 className="font-medium text-gray-700 mb-2">{attr.name}</h4>
+            {attr.values.map((val, i) => (
+              <div key={i} className="flex items-center mb-2 gap-2">
+                <input type="text" value={val} onChange={(e) => handleValueChange(index, i, e.target.value)}
+                  className="border rounded px-2 py-1 w-full text-sm" placeholder="Nhập giá trị" />
+                <button type="button" className="text-red-500 hover:text-red-700" onClick={() => handleRemoveValue(index, i)}>
+                  <DeleteIcon fontSize="small" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="flex items-center gap-1 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded text-blue-700 font-medium text-sm"
+              onClick={() => handleAddValue(index)}
+            >
+              <AddIcon fontSize="small" /> Thêm giá trị
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {showVariantModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div
+            className="bg-white p-6 rounded-lg w-[60%] max-h-[90vh] overflow-y-auto relative shadow-lg transition-all duration-300"
+          >
+            <h3 className="text-lg font-semibold mb-4 text-center">Tổ hợp thuộc tính</h3>
+
+            <button
+              type="button"
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
+              onClick={handleCloseModal}
+            >
+              ✖
+            </button>
+
+            <div className="overflow-x-auto mb-4">
+              <table className="min-w-full table-auto border text-sm">
+                <thead>
+                  <tr className="bg-blue-600 text-white">
+                    {categoryAttributesValues.map(attr => (
+                      <th key={attr.id} className="border px-3 py-2">{attr.name}</th>
+                    ))}
+                    <th className="border px-3 py-2">Giá</th>
+                    <th className="border px-3 py-2">Tồn kho</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {variants.map((variant, idx) => (
+                    <tr key={idx} className="text-center hover:bg-gray-50">
+                      {categoryAttributesValues.map(attr => (
+                        <td key={attr.id} className="border px-2 py-1">{variant[attr.name]}</td>
+                      ))}
+                      <td className="border px-2 py-1">
+                        <input
+                          type="number"
+                          min={0}
+                          value={variant.price ?? ""}
+                          onChange={(e) => handleVariantChange(idx, "price", e.target.value)}
+                          className="border rounded px-2 py-1 w-full text-sm text-center"
+                          placeholder="Nhập giá"
+                        />
+                      </td>
+                      <td className="border px-2 py-1">
+                        <input
+                          type="number"
+                          min={0}
+                          value={variant.stock ?? ""}
+                          onChange={(e) => handleVariantChange(idx, "stock", e.target.value)}
+                          className="border rounded px-2 py-1 w-full text-sm text-center"
+                          placeholder="Nhập tồn kho"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Nút hành động sát form hơn, bố cục đẹp hơn */}
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                onClick={handleCancelProduct}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={submitVariantsToServer}
+              >
+                Hoàn tất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
