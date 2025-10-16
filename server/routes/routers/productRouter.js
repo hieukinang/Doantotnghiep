@@ -6,7 +6,8 @@ import {
   getSingleProduct,
   updateSingleProduct,
   deleteSingleProduct,
-  getAllProductsByStore
+  getAllProductsByStore,
+  getAllProducts,
 } from "../../controller/productController.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
@@ -22,6 +23,8 @@ import Store from "../../model/storeModel.js";
 const router = express.Router();
 
 router.route("/:id", IdValidator).get(getSingleProduct);
+
+router.route("/").get(getAllProducts);
 
 router.post("/", // Store tạo sản phẩm
     isAuth(Store),

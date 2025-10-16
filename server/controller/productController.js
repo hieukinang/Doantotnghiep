@@ -127,14 +127,18 @@ export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const getAllProducts = getAll(Product, {
+  include: [{ model: ProductImage, as: "ProductImages" }, { model: ProductVariant, as: "ProductVariants" }],
+  order: [["createdAt", "DESC"]],
+});
+
 // @desc    GET Single Product
 // @route   GET /api/products/:id
 // @access  Public
 export const getSingleProduct = getOne(Product, {
   include: [
     { model: ProductImage, as: "ProductImages" },
-    // { model: ProductVariant, as: "ProductVariants" },
-    { model: Category, as: "ProductCategory" }
+    { model: ProductVariant, as: "ProductVariants"},
   ]
 });
 

@@ -52,6 +52,11 @@ const Product = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    min_price: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0.0,
+    },
     rating_average: {
       type: DataTypes.INTEGER,
       defaultValue: 0,

@@ -22,6 +22,8 @@ export const createProductVariant = asyncHandler(async (req, res, next) => {
     stock_quantity
   });
 
+  
+
   // 2. Tạo VariantOption cho từng biến thể
   for (const option of variant_options) {
     const { attributeIds, values } = option;
