@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import SellerLayout from "../../component-seller-page/SellerLayout";
 import axios from "axios";
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
@@ -127,12 +126,12 @@ const AddProduct = () => {
     e.preventDefault();
     const error = validateProduct();
     if (error) {
-      setMessage(`❌ ${error}`);
+      setMessage(`${error}`);
       setTimeout(() => setMessage(""), 4000);
       return;
     }
     if (!main_image) {
-      setMessage("❌ Vui lòng chọn ảnh chính!");
+      setMessage("Vui lòng chọn ảnh chính!");
       setTimeout(() => setMessage(""), 3000);
       return;
     }
@@ -168,15 +167,15 @@ const AddProduct = () => {
       const newId = res.data?.data?.product?.id;
       setCreatedProductId(newId);
 
-      setMessage("✅ Thêm sản phẩm thành công!");
+      setMessage("Thêm sản phẩm thành công!");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       if (err.response) {
-        console.error('❌ Lỗi server trả về:', err.response.data);
+        console.error('Lỗi server trả về:', err.response.data);
       } else if (err.request) {
-        console.error('❌ Không nhận được phản hồi:', err.request);
+        console.error('Không nhận được phản hồi:', err.request);
       } else {
-        console.error('❌ Lỗi Axios:', err.message);
+        console.error('Lỗi Axios:', err.message);
       }
     }
   };
@@ -187,7 +186,7 @@ const AddProduct = () => {
       return;
     }
 
-    const confirmDelete = window.confirm("⚠️ Bạn có chắc muốn hủy sản phẩm này không?");
+    const confirmDelete = window.confirm("Bạn có chắc muốn hủy sản phẩm này không?");
     if (!confirmDelete) return;
 
     try {
@@ -195,17 +194,50 @@ const AddProduct = () => {
       await axios.delete(`${backendURL}/products/${createdProductId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setMessage("❌ Sản phẩm đã bị hủy!");
+      setMessage("Sản phẩm đã bị hủy!");
       setTimeout(() => setMessage(""), 3000);
+
+      // Xóa form & reset toàn bộ state
+      setProduct({ name: "", description: "", origin: "", categoryId: "" });
+      setMainImage(null);
+      setPreviewMainImage(null);
+      setslide_images([]);
+      setPreviewslide_images([]);
+      setCategoryAttributesValues([]);
+      setVariants([]);
       setCreatedProductId(null);
       setShowVariantModal(false);
     } catch (err) {
       console.error("Lỗi khi xóa sản phẩm:", err);
     }
   };
+
+  const handleCloseModal = async () => {
+  if (!createdProductId) {
+    setShowVariantModal(false);
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("sellerToken");
+    await axios.delete(`${backendURL}/products/${createdProductId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // Chỉ reset ID sản phẩm, form bên ngoài vẫn giữ nguyên dữ liệu
+    setCreatedProductId(null);
+    setVariants([]); // Clear các biến thể hiện tại trong popup
+    setShowVariantModal(false);
+    setMessage("Sản phẩm hiện tại đã bị xóa khỏi DB. Bạn có thể chỉnh sửa và thêm lại.");
+    setTimeout(() => setMessage(""), 3000);
+  } catch (err) {
+    console.error("Lỗi khi xóa sản phẩm:", err);
+  }
+};
+
   const submitVariantsToServer = async () => {
     if (!createdProductId) {
-      alert("❌ Chưa có sản phẩm để tạo biến thể!");
+      alert("Chưa có sản phẩm để tạo biến thể!");
       return;
     }
 
@@ -231,24 +263,29 @@ const AddProduct = () => {
           ],
         };
       });
+
       for (const variantData of payload) {
         await axios.post(
           `${backendURL}/product-variants/${createdProductId}`,
           variantData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
       }
 
-      setMessage("✅ Đã tạo tất cả biến thể thành công!");
+      setMessage("Đã tạo tất cả biến thể thành công!");
       setTimeout(() => setMessage(""), 3000);
       setShowVariantModal(false);
+      setProduct({ name: "", description: "", origin: "", categoryId: "" });
+      setMainImage(null);
+      setPreviewMainImage(null);
+      setslide_images([]);
+      setPreviewslide_images([]);
+      setCategoryAttributesValues([]);
+      setVariants([]);
+      setCreatedProductId(null);
     } catch (err) {
-      console.error("❌ Lỗi khi tạo biến thể:", err);
-      setMessage("❌ Tạo biến thể thất bại!");
+      console.error("Lỗi khi tạo biến thể:", err);
+      setMessage("Tạo biến thể thất bại!");
       setTimeout(() => setMessage(""), 3000);
     }
   };
@@ -340,14 +377,14 @@ const AddProduct = () => {
 
           <button type="submit"
             className="mt-2 bg-[#116AD1] text-white rounded px-3 py-2 hover:bg-[#0e57aa] w-full text-sm font-medium">
-            ✅ Thêm sản phẩm
+            Thêm sản phẩm
           </button>
         </form>
       </div>
 
       {/* Cột phải */}
       <div className="flex-[2] bg-white shadow rounded-lg p-4 max-h-[85vh] overflow-y-auto">
-        <h3 className="text-base font-semibold text-gray-700 mb-3">➕ Loại thuộc tính</h3>
+        <h3 className="text-base font-semibold text-gray-700 mb-3">Loại thuộc tính</h3>
         {categoryAttributesValues.length === 0 && <div className="text-gray-400 text-sm">Chọn danh mục để thêm thuộc tính</div>}
         {categoryAttributesValues.map((attr, index) => (
           <div key={attr.id} className="mb-4 bg-gray-50 p-3 rounded-lg border">
@@ -375,27 +412,27 @@ const AddProduct = () => {
       {showVariantModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div
-            className="bg-white p-6 rounded-lg w-[60%] h-[80vh] overflow-y-auto relative shadow-lg transition-all duration-300"
+            className="bg-white p-6 rounded-lg w-[60%] max-h-[90vh] overflow-y-auto relative shadow-lg transition-all duration-300"
           >
-            <h3 className="text-lg font-semibold mb-4 text-center">🧩 Tổ hợp thuộc tính</h3>
+            <h3 className="text-lg font-semibold mb-4 text-center">Tổ hợp thuộc tính</h3>
 
             <button
               type="button"
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
-              onClick={() => setShowVariantModal(false)}
+              onClick={handleCloseModal}
             >
               ✖
             </button>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full table-auto border">
+            <div className="overflow-x-auto mb-4">
+              <table className="min-w-full table-auto border text-sm">
                 <thead>
-                  <tr className="bg-gray-200">
+                  <tr className="bg-blue-600 text-white">
                     {categoryAttributesValues.map(attr => (
-                      <th key={attr.id} className="border px-2 py-1">{attr.name}</th>
+                      <th key={attr.id} className="border px-3 py-2">{attr.name}</th>
                     ))}
-                    <th className="border px-2 py-1">Giá</th>
-                    <th className="border px-2 py-1">Tồn kho</th>
+                    <th className="border px-3 py-2">Giá</th>
+                    <th className="border px-3 py-2">Tồn kho</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -407,31 +444,21 @@ const AddProduct = () => {
                       <td className="border px-2 py-1">
                         <input
                           type="number"
-                          min={1}
-                          value={variant.price > 0 ? variant.price : 1}
-                          onKeyDown={(e) => {
-                            if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault();
-                          }}
-                          onChange={(e) => {
-                            const val = Math.max(1, Number(e.target.value)); // ✅ đảm bảo luôn ≥ 1
-                            handleVariantChange(idx, "price", val);
-                          }}
-                          className="border rounded px-1 py-0.5 w-full text-sm"
+                          min={0}
+                          value={variant.price ?? ""}
+                          onChange={(e) => handleVariantChange(idx, "price", e.target.value)}
+                          className="border rounded px-2 py-1 w-full text-sm text-center"
+                          placeholder="Nhập giá"
                         />
                       </td>
                       <td className="border px-2 py-1">
                         <input
                           type="number"
-                          min={1}
-                          value={variant.price > 0 ? variant.stock : 1}
-                          onKeyDown={(e) => {
-                            if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); // ✅ chặn nhập số âm & ký tự e
-                          }}
-                          onChange={(e) => {
-                            const val = Math.max(1, Number(e.target.value)); // ✅ đảm bảo luôn ≥ 1
-                            handleVariantChange(idx, "stock", val);
-                          }}
-                          className="border rounded px-1 py-0.5 w-full text-sm"
+                          min={0}
+                          value={variant.stock ?? ""}
+                          onChange={(e) => handleVariantChange(idx, "stock", e.target.value)}
+                          className="border rounded px-2 py-1 w-full text-sm text-center"
+                          placeholder="Nhập tồn kho"
                         />
                       </td>
                     </tr>
@@ -440,17 +467,18 @@ const AddProduct = () => {
               </table>
             </div>
 
-            <div className="flex justify-end gap-2 mt-4 sticky bottom-0 bg-white py-2">
+            {/* Nút hành động sát form hơn, bố cục đẹp hơn */}
+            <div className="flex justify-end gap-3 mt-4">
               <button
                 type="button"
-                className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
                 onClick={handleCancelProduct}
               >
                 Hủy
               </button>
               <button
                 type="button"
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 onClick={submitVariantsToServer}
               >
                 Hoàn tất
