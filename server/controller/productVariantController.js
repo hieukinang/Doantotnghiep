@@ -22,7 +22,12 @@ export const createProductVariant = asyncHandler(async (req, res, next) => {
     stock_quantity
   });
 
-  
+  // 3. Kiểm tra và cập nhật min_price nếu cần
+  const product = await Product.findByPk(productId);
+  if (product && (product.min_price === null || price < product.min_price)) {
+    product.min_price = price;
+    await product.save();
+  }
 
   // 2. Tạo VariantOption cho từng biến thể
   for (const option of variant_options) {

@@ -17,7 +17,7 @@ import Category from "../model/categoryModel.js";
 // 1) UPLOADING(Multer)
 export const uploadProductImages = uploadMixOfImages([
   {name: "main_image", maxCount: 1},
-  {name: "slide_images", maxCount: 5},
+  {name: "slide_images", maxCount: 20},
 ]);
 
 // 2) PROCESSING(Sharp)

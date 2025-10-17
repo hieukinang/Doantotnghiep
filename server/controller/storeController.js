@@ -3,14 +3,16 @@ import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {generateSendToken} from "../utils/tokenHandler.utils.js";
 import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
+import { STORE_STATUS } from "../constants/index.js";
 
-import { updateOne } from "../utils/refactorControllers.utils.js";
+import { getAll, updateOne } from "../utils/refactorControllers.utils.js";
 
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
 
 import { Op } from "sequelize";
+import { get } from "http";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer) - upload đồng thời 2 ảnh: id_image và image
@@ -159,3 +161,7 @@ export const logout = asyncHandler(async (req, res, next) => {
 });
 
 export const updateStoreProfile = updateOne(Store);
+
+export const getAllProcessingStores = getAll(Store, {
+    status: STORE_STATUS.PROCESSING
+});

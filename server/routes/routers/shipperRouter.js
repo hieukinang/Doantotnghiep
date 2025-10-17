@@ -9,7 +9,8 @@ import {
     uploadShipperImages,
     resizeShipperImages,
     getSingleShipper,
-    updateShipper
+    updateShipper,
+    getAllProcessingShippers,
 } from "../../controller/shipperController.js";
 
 import {
@@ -32,12 +33,14 @@ router.route("/register").post(uploadShipperImages, registerValidator, resizeShi
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Shipper), logout);
 
-router.use(isAuth(Admin), checkShipperStatus); // Các route bên dưới chỉ dành cho Admin
+router.route("/processing")
+  .get(isAuth(Admin), getAllProcessingShippers);
 
 router.route("/:id")
   .get(isAuth(Shipper), getSingleShipper);
 router.route("/update-status/:id")
   .patch(
+    isAuth(Shipper),
     uploadShipperImages,
     resizeShipperImages,
     updateShipper

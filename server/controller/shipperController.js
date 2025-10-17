@@ -11,7 +11,7 @@ import path from "path";
 import sharp from "sharp";
 
 import { Op } from "sequelize";
-import { getOne, updateOne, getAll } from "../utils/refactorControllers.utils.js";
+import { getOne, updateOne, getAll, deleteOne } from "../utils/refactorControllers.utils.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer) - upload đồng thời 4 ảnh: id_image, image, profile_image, health_image
@@ -216,3 +216,9 @@ export const updateShipper = updateOne(Shipper);
 export const getAllShippers = getAll(Shipper);
 
 export const getSingleShipper = getOne(Shipper);
+
+export const deleteShipper = deleteOne(Shipper);
+
+export const getAllProcessingShippers = getAll(Shipper, {
+    where: { status: SHIPPER_STATUS.PROCESSING }
+});
