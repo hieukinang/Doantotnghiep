@@ -155,3 +155,9 @@ export const deleteSingleProduct = deleteOne(Product, {
             { model: ProductVariant, as: "ProductVariants" },
   ],
 });
+
+export const getAllProcessingProduct = getAll(Product, {
+  where: { status: 'PROCESSING' },
+  include: [{ model: ProductImage, as: "ProductImages" }, { model: ProductVariant, as: "ProductVariants" }],
+  order: [["createdAt", "DESC"]],
+});

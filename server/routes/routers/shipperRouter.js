@@ -21,7 +21,7 @@ import {
   registerValidator,
 } from "../../validators/shipper.validator.js";
 
-import {checkShipperStatus} from "../../validators/status.validator.js";
+import {checkAdminStatus, checkShipperStatus} from "../../validators/status.validator.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
 import Shipper from "../../model/shipperModel.js";
@@ -40,9 +40,8 @@ router.route("/:id")
   .get(isAuth(Shipper), getSingleShipper);
 router.route("/update-status/:id")
   .patch(
-    isAuth(Shipper),
-    uploadShipperImages,
-    resizeShipperImages,
+    isAuth(Admin),
+    checkAdminStatus,
     updateShipper
   );
 

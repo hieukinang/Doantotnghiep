@@ -12,7 +12,6 @@ import path from "path";
 import sharp from "sharp";
 
 import { Op } from "sequelize";
-import { get } from "http";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer) - upload đồng thời 2 ảnh: id_image và image

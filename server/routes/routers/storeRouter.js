@@ -9,10 +9,11 @@ import {
     uploadStoreImages,
     resizeStoreImages,
     updateStoreProfile,
-    getAllProcessingStores
+    getAllProcessingStores,
 } from "../../controller/storeController.js";
 
 import {
+  IdValidator,
   registerValidator,
 } from "../../validators/store.validator.js";
 
@@ -22,7 +23,7 @@ import {
   loginValidator
 } from "../../validators/auth.validator.js";
 
-import { checkStoreStatus } from "../../validators/status.validator.js";
+import { checkAdminStatus, checkStoreStatus } from "../../validators/status.validator.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
 import Store from "../../model/storeModel.js";
@@ -36,11 +37,14 @@ router.route("/logout").post(isAuth(Store), logout);
 router.route("/processing")
   .get(isAuth(Admin), getAllProcessingStores);
 
-router.route("/update-profile/:id")
-  .patch(
-    uploadStoreImages,
-    resizeStoreImages,
-    updateStoreProfile
-  );
+router.route("/update-status/:id")
+  .patch(isAuth(Admin), IdValidator, checkAdminStatus, updateStoreProfile);
+
+// router.route("/update-profile/:id")
+//   .patch(
+//     uploadStoreImages,
+//     resizeStoreImages,
+//     updateStoreProfile
+//   );
 
 export default router;
