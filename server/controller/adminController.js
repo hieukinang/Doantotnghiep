@@ -123,9 +123,6 @@ export const login = asyncHandler(async (req, res, next) => {
   if (!admin || !await admin.isCorrectPassword(password)) {
     return next(new APIError("Email hoặc mật khẩu không đúng, vui lòng kiểm tra lại", 401));
   }
-
-  console.log(admin.active);
-
   if(!admin.active) {
     return next(new APIError("Tài khoản của bạn hiện không hoạt động, vui lòng liên hệ quản trị viên", 403));
   }

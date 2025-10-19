@@ -4,6 +4,8 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import { generateSendToken } from "../utils/tokenHandler.utils.js";
 import { uploadMixOfImages } from "../middleware/imgUpload.middleware.js";
 
+import {sendEmail} from "../utils/sendEmail.utils.js";
+
 import { SHIPPER_STATUS } from "../constants/index.js";
 
 import fs from "fs";
@@ -11,7 +13,7 @@ import path from "path";
 import sharp from "sharp";
 
 import { Op } from "sequelize";
-import { getOne, updateOne, getAll } from "../utils/refactorControllers.utils.js";
+import { getOne, getAll, deleteOne } from "../utils/refactorControllers.utils.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer) - upload đồng thời 4 ảnh: id_image, image, profile_image, health_image
@@ -211,8 +213,52 @@ export const logout = asyncHandler(async (req, res, next) => {
     });
 });
 
-export const updateShipper = updateOne(Shipper);
+export const updateShipper = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  // Cập nhật shipper
+  const [affectedRows] = await Shipper.update(req.body, {
+    where: { id },
+    individualHooks: true,
+  });
+
+  if (!affectedRows) {
+    return next(
+      new APIError(`There is no document match this id : ${id}`, 404)
+    );
+  }
+
+  // Lấy lại bản ghi vừa update để trả về
+  const shipper = await Shipper.findByPk(id);
+
+  // Gửi email thông báo nếu có email
+  if (shipper && shipper.email) {
+    try {
+      await sendEmail({
+        email: shipper.email,
+        subject: "Thông báo cập nhật hồ sơ shipper",
+        message: `Xin chào ${shipper.name},\n\nHồ sơ shipper của bạn đã được cập nhật thành công.\n\nTrân trọng,\nĐội ngũ hỗ trợ`
+      });
+    } catch (err) {
+      // Không làm gián đoạn flow nếu gửi email lỗi
+      console.error("Send email error:", err.message);
+    }
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      doc: shipper,
+    },
+  });
+});
 
 export const getAllShippers = getAll(Shipper);
 
 export const getSingleShipper = getOne(Shipper);
+
+export const deleteShipper = deleteOne(Shipper);
+
+export const getAllProcessingShippers = getAll(Shipper, {
+    where: { status: SHIPPER_STATUS.PROCESSING }
+});

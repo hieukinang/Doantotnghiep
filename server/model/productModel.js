@@ -85,7 +85,7 @@ const Product = sequelize.define(
     status: {
       type: DataTypes.ENUM(...Object.values(PRODUCT_STATUS)),
       allowNull: false,
-      defaultValue: PRODUCT_STATUS.ACTIVE,
+      defaultValue: PRODUCT_STATUS.PROCESSING,
     },
     categoryId: {
       type: DataTypes.INTEGER,

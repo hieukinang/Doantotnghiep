@@ -30,7 +30,6 @@ export const register = asyncHandler(async (req, res, next) => {
 })
 
 export const login = asyncHandler(async (req, res, next) => {
-    console.log(req.body);
     const {emailOrPhone, password} = req.body;
     // 1) If all data entered
     if(!emailOrPhone || !password) {

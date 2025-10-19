@@ -2,8 +2,7 @@ import validatorMiddleware from "../middleware/validator.middleware.js";
 import { check } from "express-validator";
 import { isPasswordsMatches, isUnique } from "./custom.validators.js";
 import Store from "../model/storeModel.js";
-import { STORE_STATUS } from "../constants/index.js";
-
+import { isExistInDB } from "./custom.validators.js";
 // Custom middleware kiểm tra file ảnh cho store
 const checkStoreImages = (req, res, next) => {
   const requiredFields = ["id_image", "image"];
@@ -24,6 +23,14 @@ const checkStoreImages = (req, res, next) => {
   }
   next();
 };
+
+export const IdValidator = [
+  check("id")
+    .isInt({ min: 1 }).withMessage("Invalid Id format") // Nếu id là số nguyên
+    .custom((val) => isExistInDB(val, Store))
+    .withMessage("Store not found"),
+  validatorMiddleware,
+];
 
 export const registerValidator = [
   check("name")

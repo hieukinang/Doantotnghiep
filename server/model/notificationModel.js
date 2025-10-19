@@ -14,27 +14,31 @@ const Notification = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    des: {
+    body: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    users: {
+    status: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    receivers: {
       type: DataTypes.STRING(255),
       allowNull: true,
       // Có thể lưu danh sách userId dạng chuỗi, ví dụ: "1,2,3"
     },
-    type_of_user: {
-      type: DataTypes.STRING(255),
+    type_of_receiver: {
+      type: DataTypes.ENUM("ADMIN", "SHIPPER", "STORE", "CLIENT"),
       allowNull: true,
     },
-    adminId: {
+    senderId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: Admin,
-        key: "id",
-      },
     },
+    type_of_sender: {
+      type: DataTypes.ENUM("ADMIN", "SHIPPER", "STORE", "CLIENT"),
+      allowNull: true,
+    }
   },
   {
     tableName: "notifications",

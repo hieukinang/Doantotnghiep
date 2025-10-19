@@ -46,6 +46,7 @@ export const STORE_STATUS = {
 
 export const PRODUCT_STATUS = {
   ACTIVE: "ACTIVE",
+  PROCESSING: "PROCESSING",
   BANNED: "BANNED",
 }
 

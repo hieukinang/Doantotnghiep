@@ -17,7 +17,7 @@ import Category from "../model/categoryModel.js";
 // 1) UPLOADING(Multer)
 export const uploadProductImages = uploadMixOfImages([
   {name: "main_image", maxCount: 1},
-  {name: "slide_images", maxCount: 5},
+  {name: "slide_images", maxCount: 20},
 ]);
 
 // 2) PROCESSING(Sharp)
@@ -154,4 +154,10 @@ export const deleteSingleProduct = deleteOne(Product, {
   include: [{ model: ProductImage, as: "ProductImages" },
             { model: ProductVariant, as: "ProductVariants" },
   ],
+});
+
+export const getAllProcessingProduct = getAll(Product, {
+  where: { status: 'PROCESSING' },
+  include: [{ model: ProductImage, as: "ProductImages" }, { model: ProductVariant, as: "ProductVariants" }],
+  order: [["createdAt", "DESC"]],
 });
