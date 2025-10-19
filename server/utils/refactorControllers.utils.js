@@ -85,7 +85,6 @@ export const createOne = (Model) =>
 export const updateOne = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    console.log(id, req.body);
     const [affectedRows] = await Model.update(req.body, {
       where: { id },
       individualHooks: true,

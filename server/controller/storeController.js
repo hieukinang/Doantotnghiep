@@ -5,7 +5,9 @@ import {generateSendToken} from "../utils/tokenHandler.utils.js";
 import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
 import { STORE_STATUS } from "../constants/index.js";
 
-import { getAll, updateOne } from "../utils/refactorControllers.utils.js";
+import { sendEmail } from "../utils/sendEmail.utils.js";
+
+import { getAll } from "../utils/refactorControllers.utils.js";
 
 import fs from "fs";
 import path from "path";
@@ -127,7 +129,6 @@ export const register = asyncHandler(async (req, res, next) => {
 });
 
 export const login = asyncHandler(async (req, res, next) => {
-    console.log(req.body);
     const {emailOrPhone, password} = req.body;
     // 1) If all data entered
     if(!emailOrPhone || !password) {
@@ -159,7 +160,45 @@ export const logout = asyncHandler(async (req, res, next) => {
   });
 });
 
-export const updateStoreProfile = updateOne(Store);
+export const updateStoreProfile = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  // Cập nhật store
+  const [affectedRows] = await Store.update(req.body, {
+    where: { id },
+    individualHooks: true,
+  });
+
+  if (!affectedRows) {
+    return next(
+      new APIError(`There is no document match this id : ${id}`, 404)
+    );
+  }
+
+  // Lấy lại bản ghi vừa update để trả về
+  const store = await Store.findByPk(id);
+
+  // Gửi email thông báo nếu có email
+  if (store && store.email) {
+    try {
+      await sendEmail({
+        email: store.email,
+        subject: "Thông báo cập nhật hồ sơ cửa hàng",
+        message: `Xin chào ${store.name},\n\nHồ sơ cửa hàng của bạn đã được cập nhật thành công.\n\nTrân trọng,\nĐội ngũ hỗ trợ`
+      });
+    } catch (err) {
+      // Không làm gián đoạn flow nếu gửi email lỗi
+      console.error("Send email error:", err.message);
+    }
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      doc: store,
+    },
+  });
+});
 
 export const getAllProcessingStores = getAll(Store, {
     status: STORE_STATUS.PROCESSING
