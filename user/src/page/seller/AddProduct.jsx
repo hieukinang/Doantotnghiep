@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import { ShopContext } from "../../context/ShopContext";
+import { toast } from "react-toastify";
 const AddProduct = () => {
-  const backendURL =
-    import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
+  const { backendURL, categories, getAllCategories, createProduct } = useContext(ShopContext);
 
   const [product, setProduct] = useState({
     name: "",
@@ -14,7 +14,7 @@ const AddProduct = () => {
     origin: "",
     categoryId: "",
   });
-  const [categories, setCategories] = useState([]);
+
   const [variants, setVariants] = useState([]);
   const [main_image, setMainImage] = useState(null);
   const [previewMainImage, setPreviewMainImage] = useState(null);
@@ -26,16 +26,8 @@ const AddProduct = () => {
   const [showVariantModal, setShowVariantModal] = useState(false);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(`${backendURL}/categories`);
-        setCategories(res.data?.data?.docs || []);
-      } catch (err) {
-        console.error("Lỗi tải danh mục:", err);
-      }
-    };
-    fetchCategories();
-  }, [backendURL]);
+    getAllCategories();
+  }, []);
 
   const handleCategoryChange = async (e) => {
     const categoryId = e.target.value;
@@ -46,13 +38,11 @@ const AddProduct = () => {
     }
 
     try {
+      const token = localStorage.getItem("sellerToken");
       const res = await axios.get(`${backendURL}/categories/${categoryId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("sellerToken")}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const attrs = res.data?.data?.doc?.CategoryAttributes || [];
-
       const formattedAttrs = attrs.map(attr => ({
         id: attr.id,
         name: attr.name,
@@ -88,8 +78,8 @@ const AddProduct = () => {
     const arrays = categoryAttributesValues.map(attr => attr.values.filter(v => v.trim() !== ""));
     if (arrays.some(arr => arr.length === 0)) return [];
 
-    const cartesian = (arr) => arr.reduce((a, b) =>
-      a.flatMap(d => b.map(e => [...d, e])), [[]]);
+    const cartesian = (arr) =>
+      arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]]);
 
     return cartesian(arrays).map(combo => {
       const variant = {};
@@ -115,6 +105,8 @@ const AddProduct = () => {
       return "Vui lòng chọn danh mục!";
     if (!main_image)
       return "Vui lòng chọn ảnh chính!";
+    if (categoryAttributesValues.length === 0 || categoryAttributesValues.every(attr => attr.values.length === 0))
+      return "Danh mục này chưa có thuộc tính! Vui lòng thêm ít nhất 1 thuộc tính.";
     for (const attr of categoryAttributesValues) {
       if (attr.values.some(v => !v.trim()))
         return `Vui lòng nhập đầy đủ giá trị cho thuộc tính "${attr.name}"`;
@@ -122,19 +114,16 @@ const AddProduct = () => {
     return null;
   };
 
+  // ✅ Gọi API tạo sản phẩm qua hàm context
   const handleSubmit = async (e) => {
     e.preventDefault();
     const error = validateProduct();
     if (error) {
-      setMessage(`${error}`);
+      setMessage(error);
       setTimeout(() => setMessage(""), 4000);
       return;
     }
-    if (!main_image) {
-      setMessage("Vui lòng chọn ảnh chính!");
-      setTimeout(() => setMessage(""), 3000);
-      return;
-    }
+
     const combos = createVariants();
     if (combos.length > 0) {
       setVariants(combos);
@@ -146,40 +135,23 @@ const AddProduct = () => {
   };
 
   const submitToServer = async () => {
-    try {
-      const formData = new FormData();
-      formData.append("name", product.name.trim());
-      formData.append("description", product.description.trim());
-      formData.append("origin", product.origin.trim());
-      formData.append("categoryId", product.categoryId || "");
-      if (main_image) formData.append("main_image", main_image);
-      slide_images.forEach(slide_images => {
-        if (slide_images) formData.append("slide_images", slide_images);
-      });
+    const formData = new FormData();
+    formData.append("name", product.name.trim());
+    formData.append("description", product.description.trim());
+    formData.append("origin", product.origin.trim());
+    formData.append("categoryId", product.categoryId || "");
+    if (main_image) formData.append("main_image", main_image);
+    slide_images.forEach(img => {
+      if (img) formData.append("slide_images", img);
+    });
 
-      const token = localStorage.getItem("sellerToken");
-      const res = await axios.post(`${backendURL}/products`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      const newId = res.data?.data?.product?.id;
-      setCreatedProductId(newId);
-
-      setMessage("Thêm sản phẩm thành công!");
-      setTimeout(() => setMessage(""), 3000);
-    } catch (err) {
-      if (err.response) {
-        console.error('Lỗi server trả về:', err.response.data);
-      } else if (err.request) {
-        console.error('Không nhận được phản hồi:', err.request);
-      } else {
-        console.error('Lỗi Axios:', err.message);
-      }
+    const res = await createProduct(formData);
+    if (res?.data?.product?.id) {
+      setCreatedProductId(res.data.product.id);
     }
   };
 
+  // ✅ Các hàm xử lý popup, hủy sản phẩm, gửi biến thể giữ nguyên
   const handleCancelProduct = async () => {
     if (!createdProductId) {
       setShowVariantModal(false);
@@ -197,7 +169,7 @@ const AddProduct = () => {
       setMessage("Sản phẩm đã bị hủy!");
       setTimeout(() => setMessage(""), 3000);
 
-      // Xóa form & reset toàn bộ state
+      // Reset toàn bộ
       setProduct({ name: "", description: "", origin: "", categoryId: "" });
       setMainImage(null);
       setPreviewMainImage(null);
@@ -213,27 +185,24 @@ const AddProduct = () => {
   };
 
   const handleCloseModal = async () => {
-  if (!createdProductId) {
-    setShowVariantModal(false);
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem("sellerToken");
-    await axios.delete(`${backendURL}/products/${createdProductId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    // Chỉ reset ID sản phẩm, form bên ngoài vẫn giữ nguyên dữ liệu
-    setCreatedProductId(null);
-    setVariants([]); // Clear các biến thể hiện tại trong popup
-    setShowVariantModal(false);
-    setMessage("Sản phẩm hiện tại đã bị xóa khỏi DB. Bạn có thể chỉnh sửa và thêm lại.");
-    setTimeout(() => setMessage(""), 3000);
-  } catch (err) {
-    console.error("Lỗi khi xóa sản phẩm:", err);
-  }
-};
+    if (!createdProductId) {
+      setShowVariantModal(false);
+      return;
+    }
+    try {
+      const token = localStorage.getItem("sellerToken");
+      await axios.delete(`${backendURL}/products/${createdProductId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCreatedProductId(null);
+      setVariants([]);
+      setShowVariantModal(false);
+      setMessage("Sản phẩm hiện tại đã bị xóa khỏi DB.");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      console.error("Lỗi khi xóa sản phẩm:", err);
+    }
+  };
 
   const submitVariantsToServer = async () => {
     if (!createdProductId) {
@@ -256,10 +225,7 @@ const AddProduct = () => {
           price: Number(variant.price),
           stock_quantity: Number(variant.stock),
           variant_options: [
-            {
-              attributeIds,
-              values,
-            },
+            { attributeIds, values },
           ],
         };
       });

@@ -6,32 +6,44 @@ export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
-  const [categories, setCategories] = useState([]);
 
-  // ✅ Lấy danh mục sản phẩm
+  const [supercategories, setSupercategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const token = localStorage.getItem("sellerToken");
+  const getAllSuperCategories = async () => {
+    try {
+      const res = await axios.get(`${backendURL}/supercategories`);
+      const data = res.data?.data?.docs || res.data?.data || [];
+      setSupercategories(data);
+      console.log("📂 Supercategories:", data);
+      return data;
+    } catch (error) {
+      console.error("❌ Lỗi khi tải supercategories:", error);
+      toast.error("Không thể tải danh mục cha");
+      return [];
+    }
+  };
   const getAllCategories = async () => {
     try {
       const res = await axios.get(`${backendURL}/categories`);
       const data = res.data?.data?.docs || res.data?.data || [];
       setCategories(data);
-      console.log("📂 Danh mục:", data);
+      console.log("📂 categories:", data);
       return data;
     } catch (error) {
-      console.error("❌ Lỗi khi tải danh mục:", error);
-      toast.error("Không thể tải danh mục");
+      console.error("❌ Lỗi khi tải categories:", error);
+      toast.error("Không thể tải danh mục con");
       return [];
     }
   };
 
-  // ✅ Tạo sản phẩm mới
   const createProduct = async (formData) => {
     try {
       const res = await axios.post(`${backendURL}/products`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (res.data.success) {
-        toast.success("✅ Thêm sản phẩm thành công");
+      if (res.data.status === "success") {
+        toast.success(" Thêm sản phẩm thành công");
         return res.data;
       } else {
         toast.error(res.data.message || "Thêm sản phẩm thất bại");
@@ -45,12 +57,14 @@ const ShopContextProvider = (props) => {
   };
 
   useEffect(() => {
-    getAllCategories();
+    getAllSuperCategories();
   }, []);
 
   const value = {
     backendURL,
+    supercategories,
     categories,
+    getAllSuperCategories,
     getAllCategories,
     createProduct,
   };
