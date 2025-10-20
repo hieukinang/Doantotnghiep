@@ -35,7 +35,7 @@ import OrderDetailSeller from "./page/seller/OrderDetailSeller";
 import LoginSeller from "./page/seller/LoginSeller";
 import SellerHeader from "./component-seller-page/SellerHeader";
 import SellerSidebar from "./component-seller-page/SellerSidebar";
-
+import { ToastContainer } from "react-toastify";
 import ShopContextProvider from "./context/ShopContext";
 
 function App() {
@@ -55,7 +55,7 @@ function App() {
   };
 
   return (
-    // <ShopContextProvider>
+    <>
       <Routes>
         {/* ---------- CUSTOMER ROUTES ---------- */}
         <Route path="/" element={<Home />} />
@@ -104,9 +104,8 @@ function App() {
 
                 {/* Nội dung chính */}
                 <div
-                  className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${
-                    isSidebarOpen ? "ml-64" : "ml-16"
-                  }`}
+                  className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${isSidebarOpen ? "ml-64" : "ml-16"
+                    }`}
                 >
                   <SellerHeader
                     isSidebarOpen={isSidebarOpen}
@@ -132,7 +131,16 @@ function App() {
           <Route path="/seller/order-detail" element={<OrderDetailSeller />} />
         </Route>
       </Routes>
-    // </ShopContextProvider>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
+    </>
   );
 }
 

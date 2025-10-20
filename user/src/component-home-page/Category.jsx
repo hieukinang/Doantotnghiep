@@ -1,36 +1,16 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import left from "../assets/fill-left.svg";
 import right from "../assets/fill-right.svg";
-
-const categories = [
-  { id: 1, name: "Điện thoại", icon: "/src/assets/product/dienthoai2.png" },
-  { id: 2, name: "Tivi", icon: "src/assets/product/tivi1.png" },
-  { id: 3, name: "Máy giặt", icon: "/src/assets/product/maygiat2.png" },
-  { id: 4, name: "Tủ lạnh", icon: "/src/assets/product/tulanh3.png" },
-  { id: 5, name: "Điều hòa", icon: "/src/assets/product/dieuhoa1.png" },
-  { id: 6, name: "Laptop", icon: "/src/assets/product/laptop5.png" },
-  { id: 7, name: "Thời trang nam", icon: "/src/assets/product/thoitrangnam2.png" },
-  { id: 8, name: "Giày dép nam", icon: "/src/assets/product/giaydepnam2.png" },
-  { id: 9, name: "Túi xách", icon: "/src/assets/product/tuixach3.png" },
-  { id: 10, name: "Đồ ăn", icon: "/src/assets/product/doan3.png" },
-  { id: 11, name: "Gia dụng", icon: "/src/assets/product/khac3.png" },
-  { id: 12, name: "Bàn ghế", icon: "/src/assets/product/banghe2.png" },
-  { id: 13, name: "Thời trang nữ", icon: "/src/assets/product/thoitrangnu2.png" },
-  { id: 14, name: "Giày dép nữ", icon: "/src/assets/product/giaydepnu1.png" },
-  { id: 15, name: "Phụ kiện & Trang sức", icon: "/src/assets/product/phukien5.png" },
-  { id: 16, name: "Sách vở", icon: "/src/assets/product/sachvo1.png" },
-  { id: 17, name: "Đồ trẻ em", icon: "/src/assets/product/treem4.png" },
-  { id: 18, name: "Đồ thể thao", icon: "/src/assets/product/thethao4.png" },
-  { id: 19, name: "Phụ kiện xe", icon: "/src/assets/product/xe5.png" },
-  { id: 20, name: "Dụng cụ & Thiết bị", icon: "/src/assets/product/dungcu1.png" },
-  { id: 21, name: "Đồ chơi", icon: "/src/assets/product/khac1.png" },
-];
+import { ShopContext } from "../context/ShopContext";
 
 const Categories = () => {
   const containerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // 👉 Lấy dữ liệu từ context
+  const { supercategories, getAllSuperCategories } = useContext(ShopContext);
 
   const updateScrollButtons = () => {
     if (!containerRef.current) return;
@@ -50,7 +30,9 @@ const Categories = () => {
   };
 
   useEffect(() => {
+    getAllSuperCategories(); // 🔄 Gọi API khi load lần đầu
     updateScrollButtons();
+
     const el = containerRef.current;
     if (!el) return;
 
@@ -68,6 +50,7 @@ const Categories = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Danh mục</h2>
       </div>
+
       <div className="relative mt-6">
         {/* Nút trái */}
         {canScrollLeft && (
@@ -84,24 +67,30 @@ const Categories = () => {
         {/* Container chính */}
         <div ref={containerRef} className="overflow-hidden scroll-smooth">
           <div className="grid grid-rows-2 grid-flow-col gap-4">
-            {categories.map((c) => (
-              <Link
-                key={c.id}
-                to={`/category/${c.id}`}
-                className="w-[140px] bg-white rounded-xl border hover:shadow-lg transition flex flex-col items-center p-6"
-              >
-                <div className="w-16 h-16 bg-gray-100 flex items-center justify-center rounded-full flex-shrink-0">
-                  <img
-                    src={c.icon}
-                    alt={c.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="mt-3 text-base font-medium text-center leading-snug line-clamp-2">
-                  {c.name}
-                </div>
-              </Link>
-            ))}
+            {supercategories && supercategories.length > 0 ? (
+              supercategories.map((c) => (
+                <Link
+                  key={c._id || c.id}
+                  to={`/category/${c._id || c.id}`}
+                  className="w-[140px] bg-white rounded-xl border hover:shadow-lg transition flex flex-col items-center p-6"
+                >
+                  <div className="w-16 h-16 bg-gray-100 flex items-center justify-center rounded-full flex-shrink-0 overflow-hidden">
+                    <img
+                      src={c.image || "/src/assets/product/default.png"}
+                      alt={c.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="mt-3 text-base font-medium text-center leading-snug line-clamp-2">
+                    {c.name}
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="text-gray-500 p-6 text-center col-span-full">
+                Đang tải danh mục...
+              </div>
+            )}
           </div>
         </div>
 
