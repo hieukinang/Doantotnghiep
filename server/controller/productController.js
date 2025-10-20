@@ -103,7 +103,7 @@ export const createProduct = asyncHandler(async (req, res, next) => {
 // @route   GET /api/products
 // @access  Public
 export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
-  const storeId  = req.user.id;
+  const storeId = req.user.id;
 
   if (!storeId) {
     return res.status(400).json({
@@ -113,7 +113,9 @@ export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
   }
 
   const products = await Product.findAll({
-    where: { storeId },
+    where: {
+      storeId,
+    },
     include: [{ model: ProductImage, as: "ProductImages" }],
     order: [["createdAt", "DESC"]],
   });
@@ -127,8 +129,20 @@ export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
   });
 });
 
-export const getAllProducts = getAll(Product, {
-  include: [{ model: ProductImage, as: "ProductImages" }, { model: ProductVariant, as: "ProductVariants" }],
+export const getAllProductsForAdmin = getAll(Product, {
+  include: [
+    { model: ProductImage, as: "ProductImages" },
+    { model: ProductVariant, as: "ProductVariants" }
+  ],
+  order: [["createdAt", "DESC"]],
+});
+
+export const getAllProductsForClient = getAll(Product, {
+  where: { status: "ACTIVE" },
+  include: [
+    { model: ProductImage, as: "ProductImages" },
+    { model: ProductVariant, as: "ProductVariants" }
+  ],
   order: [["createdAt", "DESC"]],
 });
 
@@ -154,10 +168,4 @@ export const deleteSingleProduct = deleteOne(Product, {
   include: [{ model: ProductImage, as: "ProductImages" },
             { model: ProductVariant, as: "ProductVariants" },
   ],
-});
-
-export const getAllProcessingProduct = getAll(Product, {
-  where: { status: 'PROCESSING' },
-  include: [{ model: ProductImage, as: "ProductImages" }, { model: ProductVariant, as: "ProductVariants" }],
-  order: [["createdAt", "DESC"]],
 });

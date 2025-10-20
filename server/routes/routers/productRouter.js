@@ -7,8 +7,8 @@ import {
   updateSingleProduct,
   deleteSingleProduct,
   getAllProductsByStore,
-  getAllProducts,
-  getAllProcessingProduct,
+  getAllProductsForAdmin,
+  getAllProductsForClient,
 } from "../../controller/productController.js";
 
 import { isAuth } from "../../middleware/auth.middleware.js";
@@ -24,29 +24,17 @@ import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
-router.get("/processing", isAuth(Admin), checkAdminStatus, getAllProcessingProduct);
+// Admin
+router.get("/admin", isAuth(Admin), checkAdminStatus, getAllProductsForAdmin);
 
-router.route("/:id", IdValidator).get(getSingleProduct);
+router.patch("/admin/update-status/:id", isAuth(Admin), checkAdminStatus, IdValidator, updateSingleProduct); // Admin cập nhật trạng thái sản phẩm
 
-router.route("/").get(getAllProducts);
+// Store
+router.post("/store", isAuth(Store), checkStoreStatus, uploadProductImages, createProductValidator, resizeProductImages, createProduct);
 
-router.post("/", // Store tạo sản phẩm
-    isAuth(Store),
-    checkStoreStatus,
-    uploadProductImages,
-    createProductValidator,
-    resizeProductImages,
-    createProduct
-  );
-
-router.route("/").get(isAuth(Store), checkStoreStatus, getAllProductsByStore); // lay tat ca san phan theo store
-
-router.route("/:id", IdValidator).get(getSingleProduct); // Lấy từng sản phẩm
-
-router.patch("/update-status/:id", isAuth(Admin), checkAdminStatus, IdValidator, updateSingleProduct); // Admin cập nhật trạng thái sản phẩm
-
+router.route("/store").get(isAuth(Store), checkStoreStatus, getAllProductsByStore); // lay tat ca san phan theo store
 router
-  .route("/:id", isAuth(Store), checkStoreStatus, IdValidator) // Cập nhật, xóa sản phẩm
+  .route("/store/:id", isAuth(Store), checkStoreStatus, IdValidator) // Cập nhật, xóa sản phẩm
   .patch(
     uploadProductImages,
     createProductValidator,
@@ -56,4 +44,10 @@ router
   .delete(
     deleteSingleProduct
   );
+
+// Client
+router.route("/").get(getAllProductsForClient);
+router.route("/:id", IdValidator).get(getSingleProduct); // Lấy từng sản phẩm
+
+
 export default router;
