@@ -18,7 +18,6 @@ const DealsToday = () => {
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
       const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
-      console.log("🧩 allProducts trong DealsToday:", allProducts);
       setRandomProducts(shuffled.slice(0, 14));
     }
   }, [allProducts]);

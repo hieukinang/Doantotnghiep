@@ -12,6 +12,8 @@ const ShopContextProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [allProductsbyStore, setAllProductsbyStore] = useState([]);
+  const [product, setProduct] = useState([]);
+
 
   const getAllSuperCategories = async () => {
     try {
@@ -58,6 +60,25 @@ const ShopContextProvider = ({ children }) => {
       return null;
     }
   };
+
+const getProduct = async (id) => {
+  try {
+    const res = await axios.get(`${backendURL}/products/${id}`);
+    if (res.data.status === "success") {
+      const productData = res.data.data.doc; // ✅ Lấy đúng trường doc
+      setProduct(productData);
+      console.log("📦 Product:", productData);
+    } else {
+      toast.error(res.data.message || "❌ Lấy sản phẩm thất bại!");
+      return null;
+    }
+  } catch (error) {
+    console.error("❌ Lỗi khi tải product:", error);
+    toast.error("Không thể tải sản phẩm!");
+    return null;
+  }
+};
+
 
   const getAllProducts = async () => {
     try {
@@ -112,9 +133,11 @@ const ShopContextProvider = ({ children }) => {
     categories,
     allProducts,
     allProductsbyStore,
+    product,
     getAllSuperCategories,
     getAllCategories,
     createProduct,
+    getProduct,
     getAllProducts,
     getAllProductsByStore,
   };

@@ -1,33 +1,42 @@
-import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
 import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 
-const attributes = [
-  {
-    name: "Màu sắc",
-    options: ["Trắng", "Đỏ", "Xanh"],
-  },
-  {
-    name: "Kích cỡ",
-    options: ["S", "M", "L"],
-  },
-  {
-    name: "Loại",
-    options: ["Có dây", "Không dây"],
-  },
-];
-
 const ProductDetail = () => {
+  const { productId } = useParams();
+  const { product, getProduct, backendURL } = useContext(ShopContext);
+
   const [active, setActive] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedOptions, setSelectedOptions] = useState({}); // lưu lựa chọn thuộc tính
+  const [selectedOptions, setSelectedOptions] = useState({});
 
-  const { addToCart } = useContext(ShopContext);
+  // 🟦 Lấy sản phẩm theo ID
+  useEffect(() => {
+    if (productId) {
+      getProduct(productId);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [productId]);
 
-  const productId = "product123";
-  const brand = "Tai nghe Bluetooth Pro";
+
+  // 🟦 Tạo danh sách ảnh hiển thị
+  const gallery = [
+    product.main_image,
+    ...(product.ProductImages?.map((img) => img.image_url) || []),
+  ];
+
+  // 🟦 Tự động chuyển ảnh mỗi 3 giây
+  useEffect(() => {
+    if (!gallery.length) return;
+    const interval = setInterval(() => {
+      setActive((prev) => (prev + 1) % gallery.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [gallery.length]);
+
+  const attributes = product.attributes || [];
 
   const handleOptionChange = (attrName, option) => {
     setSelectedOptions((prev) => ({
@@ -37,81 +46,132 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    console.log("Đặt hàng với thuộc tính:", selectedOptions);
-    addToCart(productId, brand, quantity, selectedOptions);
+    console.log("🛒 Đặt hàng với thuộc tính:", selectedOptions);
   };
 
+  // 🟦 Khi dữ liệu sản phẩm chưa load xong
+  if (!product || !product.id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Đang tải thông tin sản phẩm...
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
+
       <main className="pt-32 px-5 flex-1">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Ảnh */}
+          {/* 🟩 Ảnh sản phẩm */}
           <div>
-            <div className="aspect-square bg-white rounded-lg overflow-hidden shadow">
+            <div className="aspect-square bg-white rounded-lg overflow-hidden shadow relative">
               <img
-                src={gallery[active]}
-                alt="product"
-                className="w-full h-full object-cover"
+                src={
+                  gallery[active]?.startsWith("http")
+                    ? gallery[active]
+                    : `${backendURL}/${gallery[active]}`
+                }
+                alt={product.name}
+                className="w-full h-full object-cover transition-all duration-700"
               />
+
+              {/* Nút chuyển ảnh trái phải */}
+              {gallery.length > 1 && (
+                <>
+                  <button
+                    onClick={() =>
+                      setActive((prev) =>
+                        prev === 0 ? gallery.length - 1 : prev - 1
+                      )
+                    }
+                    className="absolute top-1/2 left-3 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={() =>
+                      setActive((prev) => (prev + 1) % gallery.length)
+                    }
+                    className="absolute top-1/2 right-3 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
             </div>
-            <div className="mt-3 grid grid-cols-4 gap-3">
-              {gallery.map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className={`aspect-square rounded overflow-hidden border ${i === active ? "border-[#116AD1]" : "border-gray-200"
-                    }`}
-                >
-                  <img
-                    src={src}
-                    alt={`thumb-${i}`}
-                    className="w-full h-full object-cover"
+
+            {/* Dot nhỏ hiển thị ảnh */}
+            {gallery.length > 1 && (
+              <div className="mt-3 flex justify-center gap-2">
+                {gallery.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActive(i)}
+                    className={`w-3 h-3 rounded-full ${i === active ? "bg-[#116AD1]" : "bg-gray-300"
+                      }`}
                   />
-                </button>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Chi tiết */}
+          {/* 🟦 Chi tiết sản phẩm */}
           <div className="bg-white rounded-lg p-5 shadow">
-            <h1 className="text-xl font-semibold">Tai nghe Bluetooth Pro</h1>
+            <h1 className="text-xl font-semibold">{product.name}</h1>
             <div className="mt-2 text-sm text-gray-500">
-              4.8 • Đã bán 2,3k • Kho: 125
-            </div>
-            <div className="mt-3 bg-[#116AD1]/10 text-[#116AD1] inline-block px-3 py-1 rounded">
-              Miễn phí vận chuyển
+              ⭐ {product.rating || "4.8"} • Đã bán {product.sold || 0} • Kho:{" "}
+              {product.stock || 0}
             </div>
 
+            {product.shipping_free && (
+              <div className="mt-3 bg-[#116AD1]/10 text-[#116AD1] inline-block px-3 py-1 rounded">
+                Miễn phí vận chuyển
+              </div>
+            )}
+
+            {/* Giá */}
             <div className="mt-4">
-              <div className="text-2xl font-bold text-[#116AD1]">399.000₫</div>
-              <div className="text-sm line-through text-gray-400">599.000₫</div>
-            </div>
-
-            {/* Thuộc tính động */}
-            <div className="mt-6 space-y-4">
-              {attributes.map((attr, idx) => (
-                <div key={idx}>
-                  <h3 className="font-medium mb-2">{attr.name}</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    {attr.options.map((option, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleOptionChange(attr.name, option)}
-                        className={`px-3 py-1 border rounded ${selectedOptions[attr.name] === option
-                          ? "bg-[#116AD1] text-white border-[#116AD1]"
-                          : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                          }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
+              <div className="text-2xl font-bold text-[#116AD1]">
+                {product.price
+                  ? `${product.price.toLocaleString()}₫`
+                  : "Liên hệ"}
+              </div>
+              {product.original_price && (
+                <div className="text-sm line-through text-gray-400">
+                  {product.original_price.toLocaleString()}₫
                 </div>
-              ))}
+              )}
             </div>
 
-            {/* Nút thêm vào giỏ */}
+            {/* 🟦 Thuộc tính (size, màu...) */}
+            {attributes.length > 0 && (
+              <div className="mt-6 space-y-4">
+                {attributes.map((attr, idx) => (
+                  <div key={idx}>
+                    <h3 className="font-medium mb-2">{attr.name}</h3>
+                    <div className="flex gap-2 flex-wrap">
+                      {attr.options.map((option, i) => (
+                        <button
+                          key={i}
+                          onClick={() =>
+                            handleOptionChange(attr.name, option)
+                          }
+                          className={`px-3 py-1 border rounded ${selectedOptions[attr.name] === option
+                            ? "bg-[#116AD1] text-white border-[#116AD1]"
+                            : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 🟩 Thêm giỏ hàng + Mua ngay */}
             <div className="mt-6 flex items-center gap-3">
               <input
                 type="number"
@@ -134,16 +194,17 @@ const ProductDetail = () => {
               </Link>
             </div>
 
+            {/* 🟦 Mô tả sản phẩm */}
             <div className="mt-6">
               <h3 className="font-semibold">Mô tả sản phẩm</h3>
-              <p className="mt-2 text-sm text-gray-700 leading-6">
-                Tai nghe Bluetooth Pro cho âm thanh sống động, pin 24h, sạc
-                nhanh Type-C, chống ồn chủ động.
+              <p className="mt-2 text-sm text-gray-700 leading-6 whitespace-pre-line">
+                {product.description || "Chưa có mô tả cho sản phẩm này."}
               </p>
             </div>
           </div>
         </div>
       </main>
+
       <Footer />
     </div>
   );

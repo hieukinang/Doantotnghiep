@@ -17,7 +17,7 @@ const ProductImage = sequelize.define(
         const rawValue = this.getDataValue("image_url");
         if (!rawValue) return null;
         if (rawValue.startsWith("http")) return rawValue;
-        return `${process.env.BASE_URL}/product_images/${rawValue}`;
+        return `${process.env.BASE_URL}/productSliceImages/${rawValue}`;
       },
     },
     productId: {
