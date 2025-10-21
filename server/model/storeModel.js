@@ -89,6 +89,10 @@ const Store = sequelize.define(
       allowNull: false,
       defaultValue: STORE_STATUS.PROCESSING,
     },
+    followers: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     city: {
       type: DataTypes.STRING(100),
       allowNull: true,
