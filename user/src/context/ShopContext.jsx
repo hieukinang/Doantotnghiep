@@ -5,7 +5,8 @@ import { toast } from "react-toastify";
 export const ShopContext = createContext();
 
 const ShopContextProvider = ({ children }) => {
-  const backendURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
+  const backendURL =
+    import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
   const sellertoken = localStorage.getItem("sellerToken");
   const [supercategories, setSupercategories] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -25,7 +26,6 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-
   const getAllCategories = async () => {
     try {
       const res = await axios.get(`${backendURL}/categories`);
@@ -42,7 +42,7 @@ const ShopContextProvider = ({ children }) => {
 
   const createProduct = async (formData) => {
     try {
-      const res = await axios.post(`${backendURL}/products`, formData, {
+      const res = await axios.post(`${backendURL}/products/store`, formData, {
         headers: { Authorization: `Bearer ${sellertoken}` },
       });
       if (res.data.status === "success") {
@@ -90,7 +90,9 @@ const ShopContextProvider = ({ children }) => {
       if (res.data.status === "success") {
         return res.data;
       } else {
-        toast.error(res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!");
+        toast.error(
+          res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!"
+        );
         return null;
       }
     } catch (error) {
