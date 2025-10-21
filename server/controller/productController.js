@@ -12,6 +12,7 @@ import sharp from "sharp";
 import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
 import Category from "../model/categoryModel.js";
+import VariantOption from "../model/variantOptionModel.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer)
@@ -152,7 +153,16 @@ export const getAllProductsForClient = getAll(Product, {
 export const getSingleProduct = getOne(Product, {
   include: [
     { model: ProductImage, as: "ProductImages" },
-    { model: ProductVariant, as: "ProductVariants"},
+    { 
+      model: ProductVariant, 
+      as: "ProductVariants",
+      include: [
+        {
+          model: VariantOption,
+          as: "ProductVariantOptions"
+        }
+      ]
+    }
   ]
 });
 

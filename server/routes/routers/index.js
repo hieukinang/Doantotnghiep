@@ -13,6 +13,7 @@ import cartRouter from "./cartRouter.js";
 import productVariantRouter from "./productVariantRouter.js";
 import superCategoryRouter from "./superCategoryRouter.js";
 import notificationRouter from "./notificationRouter.js";
+import followRouter from "./followRouter.js";
 
 const router = express.Router();
 
@@ -29,5 +30,6 @@ router.use("/carts", cartRouter);
 router.use("/product-variants", productVariantRouter);
 router.use("/supercategories", superCategoryRouter);
 router.use("/notifications", notificationRouter);
+router.use("/follows", followRouter); // follow endpoints attached to stores
 
 export default router;

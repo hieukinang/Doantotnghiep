@@ -12,7 +12,6 @@ const Client = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-
     phone: {
       type: DataTypes.STRING(20),
       allowNull: true,
@@ -24,7 +23,6 @@ const Client = sequelize.define(
         },
       },
     },
-
     password: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -35,7 +33,6 @@ const Client = sequelize.define(
         },
       },
     },
-
     email: {
       type: DataTypes.STRING(255),
       allowNull: true,
@@ -44,52 +41,42 @@ const Client = sequelize.define(
         isEmail: { msg: "Must be a valid email address" },
       },
     },
-
     username: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-
     date_of_birth: {
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
-
     gender: {
       type: DataTypes.STRING(20),
       allowNull: true,
     },
-
     scores: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
-
     type: {
       type: DataTypes.ENUM(...Object.values(CLIENT_TYPE)),
       defaultValue: CLIENT_TYPE.NORMAL,
     },
-
     status: {
       type: DataTypes.ENUM(...Object.values(CLIENT_STATUS)),
       defaultValue: CLIENT_STATUS.ACTIVE,
     },
-
     city: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-
     village: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-
     detail_address: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-
     image: {
       type: DataTypes.STRING(255),
       defaultValue: "default-client.jpg",
@@ -101,32 +88,26 @@ const Client = sequelize.define(
         return `${process.env.BASE_URL}/clients/${rawValue}`;
       },
     },
-
     bank_name: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-
     bank_account_number: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-
     bank_account_holder_name: {
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-
     wallet: {
       type: DataTypes.FLOAT,
       defaultValue: 0,
     },
-
     is_verified_email: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-
     passwordChangedAt: {
       type: DataTypes.DATE,
       allowNull: true,
