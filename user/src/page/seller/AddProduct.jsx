@@ -74,16 +74,18 @@ const AddProduct = () => {
   };
 
   const createVariants = () => {
-    if (categoryAttributesValues.length === 0) return [];
-    const arrays = categoryAttributesValues.map(attr => attr.values.filter(v => v.trim() !== ""));
-    if (arrays.some(arr => arr.length === 0)) return [];
+    const validAttrs = categoryAttributesValues.filter(attr =>
+      attr.values.some(v => v.trim() !== "")
+    );
+    if (validAttrs.length === 0) return [];
 
+    const arrays = validAttrs.map(attr => attr.values.filter(v => v.trim() !== ""));
     const cartesian = (arr) =>
       arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]]);
 
     return cartesian(arrays).map(combo => {
       const variant = {};
-      categoryAttributesValues.forEach((attr, idx) => variant[attr.name] = combo[idx]);
+      validAttrs.forEach((attr, idx) => variant[attr.name] = combo[idx]);
       return { ...variant, price: "", stock: "" };
     });
   };
