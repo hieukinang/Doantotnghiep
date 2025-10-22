@@ -32,7 +32,7 @@ const Login = () => {
 
       const data = res.data;
       setSuccess("Đăng nhập thành công!");
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("tokenClient", data.token);
 
       const username =
         data.data?.user?.username || data.data?.user?.email || "Client";
