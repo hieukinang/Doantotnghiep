@@ -31,21 +31,17 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       const url = `${import.meta.env.VITE_BACKEND_URL}/clients/logout`;
-      const token = localStorage.getItem("token");
       await axios.post(
         url,
         {},
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          withCredentials: true,
-        }
       );
     } catch (error) {
       console.error("Lỗi khi đăng xuất:", error);
     } finally {
-      localStorage.removeItem("token");
+      localStorage.removeItem("tokenClient");
+      console.log("Đã xóa tokenClient:", localStorage.getItem("tokenClient"));
       localStorage.removeItem("clientUsername");
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   };
 

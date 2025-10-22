@@ -103,12 +103,13 @@ const ProductDetail = () => {
 
   const handleAddToCart = async () => {
     const token = localStorage.getItem("tokenClient");
-
-    if (!token) {
+    console.log("Token khi thêm giỏ hàng:", token);
+    if (!token || token === "null" || token === "undefined" || token.trim() === "") {
       alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
-      navigate("/login"); // điều hướng về trang đăng nhập
+      navigate("/login");
       return;
     }
+
 
     if (!selectedVariantId) {
       alert("Vui lòng chọn đầy đủ thuộc tính!");
