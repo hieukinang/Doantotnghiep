@@ -1,13 +1,13 @@
 import validatorMiddleware from "../middleware/validator.middleware.js";
 import {check} from "express-validator";
-import Product from "../model/productModel.js";
 import {isExistInDB} from "./custom.validators.js";
+import ProductVariant from "../model/productVariantModel.js";
 
 export const addToCartValidator = [
   check("product_variantId")
     .notEmpty()
     .withMessage("Please enter product id")
-    .custom((val) => isExistInDB(val, Product)),
+    .custom((val) => isExistInDB(val, ProductVariant)),
   validatorMiddleware,
 ];
 
@@ -27,6 +27,6 @@ export const applyCouponValidator = [
   check("product_variantId")
     .notEmpty()
     .withMessage("Please enter product id")
-    .custom((val) => isExistInDB(val, Product)),
+    .custom((val) => isExistInDB(val, ProductVariant)),
   validatorMiddleware,
 ];
