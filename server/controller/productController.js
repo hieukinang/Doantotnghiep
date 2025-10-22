@@ -13,6 +13,7 @@ import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
 import Category from "../model/categoryModel.js";
 import VariantOption from "../model/variantOptionModel.js";
+import Attribute from "../model/attributeModel.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer)
@@ -157,9 +158,12 @@ export const getSingleProduct = getOne(Product, {
       model: ProductVariant, 
       as: "ProductVariants",
       include: [
-        {
-          model: VariantOption,
-          as: "ProductVariantOptions"
+        { 
+          model: VariantOption, 
+          as: "ProductVariantOptions",
+          include: [
+            { model: Attribute, as: "VariantOptionAttribute", attributes: ["name"] }
+          ]
         }
       ]
     }
