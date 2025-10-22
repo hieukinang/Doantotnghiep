@@ -16,6 +16,76 @@ const ShopContextProvider = ({ children }) => {
 
   const [sellerToken, setSellerToken] = useState(localStorage.getItem("sellerToken"));
   const [clientToken, setClientToken] = useState(localStorage.getItem("clientToken"));
+  const [clientUsername, setClientUsername] = useState(localStorage.getItem("clientUsername"));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("clientToken"));
+
+  const authLogin = async (emailOrPhone, password) => {
+    try {
+      const url = `${backendURL}/clients/login`;
+      const res = await axios.post(
+        url,
+        { emailOrPhone, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (res.data?.token) {
+        const token = res.data.token;
+        const username =
+          res.data?.data?.user?.username ||
+          res.data?.data?.user?.email ||
+          "Client";
+
+        // Lưu vào localStorage
+        localStorage.setItem("tokenClient", token);
+        localStorage.setItem("clientUsername", username);
+
+        // Cập nhật state context
+        setClientToken(token);
+        setClientUsername(username);
+        setIsLoggedIn(true);
+
+        toast.success("Đăng nhập thành công!");
+        return { success: true, username };
+      } else {
+        toast.error(res.data?.message || "Đăng nhập thất bại!");
+        return { success: false };
+      }
+    } catch (err) {
+      console.error("❌ Lỗi khi đăng nhập:", err);
+      toast.error(
+        err.response?.data?.message || "Đăng nhập thất bại, vui lòng thử lại!"
+      );
+      return { success: false };
+    }
+  };
+
+  const handleClientLogout = async () => {
+    try {
+      const token = localStorage.getItem("tokenClient");
+      await axios.post(
+        `${backendURL}/clients/logout`,
+        {},
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          withCredentials: true,
+        }
+      );
+    } catch (error) {
+      console.warn("⚠️ Lỗi khi logout:", error);
+    } finally {
+      // 🧹 Xóa dữ liệu cục bộ
+      localStorage.removeItem("tokenClient");
+      localStorage.removeItem("clientUsername");
+
+      // 🧠 Cập nhật context
+      setClientToken(null);
+      setClientUsername(null);
+      setIsLoggedIn(false);
+
+      toast.info("Đã đăng xuất");
+    }
+  };
+
 
 
   const getAllSuperCategories = async () => {
@@ -132,11 +202,16 @@ const ShopContextProvider = ({ children }) => {
 
   const value = {
     backendURL,
+    clientToken,
+    clientUsername,
+    isLoggedIn,
     supercategories,
     categories,
     allProducts,
     allProductsbyStore,
     product,
+    authLogin,
+    handleClientLogout,
     getAllSuperCategories,
     getAllCategories,
     createProduct,

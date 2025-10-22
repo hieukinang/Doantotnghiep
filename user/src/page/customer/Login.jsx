@@ -1,17 +1,16 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShopContext } from "../../context/ShopContext";
 import logo from "../../assets/home/logo.svg";
 import signinImage from "../../assets/home/signin-up.png";
 import Footer from "../../component-home-page/Footer";
 
 const Login = () => {
-  const [form, setForm] = useState({
-    emailOrPhone: "",
-    password: "",
-  });
+  const { authLogin } = useContext(ShopContext);
+  const [form, setForm] = useState({ emailOrPhone: "", password: "" });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,34 +19,16 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
-    try {
-      const url = `${import.meta.env.VITE_BACKEND_URL}/clients/login`;
+    setLoading(true);
 
-      const res = await axios.post(url, form, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    const { emailOrPhone, password } = form;
+    const result = await authLogin(emailOrPhone, password);
 
-      const data = res.data;
-      setSuccess("Đăng nhập thành công!");
-      localStorage.setItem("tokenClient", data.token);
-
-      const username =
-        data.data?.user?.username || data.data?.user?.email || "Client";
-      localStorage.setItem("clientUsername", username);
-
-      window.location.replace("/");
-
-    } catch (err) {
-      if (err.response) {
-        // Lỗi từ server
-        setError(err.response.data?.message || "Đăng nhập thất bại");
-      } else {
-        // Lỗi kết nối
-        setError("Lỗi kết nối máy chủ");
-      }
+    setLoading(false);
+    if (result.success) {
+      navigate("/"); // ✅ trở về trang chủ
+    } else {
+      setError("Sai thông tin đăng nhập, vui lòng thử lại!");
     }
   };
 
@@ -85,7 +66,9 @@ const Login = () => {
             <h2 className="text-2xl font-bold text-blue-600 mb-2">
               Đăng nhập vào KOHI MALL
             </h2>
-            <p className="text-gray-500 mb-6">Điền thông tin chi tiết bên dưới</p>
+            <p className="text-gray-500 mb-6">
+              Điền thông tin chi tiết bên dưới
+            </p>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               <input
@@ -106,15 +89,16 @@ const Login = () => {
                 className="w-full border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+
               {error && <div className="text-red-500 text-sm">{error}</div>}
-              {success && <div className="text-green-600 text-sm">{success}</div>}
 
               <div className="flex items-center justify-between">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-semibold"
+                  disabled={loading}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-semibold disabled:opacity-60"
                 >
-                  Đăng nhập
+                  {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </button>
                 <Link
                   to="/forgot-password"
@@ -148,6 +132,7 @@ const Login = () => {
           </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );

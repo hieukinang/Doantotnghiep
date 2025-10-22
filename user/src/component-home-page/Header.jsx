@@ -1,62 +1,35 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { ShopContext } from "../context/ShopContext";
 import logo from "../assets/home/logo.svg";
 import cartIcon from "../assets/home/cart.svg";
 import languageIcon from "../assets/language.svg";
 import searchIcon from "../assets/home/search.svg";
 
 const Header = () => {
+  const {
+    backendURL,
+    clientToken,
+    clientUsername,
+    handleClientLogout,
+  } = useContext(ShopContext);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
-
-  useEffect(() => {
-    // Kiểm tra token đăng nhập client
-    const token = localStorage.getItem("token");
-    const userInfo = localStorage.getItem("clientUsername");
-    setIsLoggedIn(!!token);
-    if (userInfo) {
-      try {
-        const user = JSON.parse(userInfo);
-        setUsername(user.username || "Người dùng");
-      } catch {
-        setUsername("Người dùng");
-      }
-    }
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      const url = `${import.meta.env.VITE_BACKEND_URL}/clients/logout`;
-      await axios.post(
-        url,
-        {},
-      );
-    } catch (error) {
-      console.error("Lỗi khi đăng xuất:", error);
-    } finally {
-      localStorage.removeItem("tokenClient");
-      console.log("Đã xóa tokenClient:", localStorage.getItem("tokenClient"));
-      localStorage.removeItem("clientUsername");
-      window.location.href = "/";
-    }
-  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
+
     try {
       setLoading(true);
-      const res = await fetch(
-        `http://localhost:8080/api/products?search=${searchQuery}`
-      );
-      const data = await res.json();
+      const res = await axios.get(`${backendURL}/products?search=${searchQuery}`);
+      const data = res.data?.data?.docs || res.data?.data || [];
       setProducts(data);
     } catch (err) {
-      console.error("Lỗi khi tìm sản phẩm:", err);
+      console.error("❌ Lỗi khi tìm sản phẩm:", err);
     } finally {
       setLoading(false);
     }
@@ -64,7 +37,7 @@ const Header = () => {
 
   return (
     <header className="w-full fixed top-0 left-0 z-50 bg-[#116AD1]">
-      {/* Top Header Bar */}
+      {/* Thanh đầu (seller + ngôn ngữ + login/logout) */}
       <div className="py-2">
         <div className="max-w-7xl mx-auto px-5 flex justify-between items-center">
           <div className="flex gap-5">
@@ -93,7 +66,9 @@ const Header = () => {
                 </option>
               </select>
             </div>
-            {!isLoggedIn ? (
+
+            {/* Kiểm tra trạng thái đăng nhập từ context */}
+            {!clientToken ? (
               <>
                 <Link
                   to="/register"
@@ -111,7 +86,7 @@ const Header = () => {
             ) : (
               <>
                 <button
-                  onClick={handleLogout}
+                  onClick={handleClientLogout}
                   className="text-white text-sm hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
                 >
                   Đăng xuất
@@ -140,7 +115,7 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Search Box */}
+          {/* Thanh tìm kiếm */}
           <div className="flex-1 bg-white max-w-4xl h-auto border border-gray-300 rounded-lg p-1 items-center relative">
             <form onSubmit={handleSearch} className="flex w-full">
               <input
