@@ -5,14 +5,7 @@ import Product from "../model/productModel.js";
 import ProductVariant from "../model/productVariantModel.js";
 import Coupon from "../model/couponModel.js";
 import Store from "../model/storeModel.js";
-import Client from "../model/clientModel.js";
 import { sequelize } from "../config/db.js";
-import {
-  getAll,
-  getOne,
-  updateOne,
-  deleteOne,
-} from "../utils/refactorControllers.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import {PAYMENT_METHODS} from "../constants/index.js";
@@ -64,10 +57,21 @@ With findByIdAndUpdate you could use { $inc: { friendsTotal: 1 } }. So, even if 
 
 // @ desc middleware to filter orders for the logged user
 // @access  Protected
-// export const filterUserOrders = asyncHandler(async (req, res, next) => {
-//   if (req.user.role === USER_ROLES.USER) req.filterObj = {user: req.user._id};
-//   next();
-// });
+export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
+  const clientId = req.user && req.user.id;
+  const orders = await Order.findAll({
+    where: { clientId },
+    include: [
+      { model: OrderItem, as: "OrderItems", include: [
+        { model: ProductVariant, as: "OrderItemProductVariant", include: [
+          { model: Product, as: "ProductVariantProduct" }
+        ] }
+      ] }
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+  res.status(200).json({ status: "success", results: orders.length, data: { orders } });
+});
 // @desc    GET All Orders
 // @route   GET /api/orders
 // @access  Private("ADMIN")
@@ -76,10 +80,21 @@ With findByIdAndUpdate you could use { $inc: { friendsTotal: 1 } }. So, even if 
 // @desc    GET Single Order
 // @route   GET /api/orders/:id
 // @access  Private("ADMIN")
-// export const getSingleOrder = getOne(Order, {
-//   path: "cartItems.product",
-//   select: "name image",
-// });
+// Lấy 1 đơn hàng theo id (của client hoặc admin)
+export const getSingleOrder = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const order = await Order.findByPk(id, {
+    include: [
+      { model: OrderItem, as: "OrderItems", include: [
+        { model: ProductVariant, as: "OrderItemProductVariant", include: [
+          { model: Product, as: "ProductVariantProduct" }
+        ] }
+      ] }
+    ]
+  });
+  if (!order) return next(new APIError("Order not found", 404));
+  res.status(200).json({ status: "success", data: { order } });
+});
 
 // @desc    UPDATE Single Order
 // @route   PATCH /api/orders/:id
@@ -219,6 +234,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
           quantity: it.quantity,
           price: unitPrice,
           orderId: order.id,
+          image: it.product.image || null,
           product_variantId: it.variant.id,
         });
 
@@ -264,48 +280,6 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
 
   res.status(201).json({ status: "success", data: createdOrders });
 });
-//   // 2) Check if user use coupon discount
-//   const cartPrice = cart.totalPriceAfterCouponDiscount
-//     ? cart.totalPriceAfterCouponDiscount
-//     : cart.totalPrice;
-
-//   // 3) Get the total order price
-//   const taxPrice = cartPrice * 1 > 500 ? cartPrice * 0.05 : cartPrice;
-//   const shippingPrice = cartPrice * 1 > 500 ? 50 : 0;
-//   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
-//   // console.log(
-//   //   `cartPrice: ${cartPrice}, taxPrice: ${taxPrice}, shippingPrice: ${shippingPrice}, totalOrderPrice: ${totalOrderPrice}`
-//   // );
-
-//   // 4) Create a new order with cart, user, totalPrice
-//   const order = await Order.create({
-//     user: req.user._id,
-//     cartItems: cart.cartItems,
-//     totalOrderPrice,
-//     shippingAddress,
-//   });
-
-//   // 5) After Creating a new order update the product.quantity(decrease by cartItem.quantity) , product.sold(increase by cartItem.quantity)
-//   // bulkWrite[https://www.mongodb.com/docs/manual/reference/method/db.collection.bulkWrite/][https://mongoosejs.com/docs/api/model.html#model_Model-bulkWrite]
-//   if (order) {
-//     const bulkOption = cart.cartItems.map((item) => ({
-//       updateOne: {
-//         filter: {_id: item.product},
-//         update: {$inc: {quantityInStock: -item.quantity, sold: +item.quantity}},
-//       },
-//     }));
-//     await Product.bulkWrite(bulkOption);
-
-//     // 6) Clear Cart
-//     cart.cartItems = [];
-//     calcCartTotalPrice(cart);
-//     await cart.save();
-//   }
-
-//   res.status(201).json({
-//     status: "success",
-//     data: order,
-//   });
 
 // (STRIPE_CHECKOUT_SESSION_OBJECT)[https://stripe.com/docs/api/checkout/sessions/create]
 // @desc    CREATE Checkout Session
@@ -400,6 +374,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
 //     await cart.save();
 //   }
 // };
+
 // (STRIPE_CHECKOUT_WEBHOOK)[https://dashboard.stripe.com/test/webhooks/create?endpoint_location=local]
 // @desc    CREATE Checkout Webhook To Create Order After checkout.session.completed event
 // @route   POST /webhook

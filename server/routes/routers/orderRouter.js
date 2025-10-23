@@ -3,6 +3,8 @@ import {allowedTo, isAuth} from "../../middleware/auth.middleware.js";
 import {CLIENT_STATUS} from "../../constants/index.js";
 import {
   createCashOrder,
+  getAllOrdersByClient,
+  getSingleOrder,
 //   updateOrderToPaid,
 //   updateOrderToDelivered,
 //   getAllOrders,
@@ -13,10 +15,7 @@ import {
 //   createCheckoutSession,
 } from "../../controller/orderController.js";
 import {
-//   getOrderValidator,
-//   deleteOrderValidator,
-//   updateOrderStatusValidator,
-//   createCashOrderValidator,
+  OrderIdValidator,
 } from "../../validators/order.validator.js";
 import Client from "../../model/clientModel.js";
 import { checkClientStatus } from "../../validators/status.validator.js";
@@ -30,9 +29,9 @@ router.route("/checkout-cash").post(
     // createCashOrderValidator, 
     createCashOrder);
 
-// router.route("/").get(filterUserOrders, getAllOrders);
+router.route("/client").get(isAuth(Client), checkClientStatus, getAllOrdersByClient);
 
-// router.route("/:id").get(getOrderValidator, getSingleOrder);
+router.route("/client/:id").get(isAuth(Client), checkClientStatus, OrderIdValidator, getSingleOrder);
 
 // router.use(allowedTo(USER_ROLES.ADMIN));
 // router

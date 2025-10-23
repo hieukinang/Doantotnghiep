@@ -11,6 +11,10 @@ const OrderItem = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     quantity: {
       type: DataTypes.INTEGER,
       allowNull: true,
