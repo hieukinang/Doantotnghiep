@@ -87,7 +87,7 @@ export const getSingleOrder = asyncHandler(async (req, res, next) => {
     include: [
       { model: OrderItem, as: "OrderItems", include: [
         { model: ProductVariant, as: "OrderItemProductVariant", include: [
-          { model: Product, as: "ProductVariantProduct" }
+          { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] }
         ] }
       ] }
     ]
