@@ -234,7 +234,8 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
           quantity: it.quantity,
           price: unitPrice,
           orderId: order.id,
-          image: it.product.image || null,
+          title: it.product ? it.product.name : null,
+          image: it.product.main_image || null,
           product_variantId: it.variant.id,
         });
 
