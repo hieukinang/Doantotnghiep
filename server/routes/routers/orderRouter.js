@@ -1,6 +1,5 @@
 import express from "express";
-import {allowedTo, isAuth} from "../../middleware/auth.middleware.js";
-import {CLIENT_STATUS} from "../../constants/index.js";
+import {isAuth} from "../../middleware/auth.middleware.js";
 import {
   createCashOrder,
   getAllOrdersByClient,
