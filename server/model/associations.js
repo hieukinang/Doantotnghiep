@@ -25,6 +25,7 @@ import Shipper from "./shipperModel.js";
 import Store from "./storeModel.js";
 import Notification from "./notificationModel.js";
 import SuperCategory from "./superCategoryModel.js";
+import ReviewImage from "./reviewImageModel.js";
 
 // Define associations
 
@@ -95,3 +96,4 @@ VariantOption.belongsTo(ProductVariant, { foreignKey: "product_variantId", as: "
 VariantOption.belongsTo(Attribute, { foreignKey: "attributeId", as: "VariantOptionAttribute" });
 SuperCategory.hasMany(Category, { foreignKey: "superCategoryId", as: "SuperCategoryCategories" });
 Category.belongsTo(SuperCategory, { foreignKey: "superCategoryId", as: "CategorySuperCategory" });
+Review.hasMany(ReviewImage, { foreignKey: "reviewId", as: "ReviewImages", onDelete: "CASCADE" });

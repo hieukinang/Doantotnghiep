@@ -2,29 +2,19 @@ import validatorMiddleware from "../middleware/validator.middleware.js";
 import {check} from "express-validator";
 import {isExistInDB} from "./custom.validators.js";
 import Order from "../model/orderModel.js";
-import Cart from "../model/cartModel.js";
 
-export const getOrderValidator = [
+export const OrderIdValidator = [
   check("id")
-    .isMongoId()
-    .withMessage("Invalid id format")
-    .custom((val) => isExistInDB(val, Order)),
+    .isInt({ min: 1 })
+    .withMessage("Invalid orderId format")
+    .bail()
+    .custom(async (val) => {
+      await isExistInDB(val, Order);
+    })
+    .withMessage("Order not found"),
   validatorMiddleware,
 ];
-export const deleteOrderValidator = [
-  check("id")
-    .isMongoId()
-    .withMessage("Invalid id format")
-    .custom((val) => isExistInDB(val, Order)),
-  validatorMiddleware,
-];
-export const updateOrderStatusValidator = [
-  check("orderId")
-    .isMongoId()
-    .withMessage("Invalid id format")
-    .custom((val) => isExistInDB(val, Order)),
-  validatorMiddleware,
-];
+
 
 // export const createCashOrderValidator = [
 //   check("cartId")

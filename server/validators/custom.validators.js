@@ -11,7 +11,6 @@ export const isUnique = async (val, Model, fieldName) => {
 //__CHECK(By ID)_Field_ExistInDatabase__//
 export const isExistInDB = async (val, Model) => {
   const fieldExist = await Model.findByPk(val);
-  console.log(fieldExist);
   if (!fieldExist) {
     throw new Error(`No item matching this value ${val} in database`);
   }
