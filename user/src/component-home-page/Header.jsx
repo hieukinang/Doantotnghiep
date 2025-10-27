@@ -13,6 +13,7 @@ const Header = () => {
     clientToken,
     clientUsername,
     handleClientLogout,
+    cartCount,
   } = useContext(ShopContext);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -168,15 +169,23 @@ const Header = () => {
             )}
           </div>
 
-          <div className="flex items-center">
-            <Link to="/cart">
+          <div className="flex items-center relative">
+            <Link to="/cart" className="relative inline-block">
               <img
                 src={cartIcon}
                 alt="Shopping Cart"
                 className="h-6 w-auto cursor-pointer hover:opacity-80 transition-opacity"
               />
+              {cartCount > 0 && (
+                <span
+                  className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center shadow"
+                >
+                  {cartCount}
+                </span>
+              )}
             </Link>
           </div>
+
         </div>
       </div>
     </header>
