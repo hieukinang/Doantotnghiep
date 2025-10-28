@@ -18,19 +18,6 @@ export const getMyCart = asyncHandler(async (req, res, next) => {
       {
         model: CartItem,
         as: "CartItems",
-        include: [
-          {
-            model: ProductVariant,
-            as: "CartItemProductVariant",
-            include: [
-              {
-                model: Product,
-                as: "ProductVariantProduct",
-                attributes: ["id", "name", "main_image"]
-              }
-            ]
-          }
-        ]
       },
     ],
   });

@@ -4,6 +4,7 @@ import CartItem from "../model/cartItemModel.js";
 import VariantOption from "../model/variantOptionModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
+import Attribute from "../model/attributeModel.js";
 
 export const createProductVariant = asyncHandler(async (req, res, next) => {
 
@@ -118,13 +119,41 @@ export const getVariantsByProduct = asyncHandler(async (req, res, next) => {
 export const getVariantById = asyncHandler(async (req, res, next) => {
   const { variantId } = req.params;
   const variant = await ProductVariant.findByPk(variantId, {
-    include: [{ model: VariantOption, as: "ProductVariantOptions" }],
+    include: [
+      {
+        model: VariantOption,
+        as: "ProductVariantOptions",
+        include: [
+          { model: Attribute, as: "VariantOptionAttribute", attributes: ["name"] }
+        ]
+      },
+      {
+        model: Product,
+        as: "ProductVariantProduct",
+        attributes: ["storeId"]
+      }
+    ],
   });
   if (!variant) return next(new APIError(`ProductVariant ${variantId} not found`, 404));
 
+  // Map lại chỉ lấy name và value cho từng option
+  const options = variant.ProductVariantOptions.map(opt => ({
+    name: opt.VariantOptionAttribute?.name,
+    value: opt.value
+  }));
+
   res.status(200).json({
     status: "success",
-    data: { variant },
+    data: {
+      variant: {
+        id: variant.id,
+        price: variant.price,
+        stock_quantity: variant.stock_quantity,
+        productId: variant.productId,
+        storeId: variant.ProductVariantProduct?.storeId, // Thêm trường này
+        options
+      }
+    },
   });
 });
 
