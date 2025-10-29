@@ -21,7 +21,7 @@ export const getMyCart = asyncHandler(async (req, res, next) => {
         include: [
           {
             model: ProductVariant,
-            as: "CartItemProductVariant",
+            as: "CartItemProductVariant", attributes: ["productId"],
             include: [
               {
                 model: Product,

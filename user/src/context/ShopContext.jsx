@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import axios, { all } from "axios";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 export const ShopContext = createContext();
@@ -7,23 +7,141 @@ export const ShopContext = createContext();
 const ShopContextProvider = ({ children }) => {
   const backendURL =
     import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
+
   const sellertoken = localStorage.getItem("sellerToken");
+  const [sellerToken, setSellerToken] = useState(sellertoken);
+  const [clientToken, setClientToken] = useState(localStorage.getItem("clientToken"));
+  const [clientUsername, setClientUsername] = useState(localStorage.getItem("clientUsername"));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!clientToken);
+
   const [supercategories, setSupercategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [allProductsbyStore, setAllProductsbyStore] = useState([]);
   const [product, setProduct] = useState([]);
 
-  const [sellerToken, setSellerToken] = useState(localStorage.getItem("sellerToken"));
-  const [clientToken, setClientToken] = useState(localStorage.getItem("clientToken"));
-  const [clientUsername, setClientUsername] = useState(localStorage.getItem("clientUsername"));
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("clientToken"));
+  const [cart, setCart] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
+
+  // ================== 🛒 GIỎ HÀNG ==================
+
+  const fetchMyCart = async () => {
+    if (!clientToken) return;
+
+    try {
+      const res = await axios.get(`${backendURL}/carts`, {
+        headers: { Authorization: `Bearer ${clientToken}` },
+      });
+
+      if (res.data.status !== "success" || !res.data.data?.doc) {
+        toast.error("Không thể tải giỏ hàng!");
+        return;
+      }
+
+      const doc = res.data.data.doc;
+      const rawItems = doc.CartItems || [];
+
+      // 🔹 Gọi song song API lấy chi tiết variant cho từng product_variantId
+      const enrichedItems = await Promise.all(
+        rawItems.map(async (item) => {
+          const variantId = item.product_variantId;
+          try {
+            const variantRes = await axios.get(
+              `${backendURL}/product-variants/variant/${variantId}`
+            );
+            const variant = variantRes.data?.data?.variant;
+
+            return {
+              ...item,
+              CartItemProductVariant: {
+                ...item.CartItemProductVariant,
+                price: variant?.price ?? 0,
+                stock_quantity: variant?.stock_quantity ?? 0,
+                options: variant?.options ?? [],
+                name: variant?.name,
+                value: variant?.value,
+              },
+            };
+          } catch (err) {
+            console.warn(`⚠️ Không thể tải variant ${variantId}:`, err);
+            return item;
+          }
+        })
+      );
+
+      // ✅ Cập nhật toàn bộ state
+      setCart(doc);
+      setCartItems(enrichedItems);
+      setCartTotal(doc.total_amount || 0);
+      setShippingFee(doc.total_shipping_fee || 0);
+      setCartCount(enrichedItems.length);
+
+      console.log("🛒 CART DATA:", enrichedItems);
+    } catch (error) {
+      console.error("❌ Lỗi khi tải giỏ hàng:", error);
+      toast.error("Không thể tải giỏ hàng!");
+    }
+  };
+
+  // ➕ Thêm sản phẩm vào giỏ
+  const addToCart = async (productId, quantity = 1) => {
+    if (!clientToken) {
+      toast.warning("⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!");
+      return;
+    }
+    try {
+      const res = await axios.post(
+        `${backendURL}/cart/add`,
+        { productId, quantity },
+        { headers: { Authorization: `Bearer ${clientToken}` } }
+      );
+
+      if (res.data.status === "success") {
+        toast.success("Đã thêm sản phẩm vào giỏ hàng!");
+        await fetchMyCart();
+      } else {
+        toast.error(res.data.message || "Không thể thêm sản phẩm!");
+      }
+    } catch (error) {
+      console.error("❌ Lỗi khi thêm vào giỏ:", error);
+      toast.error("Không thể thêm sản phẩm!");
+    }
+  };
+
+  // ❌ Xóa sản phẩm khỏi giỏ
+  const removeFromCart = async (productId) => {
+    if (!clientToken) return;
+    try {
+      const res = await axios.delete(`${backendURL}/cart/remove/${productId}`, {
+        headers: { Authorization: `Bearer ${clientToken}` },
+      });
+
+      if (res.data.status === "success") {
+        toast.success("Đã xoá sản phẩm khỏi giỏ hàng!");
+        await fetchMyCart();
+      } else {
+        toast.error(res.data.message || "Không thể xoá sản phẩm!");
+      }
+    } catch (error) {
+      console.error("❌ Lỗi khi xoá sản phẩm:", error);
+      toast.error("Không thể xoá sản phẩm khỏi giỏ hàng!");
+    }
+  };
+
+  // 🔁 Tự động tải giỏ hàng khi đăng nhập
+  useEffect(() => {
+    if (clientToken) fetchMyCart();
+  }, [clientToken]);
+
+  // ================== 👤 LOGIN / LOGOUT ==================
 
   const authLogin = async (emailOrPhone, password) => {
     try {
-      const url = `${backendURL}/clients/login`;
       const res = await axios.post(
-        url,
+        `${backendURL}/clients/login`,
         { emailOrPhone, password },
         { headers: { "Content-Type": "application/json" } }
       );
@@ -35,15 +153,13 @@ const ShopContextProvider = ({ children }) => {
           res.data?.data?.user?.email ||
           "Client";
 
-        // Lưu vào localStorage
-        localStorage.setItem("tokenClient", token);
+        localStorage.setItem("clientToken", token);
         localStorage.setItem("clientUsername", username);
 
-        // Cập nhật state context
         setClientToken(token);
         setClientUsername(username);
         setIsLoggedIn(true);
-
+        await fetchMyCart();
         toast.success("Đăng nhập thành công!");
         return { success: true, username };
       } else {
@@ -52,41 +168,34 @@ const ShopContextProvider = ({ children }) => {
       }
     } catch (err) {
       console.error("❌ Lỗi khi đăng nhập:", err);
-      toast.error(
-        err.response?.data?.message || "Đăng nhập thất bại, vui lòng thử lại!"
-      );
+      toast.error(err.response?.data?.message || "Đăng nhập thất bại!");
       return { success: false };
     }
   };
 
   const handleClientLogout = async () => {
     try {
-      const token = localStorage.getItem("tokenClient");
       await axios.post(
         `${backendURL}/clients/logout`,
         {},
         {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: clientToken ? { Authorization: `Bearer ${clientToken}` } : {},
           withCredentials: true,
         }
       );
     } catch (error) {
       console.warn("⚠️ Lỗi khi logout:", error);
     } finally {
-      // 🧹 Xóa dữ liệu cục bộ
-      localStorage.removeItem("tokenClient");
+      localStorage.removeItem("clientToken");
       localStorage.removeItem("clientUsername");
-
-      // 🧠 Cập nhật context
       setClientToken(null);
       setClientUsername(null);
       setIsLoggedIn(false);
-
       toast.info("Đã đăng xuất");
     }
   };
 
-
+  // ================== 🧩 DANH MỤC / SẢN PHẨM ==================
 
   const getAllSuperCategories = async () => {
     try {
@@ -106,7 +215,6 @@ const ShopContextProvider = ({ children }) => {
       const res = await axios.get(`${backendURL}/categories`);
       const data = res.data?.data?.docs || res.data?.data || [];
       setCategories(data);
-      console.log("📂 Categories:", data);
       return data;
     } catch (error) {
       console.error("❌ Lỗi khi tải categories:", error);
@@ -121,15 +229,15 @@ const ShopContextProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${sellertoken}` },
       });
       if (res.data.status === "success") {
-        toast.success(" Thêm sản phẩm thành công");
+        toast.success("Thêm sản phẩm thành công!");
         return res.data;
       } else {
-        toast.error(res.data.message || "Thêm sản phẩm thất bại");
+        toast.error(res.data.message || "Thêm sản phẩm thất bại!");
         return null;
       }
     } catch (error) {
       console.error("❌ Lỗi khi tạo sản phẩm:", error);
-      toast.error("Không thể thêm sản phẩm");
+      toast.error("Không thể thêm sản phẩm!");
       return null;
     }
   };
@@ -138,26 +246,21 @@ const ShopContextProvider = ({ children }) => {
     try {
       const res = await axios.get(`${backendURL}/products/${id}`);
       if (res.data.status === "success") {
-        const productData = res.data.data.doc; // ✅ Lấy đúng trường doc
-        setProduct(productData);
-        console.log("📦 Product:", productData);
+        setProduct(res.data.data.doc);
       } else {
         toast.error(res.data.message || "❌ Lấy sản phẩm thất bại!");
-        return null;
       }
     } catch (error) {
       console.error("❌ Lỗi khi tải product:", error);
       toast.error("Không thể tải sản phẩm!");
-      return null;
     }
   };
-
 
   const getAllProducts = async () => {
     try {
       const res = await axios.get(`${backendURL}/products`);
-      setAllProducts(res.data.data.docs);
       if (res.data.status === "success") {
+        setAllProducts(res.data.data.docs);
         return res.data;
       } else {
         toast.error(res.data.message || "❌ Lấy sản phẩm thất bại!");
@@ -180,13 +283,11 @@ const ShopContextProvider = ({ children }) => {
       const res = await axios.get(`${backendURL}/products/store`, {
         headers: { Authorization: `Bearer ${sellertoken}` },
       });
-
       if (res.data.status === "success") {
+        setAllProductsbyStore(res.data.data.docs || []);
         return res.data;
       } else {
-        toast.error(
-          res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!"
-        );
+        toast.error(res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!");
         return null;
       }
     } catch (error) {
@@ -196,6 +297,7 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
+  // 🔁 Tải danh mục cha khi khởi động
   useEffect(() => {
     getAllSuperCategories();
   }, []);
@@ -210,6 +312,14 @@ const ShopContextProvider = ({ children }) => {
     allProducts,
     allProductsbyStore,
     product,
+    cart,
+    cartItems,
+    cartCount,
+    cartTotal,
+    shippingFee,
+    fetchMyCart,
+    removeFromCart,
+    addToCart,
     authLogin,
     handleClientLogout,
     getAllSuperCategories,
