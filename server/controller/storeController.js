@@ -103,6 +103,7 @@ export const register = asyncHandler(async (req, res, next) => {
             ]
         }
     });
+    console.log(1)
     if (isStoreExist) {
         return next(new APIError("Số điện thoại, email hoặc CCCD của cửa hàng đã tồn tại", 400));
     }
@@ -125,6 +126,7 @@ export const register = asyncHandler(async (req, res, next) => {
         description,
         image
     });
+    console.log(2)
     generateSendToken(res, newStore, 201);
 });
 

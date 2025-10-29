@@ -1,13 +1,14 @@
 import express from "express";
 import {isAuth} from "../../middleware/auth.middleware.js";
 import {
-  updateSingleCoupon,
   deleteSingleCoupon,
   getSingleCoupon,
   getAllCouponsForAdmin,
   createCouponforAdmin,
   createCouponforStore,
   getCouponByCode,
+  getAllCouponsForStore,
+  getAllStoreCoupon
 } from "../../controller/couponController.js";
 import {
   IdValidator,
@@ -25,28 +26,24 @@ router
   .route("/find-by-code")
   .get(getCouponByCode);
 
-router.route("/admin", isAuth(Admin), checkAdminStatus)
-  .get(getAllCouponsForAdmin)
-  .post(createCouponforAdminValidator, createCouponforAdmin);
+router.route("/admin")
+  .get(isAuth(Admin), checkAdminStatus, getAllCouponsForAdmin)
+  .post(isAuth(Admin), checkAdminStatus, createCouponforAdminValidator, createCouponforAdmin);
 
-router.route("/admin/:id", isAuth(Admin), checkAdminStatus)
-  .patch(IdValidator, updateSingleCoupon)
-  .delete(IdValidator, deleteSingleCoupon);
+router.route("/admin/:id")
+  .delete(isAuth(Admin), checkAdminStatus, IdValidator, deleteSingleCoupon);
 
-router.route("/store").post(
-  isAuth(Store), 
-  checkStoreStatus,
-  createCouponforStoreValidator,
-  createCouponforStore);
+router.route("/store")
+  .get(isAuth(Store), checkStoreStatus, getAllCouponsForStore)
+  .post(isAuth(Store), checkStoreStatus, createCouponforStoreValidator, createCouponforStore);
 
-router.route("/store/:id", isAuth(Store), checkStoreStatus)
-  .get(IdValidator, getSingleCoupon)
-  .patch(IdValidator, updateSingleCoupon)
-  .delete(IdValidator, deleteSingleCoupon);
+router.route("/store/:id")
+  .delete(isAuth(Store), checkStoreStatus, IdValidator, deleteSingleCoupon);
 
-// Đặt sau cùng!
+router.get("/from-store/:storeId", getAllStoreCoupon);
+router.get("/from-system", getAllCouponsForAdmin);
+
 router
   .route("/:id")
   .get(IdValidator, getSingleCoupon);
-
 export default router;

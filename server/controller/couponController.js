@@ -1,4 +1,6 @@
 import Coupon from "../model/couponModel.js";
+import asyncHandler from "../utils/asyncHandler.utils.js";
+import APIError from "../utils/apiError.utils.js";
 import {
   getAll,
   getOne,
@@ -7,22 +9,49 @@ import {
   deleteOne,
 } from "../utils/refactorControllers.utils.js";
 
-// @desc    CREATE A Coupon
-// @route   POST /api/coupons
-// @access  Private("ADMIN")
 export const createCouponforAdmin = createOne(Coupon);
-// @desc    CREATE A Coupon
-// @route   POST /api/coupons
-// @access  Private("STORE")
-export const createCouponforStore = createOne(Coupon);
-// @desc    GET All Coupons
-// @route   GET /api/coupons
-// @access  Private("ADMIN")
-export const getAllCouponsForAdmin = getAll(Coupon, {
-  where: { productId: null }
+
+export const createCouponforStore = asyncHandler(async (req, res, next) => {
+  const storeId = req.user && req.user.id;
+  if (!storeId) return next(new APIError("Authentication required", 401));
+
+  // Lấy các trường còn lại từ body
+  const { code, description, discount, quantity, expire } = req.body;
+
+  // Tạo coupon, gán storeId từ user
+  const coupon = await Coupon.create({
+    code,
+    description,
+    discount,
+    quantity,
+    expire,
+    storeId
+  });
+
+  res.status(201).json({ status: "success", data: { coupon } });
 });
 
-export const getCouponByCode = async (req, res, next) => {
+export const getAllCouponsForAdmin = getAll(Coupon, {
+  where: { storeId: null }
+});
+
+export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
+  const storeId = req.user && req.user.id;
+  if (!storeId) return next(new APIError("Authentication required", 401));
+
+  const coupons = await Coupon.findAll({
+    where: { storeId },
+    order: [["createdAt", "DESC"]],
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: coupons.length,
+    data: { coupons },
+  });
+});
+
+export const getCouponByCode = asyncHandler(async (req, res, next) => {
   try {
     const { code } = req.body;
     const coupon = await Coupon.findOne({ where: { code } });
@@ -33,17 +62,26 @@ export const getCouponByCode = async (req, res, next) => {
   } catch (error) {
     next(error);
   } 
-};
+});
 
-// @desc    GET Single Coupon
-// @route   GET /api/coupons/:id
-// @access  Private("ADMIN")
+export const getAllStoreCoupon = asyncHandler(async (req, res, next) => {
+  const { storeId } = req.params;
+  if (!storeId) return next(new APIError("storeId is required", 400));
+
+  const coupons = await Coupon.findAll({
+    where: { storeId },
+    order: [["discount", "DESC"]],
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: coupons.length,
+    data: { coupons },
+  });
+});
+
 export const getSingleCoupon = getOne(Coupon);
-// @desc    UPDATE Single Coupon
-// @route   PATCH /api/coupons/:id
-// @access  Private("ADMIN")
+
 export const updateSingleCoupon = updateOne(Coupon);
-// @desc    DELETE Single Coupon
-// @route   DELETE /api/coupons/:id
-// @access  Private("ADMIN")
+
 export const deleteSingleCoupon = deleteOne(Coupon);

@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import {sequelize} from "../config/db.js";
 import {CLIENT_STATUS} from "../constants/index.js";
 import {CLIENT_TYPE} from "../constants/index.js";
+import Address from "./addressModel.js";
 
 const Client = sequelize.define(
   "Client",
@@ -65,17 +66,13 @@ const Client = sequelize.define(
       type: DataTypes.ENUM(...Object.values(CLIENT_STATUS)),
       defaultValue: CLIENT_STATUS.ACTIVE,
     },
-    city: {
-      type: DataTypes.STRING(100),
+    main_address: {
+      type: DataTypes.INTEGER,
       allowNull: true,
-    },
-    village: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    detail_address: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
+      references: {
+        model: Address,
+        key: "id",
+      },
     },
     image: {
       type: DataTypes.STRING(255),
