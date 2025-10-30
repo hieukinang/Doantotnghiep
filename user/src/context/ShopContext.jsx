@@ -36,15 +36,8 @@ const ShopContextProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${clientToken}` },
       });
 
-      if (res.data.status !== "success" || !res.data.data?.doc) {
-        toast.error("Không thể tải giỏ hàng!");
-        return;
-      }
-
       const doc = res.data.data.doc;
       const rawItems = doc.CartItems || [];
-
-      // 🔹 Gọi song song API lấy chi tiết variant cho từng product_variantId
       const enrichedItems = await Promise.all(
         rawItems.map(async (item) => {
           const variantId = item.product_variantId;
@@ -82,11 +75,8 @@ const ShopContextProvider = ({ children }) => {
       console.log("🛒 CART DATA:", enrichedItems);
     } catch (error) {
       console.error("❌ Lỗi khi tải giỏ hàng:", error);
-      toast.error("Không thể tải giỏ hàng!");
     }
   };
-
-  // ➕ Thêm sản phẩm vào giỏ
   const addToCart = async (productId, quantity = 1) => {
     if (!clientToken) {
       toast.warning("⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!");
@@ -112,10 +102,10 @@ const ShopContextProvider = ({ children }) => {
   };
 
   // ❌ Xóa sản phẩm khỏi giỏ
-  const removeFromCart = async (productId) => {
+  const removeFromCart = async (variantId) => {
     if (!clientToken) return;
     try {
-      const res = await axios.delete(`${backendURL}/cart/remove/${productId}`, {
+      const res = await axios.delete(`${backendURL}/carts/${variantId}`, {
         headers: { Authorization: `Bearer ${clientToken}` },
       });
 
@@ -131,12 +121,9 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  // 🔁 Tự động tải giỏ hàng khi đăng nhập
   useEffect(() => {
     if (clientToken) fetchMyCart();
   }, [clientToken]);
-
-  // ================== 👤 LOGIN / LOGOUT ==================
 
   const authLogin = async (emailOrPhone, password) => {
     try {

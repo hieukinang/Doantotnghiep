@@ -36,6 +36,10 @@ const Cart = () => {
       setQuantities({});
       setCheckedItems([]);
     }
+    const variantIds = cartItems.map(
+      (item) =>  item.product_variantId
+    );
+    console.log("🧩 Danh sách tất cả product_variantId:", variantIds);
   }, [cartItems]);
 
   // 🧮 Xử lý thay đổi số lượng (local)
@@ -70,6 +74,7 @@ const Cart = () => {
 
   // ❌ Xoá sản phẩm khỏi giỏ
   const handleRemove = async (id) => {
+    console.log("🧩 variantId nhận được:", id);
     await removeFromCart(id);
   };
 
@@ -122,9 +127,6 @@ const Cart = () => {
                     product?.main_image ||
                     "https://via.placeholder.com/80x80?text=No+Image";
                   const price = variant?.price || 0;
-                  const stockQty = variant?.stock_quantity || 0;
-                  const color = variant?.color || "Không có";
-                  const size = variant?.size || "Không có";
                   const shipping = variant?.shipping_fee || 30000;
                   const qty = quantities[id] || it.quantity || 1;
 
@@ -206,7 +208,7 @@ const Cart = () => {
 
                       {/* Xóa sản phẩm */}
                       <button
-                        onClick={() => handleRemove(id)}
+                        onClick={() => handleRemove(it.product_variantId)}
                         className="ml-3 px-3 py-2 text-sm rounded text-white bg-[#116AD1] hover:bg-[#FF4500] transition"
                       >
                         Xóa
