@@ -116,10 +116,10 @@ const ShopContextProvider = ({ children }) => {
   };
 
   // ❌ Xóa sản phẩm khỏi giỏ
-  const removeFromCart = async (productId) => {
+  const removeFromCart = async (variantId) => {
     if (!clientToken) return;
     try {
-      const res = await axios.delete(`${backendURL}/carts/${productId}`, {
+      const res = await axios.delete(`${backendURL}/carts/${variantId}`, {
         headers: { Authorization: `Bearer ${clientToken}` },
       });
 
