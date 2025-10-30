@@ -10,8 +10,12 @@ const ShopContextProvider = ({ children }) => {
 
   const sellertoken = localStorage.getItem("sellerToken");
   const [sellerToken, setSellerToken] = useState(sellertoken);
-  const [clientToken, setClientToken] = useState(localStorage.getItem("clientToken"));
-  const [clientUsername, setClientUsername] = useState(localStorage.getItem("clientUsername"));
+  const [clientToken, setClientToken] = useState(
+    localStorage.getItem("clientToken")
+  );
+  const [clientUsername, setClientUsername] = useState(
+    localStorage.getItem("clientUsername")
+  );
   const [isLoggedIn, setIsLoggedIn] = useState(!!clientToken);
 
   const [supercategories, setSupercategories] = useState([]);
@@ -115,7 +119,7 @@ const ShopContextProvider = ({ children }) => {
   const removeFromCart = async (productId) => {
     if (!clientToken) return;
     try {
-      const res = await axios.delete(`${backendURL}/cart/remove/${productId}`, {
+      const res = await axios.delete(`${backendURL}/carts/${productId}`, {
         headers: { Authorization: `Bearer ${clientToken}` },
       });
 
@@ -179,7 +183,9 @@ const ShopContextProvider = ({ children }) => {
         `${backendURL}/clients/logout`,
         {},
         {
-          headers: clientToken ? { Authorization: `Bearer ${clientToken}` } : {},
+          headers: clientToken
+            ? { Authorization: `Bearer ${clientToken}` }
+            : {},
           withCredentials: true,
         }
       );
@@ -287,7 +293,9 @@ const ShopContextProvider = ({ children }) => {
         setAllProductsbyStore(res.data.data.docs || []);
         return res.data;
       } else {
-        toast.error(res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!");
+        toast.error(
+          res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!"
+        );
         return null;
       }
     } catch (error) {

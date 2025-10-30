@@ -20,7 +20,7 @@ const CreateCategory = () => {
 
   const fetchSuper = async () => {
     try {
-      const res = await axios.get('${backendURL}/supercategories');
+      const res = await axios.get(`${backendURL}/supercategories`);
       setSuperCategories(res.data?.data?.docs || res.data?.data || []);
     } catch (err) {
       console.error("Lỗi khi tải super categories:", err);
@@ -103,7 +103,7 @@ const CreateCategory = () => {
         await axios.post(`${backendURL}/categories`, data, {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: 'Bearer ${token}',
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -114,10 +114,10 @@ const CreateCategory = () => {
           return;
         }
 
-        await axios.post('${backendURL}/supercategories', data, {
+        await axios.post(`${backendURL}/supercategories`, data, {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: 'Bearer ${token}',
+            Authorization: `Bearer ${token}`,
           },
         });
 
