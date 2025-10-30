@@ -1,10 +1,9 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
-import Product from "./productModel.js";
-import Store from "./storeModel.js";
+import Admin from "./adminModel.js";
 
-const Coupon = sequelize.define(
-  "Coupon",
+const ShippingCode = sequelize.define(
+  "ShippingCode",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -13,41 +12,43 @@ const Coupon = sequelize.define(
     },
     code: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
+      unique: true,
     },
     description: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
     discount: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER, // phần trăm giảm giá phí vận chuyển
       allowNull: false,
+      validate: {
+        min: 1,
+        max: 100,   
+      }
     },
     quantity: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER, // số lượng mã còn lại
       allowNull: false,
+      defaultValue: 1,
     },
     expire: {
       type: DataTypes.DATE,
       allowNull: true,
     },
-    // type: {
-    //   type: DataTypes.ENUM("PERCENTAGE", "FIXED"),
-    //   allowNull: false,
-    // },
-    storeId: {
+    adminId: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: Store,
+        model: Admin, // dùng tên bảng để tránh lỗi tuần hoàn
         key: "id",
       },
     },
   },
   {
-    tableName: "coupons",
+    tableName: "shipping_codes",
     timestamps: true,
   }
 );
 
-export default Coupon;
+export default ShippingCode;

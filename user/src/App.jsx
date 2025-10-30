@@ -31,7 +31,7 @@ import OrdersSeller from "./page/seller/OrdersSeller";
 import Rating from "./page/seller/Rating";
 import SalesReport from "./page/seller/SalesReport";
 import OrderDetailSeller from "./page/seller/OrderDetailSeller";
-
+import AddCoupon from "./page/seller/AddCoupon";
 import LoginSeller from "./page/seller/LoginSeller";
 import SellerHeader from "./component-seller-page/SellerHeader";
 import SellerSidebar from "./component-seller-page/SellerSidebar";
@@ -122,6 +122,7 @@ function App() {
           <Route path="/seller/orders" element={<OrdersSeller />} />
           <Route path="/seller/list-product" element={<ListProduct />} />
           <Route path="/seller/add-product" element={<AddProduct />} />
+          <Route path="/seller/add-coupon" element={<AddCoupon />} />
           <Route path="/seller/update-product" element={<EditProduct />} />
           <Route path="/seller/edit-profile" element={<EditProfileSeller />} />
           <Route path="/seller/edit-user" element={<EditUser />} />

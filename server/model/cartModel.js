@@ -10,14 +10,6 @@ const Cart = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    total_amount: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
-    tax_discount: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-    },
     total_shipping_fee: {
       type: DataTypes.FLOAT,
       allowNull: true,

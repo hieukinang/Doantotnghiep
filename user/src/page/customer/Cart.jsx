@@ -36,10 +36,6 @@ const Cart = () => {
       setQuantities({});
       setCheckedItems([]);
     }
-    const variantIds = cartItems.map(
-      (item) =>  item.product_variantId
-    );
-    console.log("🧩 Danh sách tất cả product_variantId:", variantIds);
   }, [cartItems]);
 
   // 🧮 Xử lý thay đổi số lượng (local)
@@ -74,7 +70,7 @@ const Cart = () => {
 
   // ❌ Xoá sản phẩm khỏi giỏ
   const handleRemove = async (id) => {
-    console.log("🧩 variantId nhận được:", id);
+    console.log("Xoá sản phẩm với variantId:", id);
     await removeFromCart(id);
   };
 

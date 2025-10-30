@@ -1,17 +1,21 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-
+import { useNavigate } from "react-router-dom";
 export const ShopContext = createContext();
 
 const ShopContextProvider = ({ children }) => {
   const backendURL =
     import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
-
+  const navigate = useNavigate();
   const sellertoken = localStorage.getItem("sellerToken");
   const [sellerToken, setSellerToken] = useState(sellertoken);
-  const [clientToken, setClientToken] = useState(localStorage.getItem("clientToken"));
-  const [clientUsername, setClientUsername] = useState(localStorage.getItem("clientUsername"));
+  const [clientToken, setClientToken] = useState(
+    localStorage.getItem("clientToken")
+  );
+  const [clientUsername, setClientUsername] = useState(
+    localStorage.getItem("clientUsername")
+  );
   const [isLoggedIn, setIsLoggedIn] = useState(!!clientToken);
 
   const [supercategories, setSupercategories] = useState([]);
@@ -78,6 +82,7 @@ const ShopContextProvider = ({ children }) => {
     }
   };
   const addToCart = async (productId, quantity = 1) => {
+    console.log(clientToken)
     if (!clientToken) {
       toast.warning("⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!");
       return;
@@ -134,19 +139,21 @@ const ShopContextProvider = ({ children }) => {
       );
 
       if (res.data?.token) {
-        const token = res.data.token;
+        console.log("✅ Đăng nhập thành công:", res.data);
+        const clientToken = res.data.token;
         const username =
           res.data?.data?.user?.username ||
           res.data?.data?.user?.email ||
           "Client";
 
-        localStorage.setItem("clientToken", token);
+        localStorage.setItem("clientToken", clientToken);
         localStorage.setItem("clientUsername", username);
 
-        setClientToken(token);
+        setClientToken(clientToken);
         setClientUsername(username);
         setIsLoggedIn(true);
         await fetchMyCart();
+        console.log("🧩 token nhận được:", clientToken);
         toast.success("Đăng nhập thành công!");
         return { success: true, username };
       } else {
@@ -166,7 +173,9 @@ const ShopContextProvider = ({ children }) => {
         `${backendURL}/clients/logout`,
         {},
         {
-          headers: clientToken ? { Authorization: `Bearer ${clientToken}` } : {},
+          headers: clientToken
+            ? { Authorization: `Bearer ${clientToken}` }
+            : {},
           withCredentials: true,
         }
       );
@@ -179,6 +188,7 @@ const ShopContextProvider = ({ children }) => {
       setClientUsername(null);
       setIsLoggedIn(false);
       toast.info("Đã đăng xuất");
+      navigate("/login");
     }
   };
 
@@ -274,7 +284,9 @@ const ShopContextProvider = ({ children }) => {
         setAllProductsbyStore(res.data.data.docs || []);
         return res.data;
       } else {
-        toast.error(res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!");
+        toast.error(
+          res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!"
+        );
         return null;
       }
     } catch (error) {

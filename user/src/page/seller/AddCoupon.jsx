@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import SellerLayout from "../../component-seller-page/SellerLayout"; // 🧩 Thêm layout hiển thị sidebar + header
 
 const AddCoupon = () => {
     const backendURL = import.meta.env.VITE_BACKEND_URL;

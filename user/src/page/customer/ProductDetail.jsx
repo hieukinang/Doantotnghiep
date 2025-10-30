@@ -102,7 +102,7 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = async () => {
-    const token = localStorage.getItem("tokenClient");
+    const token = localStorage.getItem("clientToken");
     console.log("Token khi thêm giỏ hàng:", token);
     if (!token || token === "null" || token === "undefined" || token.trim() === "") {
       alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
