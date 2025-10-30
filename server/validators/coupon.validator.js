@@ -55,21 +55,6 @@ export const createCouponforStoreValidator = [
       }
       return true;
     }),
-  check("productId")
-    .notEmpty().withMessage("ProductId is required")
-    .isInt({ min: 1 }).withMessage("ProductId must be a positive integer")
-    .custom(async (val, { req }) => {
-      // Kiểm tra productId có tồn tại không
-      const product = await Product.findByPk(val);
-      if (!product) {
-        throw new Error("Product not found");
-      }
-      // Kiểm tra productId có thuộc về store hiện tại không
-      if (product.storeId !== req.user.id) {
-        throw new Error("You can only create coupon for your own product");
-      }
-      return true;
-    }),
   validatorMiddleware,
 ];
 export const updateCouponValidator = [

@@ -15,6 +15,7 @@ import superCategoryRouter from "./superCategoryRouter.js";
 import notificationRouter from "./notificationRouter.js";
 import followRouter from "./followRouter.js";
 import reviewRouter from "./reviewRouter.js";
+import shippingCodeRouter from "./shippingCodeRouter.js";
 
 const router = express.Router();
 
@@ -33,5 +34,6 @@ router.use("/supercategories", superCategoryRouter);
 router.use("/notifications", notificationRouter);
 router.use("/follows", followRouter); // follow endpoints attached to stores
 router.use("/reviews", reviewRouter);
+router.use("/shipping-codes", shippingCodeRouter);
 
 export default router;
