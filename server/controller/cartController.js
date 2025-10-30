@@ -2,17 +2,18 @@ import Cart from "../model/cartModel.js";
 import CartItem from "../model/cartItemModel.js";
 import Product from "../model/productModel.js";
 import ProductVariant from "../model/productVariantModel.js";
+import VariantOption from "../model/variantOptionModel.js";
+import Attribute from "../model/attributeModel.js";
 import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import Coupon from "../model/couponModel.js";
-
 import { Op } from "sequelize";
 
 // @desc    Get Logged User Cart (Sequelize version)
 // @route   GET /api/cart
 // @access  Protected
 export const getMyCart = asyncHandler(async (req, res, next) => {
-  const cart = await Cart.findOne({
+  let cart = await Cart.findOne({
     where: { clientId: req.user.id },
     include: [
       {
@@ -21,14 +22,23 @@ export const getMyCart = asyncHandler(async (req, res, next) => {
         include: [
           {
             model: ProductVariant,
-            as: "CartItemProductVariant", attributes: ["productId"],
+            as: "CartItemProductVariant",
+            attributes: ["productId"],
             include: [
               {
                 model: Product,
                 as: "ProductVariantProduct",
-                attributes: ["id", "name", "main_image"]
-              }
-            ]
+                attributes: ["id", "name", "main_image"],
+              },
+              {
+                model: VariantOption,
+                as: "ProductVariantOptions",
+                attributes: ["value"],
+                include: [
+                  { model: Attribute, as: "VariantOptionAttribute", attributes: ["name"] },
+                ],
+              },
+            ],
           }
         ]
       },
@@ -36,12 +46,23 @@ export const getMyCart = asyncHandler(async (req, res, next) => {
   });
 
   if (!cart) {
-    return next(new APIError("There is no cart match this user", 404));
+    return res.status(200).json({ status: "success", results: 0, data: { doc: null, total_shipping_fee: 0 } });
   }
+
+  // compute totals on-the-fly (Cart model no longer stores total_amount)
+  const storeIdSet = new Set();
+  const items = cart.CartItems || [];
+  for (const item of items) {
+    // we don't compute total_amount server-side anymore; frontend will calculate totals
+    const prod = item.CartItemProductVariant?.ProductVariantProduct;
+    storeIdSet.add(prod ? prod.storeId : null);
+  }
+  const SHIPPING_FEE_PER_STORE = 30000;
+  const totalShippingFee = storeIdSet.size * SHIPPING_FEE_PER_STORE;
 
   res.status(200).json({
     status: "success",
-    results: cart.cartItems ? cart.cartItems.length : 0,
+    results: items.length,
     data: {
       doc: cart,
     },
@@ -99,19 +120,17 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     ],
   });
 
-  let totalAmount = 0;
-  // compute total amount and collect storeIds for shipping
+  // tính số lượng cửa hàng khác nhau trong giỏ hàng
+  // tính phí vận chuyển tổng cho cart
   const storeIdSet = new Set();
   for (const item of allCartItems) {
     const variant = item.CartItemProductVariant || (await ProductVariant.findByPk(item.product_variantId));
-    totalAmount += (variant.price || 0) * item.quantity;
     // try to get storeId via included product
     const product = item.CartItemProductVariant?.ProductVariantProduct;
     const storeId = product ? product.storeId : null;
     // normalize undefined to null
     storeIdSet.add(storeId ?? null);
   }
-  cart.total_amount = totalAmount;
   // Shipping fee: 30000 per unique store
   const SHIPPING_FEE_PER_STORE = 30000;
   cart.total_shipping_fee = storeIdSet.size * SHIPPING_FEE_PER_STORE;
@@ -137,9 +156,6 @@ export const addToCart = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    data: {
-      doc: updatedCart,
-    },
   });
 });
 
@@ -200,13 +216,10 @@ export const updateCartItemQuantity = asyncHandler(async (req, res, next) => {
   // compute total amount and shipping groups
   const storeIdSet = new Set();
   for (const item of allCartItems) {
-    const variant = item.CartItemProductVariant || (await ProductVariant.findByPk(item.product_variantId));
-    totalAmount += (variant.price || 0) * item.quantity;
     const product = item.CartItemProductVariant?.ProductVariantProduct;
     const storeId = product ? product.storeId : null;
     storeIdSet.add(storeId ?? null);
   }
-  cart.total_amount = totalAmount;
   const SHIPPING_FEE_PER_STORE = 30000;
   cart.total_shipping_fee = storeIdSet.size * SHIPPING_FEE_PER_STORE;
   await cart.save();
@@ -229,6 +242,7 @@ export const updateCartItemQuantity = asyncHandler(async (req, res, next) => {
     status: "success",
     data: {
       doc: updatedCart,
+      total_shipping_fee: cart.total_shipping_fee,
     },
   });
 });
@@ -247,7 +261,6 @@ export const clearCart = asyncHandler(async (req, res, next) => {
   await CartItem.destroy({ where: { cartId: cart.id } });
 
   // 3. Cập nhật lại tổng tiền trong Cart
-  cart.total_amount = 0;
   cart.total_shipping_fee = 0;
   await cart.save();
 
@@ -270,72 +283,32 @@ export const applyCoupon = asyncHandler(async (req, res, next) => {
   if (!coupon) {
     return next(new APIError("Invalid or expired coupon", 404));
   }
+  // 2. Lấy product variant (từ DB) để biết product -> storeId
+  const variant = await ProductVariant.findByPk(product_variantId);
+  if (!variant) return next(new APIError("Product variant not found", 404));
 
-  // 2. Lấy Cart của user
-  const cart = await Cart.findOne({
-    where: { clientId: req.user.id },
-    include: [
-      {
-        model: CartItem,
-        as: "CartItems",
-        include: [
-          { model: ProductVariant, as: "CartItemProductVariant" }
-        ]
-      }
-    ]
-  });
-  if (!cart) {
-    return next(new APIError("There is no cart match this user", 404));
+  const product = await Product.findByPk(variant.productId);
+  if (!product) return next(new APIError("Product not found", 404));
+
+  // 3. Kiểm tra coupon có áp dụng cho store của sản phẩm hay là coupon hệ thống (storeId == null)
+  if (coupon.storeId !== null && coupon.storeId !== product.storeId) {
+    return next(new APIError("Coupon does not apply to this product/store", 400));
   }
 
-  // 3. Tìm CartItem cần áp dụng coupon
-  const cartItem = cart.CartItems.find(
-    (item) => item.product_variantId === Number(product_variantId)
-  );
-  if (!cartItem) {
-    return next(new APIError("Product variant is not in your cart", 404));
-  }
-
-  // 4. Kiểm tra coupon có áp dụng cho sản phẩm này không
-  // Coupon toàn shop (productId null) hoặc đúng product
-  const variant = cartItem.CartItemProductVariant;
-  if (!variant) {
-    return next(new APIError("Product variant not found", 404));
-  }
-  if (coupon.productId && coupon.productId !== variant.productId) {
-    return next(new APIError("Coupon does not apply to this product", 400));
-  }
-
-  // 5. Áp dụng giảm giá cho CartItem này
+  // 4. Nếu áp dụng được, trả về success và thông tin giảm giá cho frontend xử lý
   const price = variant.price || 0;
-  const discountPrice = +(price - (price * coupon.discount) / 100).toFixed(2);
-
-  // 6. Tính lại tổng tiền giỏ hàng sau khi áp dụng coupon
-  let totalAmountAfterDiscount = 0;
-  for (const item of cart.CartItems) {
-    if (item.product_variantId === Number(product_variantId)) {
-      totalAmountAfterDiscount += discountPrice * item.quantity;
-    } else {
-      const v = item.CartItemProductVariant;
-      totalAmountAfterDiscount += (v?.price || 0) * item.quantity;
-    }
-  }
-
-  cart.total_amount = totalAmountAfterDiscount;
-  await cart.save();
+  const discountPrice = +(price - coupon.discount).toFixed(2);
 
   res.status(200).json({
     status: "success",
     data: {
-      cart,
       appliedCoupon: coupon.code,
       discountedItem: {
-        product_variantId,
+        product_variantId: Number(product_variantId),
         discount: coupon.discount,
         price_before: price,
         price_after: discountPrice,
       },
-      total_amount: cart.total_amount,
     },
   });
 });
@@ -380,12 +353,6 @@ export const removeFromCart = asyncHandler(async (req, res, next) => {
     include: [{ model: ProductVariant, as: "CartItemProductVariant" }],
   });
 
-  let totalAmount = 0;
-  for (const item of remainingItems) {
-    const v = item.CartItemProductVariant || (await ProductVariant.findByPk(item.product_variantId));
-    totalAmount += (v?.price || 0) * item.quantity;
-  }
-  cart.total_amount = totalAmount;
   // Recalculate shipping fee based on remaining items
   const storeIdSet = new Set();
   for (const item of remainingItems) {
