@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
@@ -7,6 +7,7 @@ import { ShopContext } from "../../context/ShopContext";
 const format = (v) => (v ? v.toLocaleString("vi-VN") : "0");
 
 const Cart = () => {
+  const navigate = useNavigate();
   const {
     cartItems,
     fetchMyCart,
@@ -19,24 +20,49 @@ const Cart = () => {
   // 🔹 Load giỏ hàng khi component mount
   useEffect(() => {
     fetchMyCart();
+
+    // LẤY DỮ LIỆU CŨ TỪ LOCALSTORAGE (Nếu có, để giữ trạng thái sau khi refresh)
+    const savedChecked = JSON.parse(localStorage.getItem("checkedItems") || "[]");
+    const savedQuantities = JSON.parse(localStorage.getItem("quantities") || "{}");
+    if (savedChecked.length > 0) setCheckedItems(savedChecked);
+    if (Object.keys(savedQuantities).length > 0) setQuantities(savedQuantities);
+
   }, []);
 
   // 🔹 Khi giỏ hàng thay đổi, cập nhật state tạm để nhập số lượng
   useEffect(() => {
     if (cartItems && cartItems.length > 0) {
       const qtyObj = {};
-      const ids = [];
+
+      // Khởi tạo số lượng từ dữ liệu Context, ưu tiên số lượng đã lưu trong state local
       cartItems.forEach((item) => {
-        qtyObj[item.id] = item.quantity || 1;
-        ids.push(item.id);
+        qtyObj[item.id] = quantities[item.id] || item.quantity || 1;
       });
+
       setQuantities(qtyObj);
-      setCheckedItems(ids); // tick hết mặc định
+
+      // Mặc định tick tất cả nếu chưa có trạng thái lưu (hoặc tick lại những cái đã có)
+      if (checkedItems.length === 0) {
+        setCheckedItems(cartItems.map(item => item.id));
+      } else {
+        // Loại bỏ ID không còn trong giỏ hàng
+        setCheckedItems(prev => prev.filter(id => cartItems.some(item => item.id === id)));
+      }
     } else {
       setQuantities({});
       setCheckedItems([]);
     }
+    // Thêm dependencies quantities để đồng bộ số lượng khi cartItems thay đổi
   }, [cartItems]);
+
+  // 🎯 LƯU TRỮ TRẠNG THÁI TÍCH CHỌN VÀ SỐ LƯỢNG NGAY KHI CHÚNG THAY ĐỔI
+  useEffect(() => {
+    localStorage.setItem("checkedItems", JSON.stringify(checkedItems));
+  }, [checkedItems]);
+
+  useEffect(() => {
+    localStorage.setItem("quantities", JSON.stringify(quantities));
+  }, [quantities]);
 
   // 🧮 Xử lý thay đổi số lượng (local)
   const handleQtyChange = (id, value) => {
@@ -70,9 +96,34 @@ const Cart = () => {
 
   // ❌ Xoá sản phẩm khỏi giỏ
   const handleRemove = async (id) => {
-    console.log("Xoá sản phẩm với variantId:", id);
     await removeFromCart(id);
+    // Cập nhật lại state checkedItems sau khi xóa khỏi server
+    setCheckedItems(prev => prev.filter(itemId => itemId !== id));
   };
+
+  // 🎯 HÀM XỬ LÝ CHUYỂN TRANG ĐẶT HÀNG
+  const handleCheckout = () => {
+    if (checkedItems.length === 0) {
+      alert("Vui lòng chọn ít nhất một sản phẩm để đặt hàng!");
+      return;
+    }
+
+    // ⚠️ LƯU Ý: Vì đã sử dụng useEffect để lưu trữ ngay khi state thay đổi, 
+    // việc này không hoàn toàn cần thiết, nhưng an toàn hơn.
+    // Tuy nhiên, chúng ta chỉ cần navigate (chuyển hướng) ở đây.
+
+    navigate("/place-order");
+  };
+
+  // 🧮 Xử lý thay đổi trạng thái Tích chọn TẤT CẢ
+  const handleCheckAll = (e) => {
+    if (e.target.checked) {
+      setCheckedItems(cartItems.map(item => item.id));
+    } else {
+      setCheckedItems([]);
+    }
+  }
+
 
   // 🧮 Tính subtotal và shippingFee dựa trên sản phẩm được tick
   const { subtotal, totalShippingFee } =
@@ -82,6 +133,7 @@ const Cart = () => {
         const product = variant?.ProductVariantProduct;
         const price = variant?.price || 0;
         const productShippingFee = variant?.shipping_fee || 30000;
+        // Lấy số lượng mới nhất từ state quantities
         const qty = quantities[it.id] || it.quantity || 1;
         const isChecked = checkedItems.includes(it.id);
 
@@ -94,6 +146,10 @@ const Cart = () => {
       { subtotal: 0, totalShippingFee: 0 }
     ) || { subtotal: 0, totalShippingFee: 0 };
 
+  // Kiểm tra xem đã tick chọn tất cả chưa
+  const isAllChecked = cartItems && cartItems.length > 0 && checkedItems.length === cartItems.length;
+
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -101,8 +157,19 @@ const Cart = () => {
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ===================== GIỎ HÀNG ===================== */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow">
-            <div className="px-5 py-4 border-b font-semibold text-lg">
+            <div className="px-5 py-4 border-b font-semibold text-lg flex items-center gap-3">
               Giỏ hàng của bạn
+              {cartItems?.length > 0 && (
+                <label className="text-sm font-normal flex items-center">
+                  <input
+                    type="checkbox"
+                    className="accent-[#116AD1] w-4 h-4 mr-1"
+                    checked={isAllChecked}
+                    onChange={handleCheckAll}
+                  />
+                  Chọn tất cả
+                </label>
+              )}
             </div>
 
             {!cartItems || cartItems.length === 0 ? (
@@ -237,12 +304,14 @@ const Cart = () => {
                 {format(subtotal + totalShippingFee)}₫
               </span>
             </div>
-            <Link
-              to="/place-order"
-              className="mt-4 block text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa]"
+            {/* 🎯 THAY THẺ LINK BẰNG BUTTON VÀ GỌI HÀM handleCheckout */}
+            <button
+              onClick={handleCheckout}
+              className="mt-4 w-full text-center bg-[#116AD1] text-white py-2 rounded hover:bg-[#0e57aa] disabled:bg-gray-400"
+              disabled={checkedItems.length === 0}
             >
-              Đặt hàng
-            </Link>
+              Đặt hàng ({checkedItems.length})
+            </button>
 
             <Link
               to="/"
