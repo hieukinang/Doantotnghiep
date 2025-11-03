@@ -4,6 +4,7 @@ import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 
+import axios from "axios";
 const format = (v) => (v ? v.toLocaleString("vi-VN") : "0");
 
 const Cart = () => {
@@ -13,9 +14,12 @@ const Cart = () => {
     fetchMyCart,
     removeFromCart,
   } = useContext(ShopContext);
-
   const [checkedItems, setCheckedItems] = useState([]);
   const [quantities, setQuantities] = useState({});
+  // ⚙️ State điều khiển modal và dữ liệu vận chuyển
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadingShipping, setLoadingShipping] = useState(false);
+  const [shippingDetails, setShippingDetails] = useState(null);
 
   // 🔹 Load giỏ hàng khi component mount
   useEffect(() => {
@@ -125,27 +129,66 @@ const Cart = () => {
   }
 
 
-  // 🧮 Tính subtotal và shippingFee dựa trên sản phẩm được tick
-  const { subtotal, totalShippingFee } =
-    cartItems?.reduce(
-      (acc, it) => {
-        const variant = it.CartItemProductVariant;
-        const product = variant?.ProductVariantProduct;
-        const price = variant?.price || 0;
-        const productShippingFee = variant?.shipping_fee || 30000;
-        // Lấy số lượng mới nhất từ state quantities
-        const qty = quantities[it.id] || it.quantity || 1;
-        const isChecked = checkedItems.includes(it.id);
+  // 🧮 Tính subtotal và shippingFee dựa trên sản phẩm được tick (phí ship theo từng shop)
+  let subtotal = 0;
+  let totalShippingFee = 0;
 
-        if (isChecked) {
-          acc.subtotal += price * qty;
-          acc.totalShippingFee += productShippingFee;
+  if (cartItems && cartItems.length > 0) {
+    const storeShippingMap = new Map();
+
+    cartItems.forEach((it) => {
+      const variant = it.CartItemProductVariant;
+      const product = variant?.ProductVariantProduct;
+      const price = variant?.price || 0;
+      const qty = quantities[it.id] || it.quantity || 1;
+      const isChecked = checkedItems.includes(it.id);
+
+      if (!isChecked) return;
+
+      subtotal += price * qty;
+
+      const storeId =
+        variant?.storeId ??
+        product?.storeId ??
+        `product-${product?.id ?? variant?.productId ?? it.product_variantId ?? it.id}`;
+      const storeShippingFee = variant?.shipping_fee ?? 30000;
+
+      if (!storeShippingMap.has(storeId)) {
+        storeShippingMap.set(storeId, storeShippingFee);
+      } else {
+        const currentFee = storeShippingMap.get(storeId) ?? 0;
+        if (storeShippingFee > currentFee) {
+          storeShippingMap.set(storeId, storeShippingFee);
         }
-        return acc;
-      },
-      { subtotal: 0, totalShippingFee: 0 }
-    ) || { subtotal: 0, totalShippingFee: 0 };
+      }
+    });
 
+    totalShippingFee = Array.from(storeShippingMap.values()).reduce(
+      (sum, fee) => sum + fee,
+      0
+    );
+  }
+  // 🆕 Hàm mở modal và gọi API shop
+  const handleOpenStoreCouponModal = async (storeId) => {
+    setIsModalOpen(true);
+    setLoadingShipping(true);
+    try {
+      console.log("Gọi API phí vận chuyển cho storeId:", storeId);
+      const res = await axios.get(`http://localhost:5000/api/coupons/from-store/${storeId}`);
+      setShippingDetails(res.data);
+      console.log("Dữ liệu phí vận chuyển:", res.data);
+    } catch (err) {
+      console.error("Lỗi khi gọi API phí vận chuyển:", err);
+      setShippingDetails(null);
+    } finally {
+      setLoadingShipping(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setShippingDetails(null);
+  };
   // Kiểm tra xem đã tick chọn tất cả chưa
   const isAllChecked = cartItems && cartItems.length > 0 && checkedItems.length === cartItems.length;
 
@@ -269,13 +312,22 @@ const Cart = () => {
                         </button>
                       </div>
 
-                      {/* Xóa sản phẩm */}
-                      <button
-                        onClick={() => handleRemove(it.product_variantId)}
-                        className="ml-3 px-3 py-2 text-sm rounded text-white bg-[#116AD1] hover:bg-[#FF4500] transition"
-                      >
-                        Xóa
-                      </button>
+                      <div className="flex flex-col items-end gap-2 mt-7">
+                        <button
+                          onClick={() => handleRemove(it.product_variantId)}
+                          className="px-3 py-2 text-sm rounded text-white bg-[#116AD1] hover:bg-[#FF4500] transition"
+                        >
+                          Xóa
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenStoreCouponModal(variant?.storeId || product?.storeId)}
+                          className="text-blue-500 hover:text-blue-700 underline text-sm"
+                        >
+                          Mã giảm giá của shop
+                        </button>
+                      </div>
+
                     </div>
                   );
                 })}
@@ -323,6 +375,32 @@ const Cart = () => {
         </div>
       </main>
       <Footer />
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl shadow-lg w-[400px] p-6">
+            <h2 className="text-lg font-semibold mb-4">Chi tiết phí vận chuyển</h2>
+            {loadingShipping ? (
+              <p>Đang tải dữ liệu...</p>
+            ) : shippingDetails ? (
+              <div className="space-y-2">
+                <p><strong>Đơn vị vận chuyển:</strong> {shippingDetails.carrier}</p>
+                <p><strong>Phí:</strong> {format(shippingDetails.fee)}₫</p>
+                <p><strong>Thời gian dự kiến:</strong> {shippingDetails.estimatedDelivery}</p>
+              </div>
+            ) : (
+              <p className="text-gray-500">Không có dữ liệu vận chuyển.</p>
+            )}
+            <div className="text-right mt-5">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

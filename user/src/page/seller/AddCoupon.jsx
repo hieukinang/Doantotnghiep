@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useContext } from "react";
+import { ShopContext } from "../../context/ShopContext";
 
 const AddCoupon = () => {
     const backendURL = import.meta.env.VITE_BACKEND_URL;
-
+    const {createCouponStore} = useContext(ShopContext);
     const [formData, setFormData] = useState({
         code: "",
         description: "",
@@ -70,11 +72,7 @@ const AddCoupon = () => {
                 expire: formatDateTime(formData.expire),
             };
 
-            const res = await axios.post(`${backendURL}/admins/coupons`, formattedData, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
+            const res = await createCouponStore(formData);
 
             setMessage("✅ Tạo mã giảm giá thành công!");
             console.log(res.data);
@@ -121,14 +119,14 @@ const AddCoupon = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block mb-1 font-medium">Giảm giá (%) *</label>
+                            <label className="block mb-1 font-medium">Giảm giá (đ) *</label>
                             <input
                                 type="number"
                                 name="discount"
                                 value={formData.discount}
                                 onChange={handleChange}
                                 className="w-full border p-2 rounded-md"
-                                placeholder="30"
+                                placeholder="30000"
                             />
                         </div>
                         <div>

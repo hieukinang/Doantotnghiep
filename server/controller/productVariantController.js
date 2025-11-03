@@ -5,6 +5,7 @@ import VariantOption from "../model/variantOptionModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import Attribute from "../model/attributeModel.js";
+import Store from "../model/storeModel.js";
 
 export const createProductVariant = asyncHandler(async (req, res, next) => {
 
@@ -130,7 +131,14 @@ export const getVariantById = asyncHandler(async (req, res, next) => {
       {
         model: Product,
         as: "ProductVariantProduct",
-        attributes: ["storeId"]
+        attributes: ["id", "name", "main_image", "storeId"],
+        include: [
+          {
+            model: Store,
+            as: "ProductStore",
+            attributes: ["id", "name"],
+          },
+        ],
       }
     ],
   });

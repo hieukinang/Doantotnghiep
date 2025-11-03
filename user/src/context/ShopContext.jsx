@@ -106,7 +106,6 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  // ❌ Xóa sản phẩm khỏi giỏ
   const removeFromCart = async (variantId) => {
     if (!clientToken) return;
     try {
@@ -295,6 +294,24 @@ const ShopContextProvider = ({ children }) => {
       return [];
     }
   };
+  const createCouponStore = async (formData) => {
+    try {
+      const res = await axios.post(`${backendURL}/coupons/store`, formData, {
+        headers: { Authorization: `Bearer ${sellertoken}` },
+      });
+      if (res.data.status === "success") {
+        toast.success("Thêm mã giảm giá thành công!");
+        return res.data;
+      } else {
+        toast.error(res.data.message || "Thêm mã giảm giá thất bại!");
+        return null;
+      }
+    } catch (error) {
+      console.error("❌ Lỗi khi tạo mã giảm giá:", error);
+      toast.error("Không thể thêm mã giảm giá!");
+      return null;
+    }
+  };
 
   // 🔁 Tải danh mục cha khi khởi động
   useEffect(() => {
@@ -324,6 +341,7 @@ const ShopContextProvider = ({ children }) => {
     getAllSuperCategories,
     getAllCategories,
     createProduct,
+    createCouponStore,
     getProduct,
     getAllProducts,
     getAllProductsByStore,

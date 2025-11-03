@@ -25,6 +25,7 @@ const PlaceOrder = () => {
       const variant = it.CartItemProductVariant; 
       // Giả định product info nằm trong variant (hoặc bạn cần điều chỉnh theo cấu trúc API thật)
       const product = variant?.ProductVariantProduct || { name: "Sản phẩm không rõ tên" }; 
+      const storeId = variant?.storeId ?? product.storeId ?? null;
       
       return {
         // ID của CartItem, dùng để xác định sản phẩm đặt hàng
@@ -37,7 +38,8 @@ const PlaceOrder = () => {
         qty: quantitiesFromCart[it.id] || it.quantity || 1, 
         variantOptions: variant?.options,
         product_variantId: it.product_variantId, // Cần thiết cho API đặt hàng
-        storeId: product.storeId, // Cần thiết để xử lý mã Store Coupon
+        storeId, // Cần thiết để xử lý mã Store Coupon
+        storeName: variant?.storeName || it.storeName || null,
       };
     }) || [];
     
@@ -183,8 +185,20 @@ const PlaceOrder = () => {
       }
   }
   
-  // 3. Tính Phí vận chuyển gốc
-  const baseShippingFee = orderItems.reduce((s, i) => s + i.shippingFee, 0);
+  // 3. Tính Phí vận chuyển gốc (theo từng cửa hàng)
+  const storeShippingMap = new Map();
+  orderItems.forEach((item) => {
+      const storeKey = item.storeId ?? `product-${item.product_variantId}`;
+      const fee = item.shippingFee ?? 30000;
+      if (!storeShippingMap.has(storeKey) || fee > (storeShippingMap.get(storeKey) ?? 0)) {
+          storeShippingMap.set(storeKey, fee);
+      }
+  });
+
+  const baseShippingFee = Array.from(storeShippingMap.values()).reduce(
+      (sum, fee) => sum + fee,
+      0
+  );
   let finalShippingFee = baseShippingFee;
   let shipDiscount = 0;
 
@@ -223,12 +237,22 @@ const PlaceOrder = () => {
         shipping_address: defaultAddress, 
         
         // Chi tiết sản phẩm
-        order_items: orderItems.map(item => ({
-            product_variantId: item.product_variantId,
-            quantity: item.qty,
-            price_at_order: item.price,
-            shipping_fee_at_order: item.shippingFee,
-        })),
+        order_items: (() => {
+            const storeUsed = new Set();
+            return orderItems.map(item => {
+                const storeKey = item.storeId ?? `product-${item.product_variantId}`;
+                const feeForItem = storeUsed.has(storeKey)
+                    ? 0
+                    : storeShippingMap.get(storeKey) ?? item.shippingFee ?? 30000;
+                storeUsed.add(storeKey);
+                return {
+                    product_variantId: item.product_variantId,
+                    quantity: item.qty,
+                    price_at_order: item.price,
+                    shipping_fee_at_order: feeForItem,
+                };
+            });
+        })(),
         
         // Mã giảm giá
         coupon_codes: [
