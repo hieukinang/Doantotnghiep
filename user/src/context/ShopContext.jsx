@@ -29,7 +29,7 @@ const ShopContextProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [shippingFee, setShippingFee] = useState(0);
-
+  const [storeId, setStoreId] = useState(null);
   // ================== 🛒 GIỎ HÀNG ==================
 
   const fetchMyCart = async () => {
@@ -51,8 +51,19 @@ const ShopContextProvider = ({ children }) => {
             );
             const variant = variantRes.data?.data?.variant;
 
+            const resolvedStoreId =
+              variant?.storeId ??
+              variant?.ProductVariantProduct?.storeId ??
+              item.CartItemProductVariant?.storeId ??
+              item.CartItemProductVariant?.ProductVariantProduct?.storeId ??
+              null;
+
+            setStoreId(resolvedStoreId);
+            console.log("🏷️ Variant store:", resolvedStoreId);
+
             return {
               ...item,
+              storeId: resolvedStoreId,
               CartItemProductVariant: {
                 ...item.CartItemProductVariant,
                 price: variant?.price ?? 0,
@@ -60,6 +71,11 @@ const ShopContextProvider = ({ children }) => {
                 options: variant?.options ?? [],
                 name: variant?.name,
                 value: variant?.value,
+                storeId: resolvedStoreId,
+                ProductVariantProduct:
+                  variant?.ProductVariantProduct ??
+                  item.CartItemProductVariant?.ProductVariantProduct ??
+                  null,
               },
             };
           } catch (err) {
@@ -333,6 +349,7 @@ const ShopContextProvider = ({ children }) => {
     cartCount,
     cartTotal,
     shippingFee,
+    storeId,
     fetchMyCart,
     removeFromCart,
     addToCart,

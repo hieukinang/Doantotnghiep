@@ -13,6 +13,8 @@ const Cart = () => {
     cartItems,
     fetchMyCart,
     removeFromCart,
+    storeId,
+    clientToken,
   } = useContext(ShopContext);
   const [checkedItems, setCheckedItems] = useState([]);
   const [quantities, setQuantities] = useState({});
@@ -168,8 +170,11 @@ const Cart = () => {
       0
     );
   }
+  const [selectedProductVariantId, setSelectedProductVariantId] = useState(null);
+
   // 🆕 Hàm mở modal và gọi API shop
-  const handleOpenStoreCouponModal = async (storeId) => {
+  const handleOpenStoreCouponModal = async (storeId, product_variantId) => {
+    setSelectedProductVariantId(product_variantId);
     setIsModalOpen(true);
     setLoadingShipping(true);
     try {
@@ -192,6 +197,22 @@ const Cart = () => {
   // Kiểm tra xem đã tick chọn tất cả chưa
   const isAllChecked = cartItems && cartItems.length > 0 && checkedItems.length === cartItems.length;
 
+  const applyCoupon = async (code, selectedProductVariantId) => {
+    const res = await axios.patch(`http://localhost:5000/api/carts/apply-coupon`, {
+      couponCode: code,
+      product_variantId: selectedProductVariantId,
+    },
+      {
+        headers: { Authorization: `Bearer ${clientToken}` }
+      })
+    if (res.data.status === "success") {
+      alert("Áp dụng mã giảm giá thành công!");
+      fetchMyCart();
+    }
+    else {
+      alert("Áp dụng mã giảm giá thất bại: " + res.data.message);
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -321,7 +342,13 @@ const Cart = () => {
                         </button>
 
                         <button
-                          onClick={() => handleOpenStoreCouponModal(variant?.storeId || product?.storeId)}
+                          onClick={() => {
+                            const storeId =
+                              variant?.storeId ??
+                              product?.storeId ??
+                              `product-${product?.id ?? variant?.productId ?? it.product_variantId ?? it.id}`;
+                            handleOpenStoreCouponModal(storeId, it.product_variantId);
+                          }}
                           className="text-blue-500 hover:text-blue-700 underline text-sm"
                         >
                           Mã giảm giá của shop
@@ -373,24 +400,44 @@ const Cart = () => {
             </Link>
           </div>
         </div>
-      </main>
+      </main >
       <Footer />
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-[400px] p-6">
-            <h2 className="text-lg font-semibold mb-4">Chi tiết phí vận chuyển</h2>
+          <div className="bg-white rounded-xl shadow-lg w-[800px] p-6">
+            <h2 className="text-xl font-semibold mb-6 text-center">
+              Chi tiết phí vận chuyển
+            </h2>
+
             {loadingShipping ? (
               <p>Đang tải dữ liệu...</p>
-            ) : shippingDetails ? (
-              <div className="space-y-2">
-                <p><strong>Đơn vị vận chuyển:</strong> {shippingDetails.carrier}</p>
-                <p><strong>Phí:</strong> {format(shippingDetails.fee)}₫</p>
-                <p><strong>Thời gian dự kiến:</strong> {shippingDetails.estimatedDelivery}</p>
-              </div>
             ) : (
-              <p className="text-gray-500">Không có dữ liệu vận chuyển.</p>
+              <div className="grid grid-cols-2 gap-4">
+                {shippingDetails?.data?.coupons?.length > 0 ? (
+                  shippingDetails.data.coupons.map((coupon) => (
+                    <div
+                      key={coupon.id}
+                      onClick={() => applyCoupon(coupon.code, selectedProductVariantId)}
+                      className="p-4 border rounded-xl shadow-sm hover:shadow-md hover:bg-gray-50 transition"
+                    >
+                      <p><strong>Mã Coupon:</strong> {coupon.code}</p>
+                      <p><strong>Giảm giá:</strong> {format(coupon.discount)}₫</p>
+                      <p><strong>Số lượng còn lại:</strong> {coupon.quantity}</p>
+                      <p>
+                        <strong>Hạn sử dụng:</strong>{" "}
+                        {new Date(coupon.expire).toLocaleDateString("vi-VN")}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="col-span-2 text-center text-gray-500">
+                    Không có mã giảm giá nào cho shop này.
+                  </p>
+                )}
+              </div>
             )}
-            <div className="text-right mt-5">
+
+            <div className="text-right mt-6">
               <button
                 onClick={handleCloseModal}
                 className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
@@ -401,7 +448,9 @@ const Cart = () => {
           </div>
         </div>
       )}
-    </div>
+
+
+    </div >
   );
 };
 
