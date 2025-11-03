@@ -12,7 +12,7 @@ const Follow = sequelize.define(
       autoIncrement: true,
     },
     storeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Store,
@@ -20,7 +20,7 @@ const Follow = sequelize.define(
       },
     },
     clientId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Client,

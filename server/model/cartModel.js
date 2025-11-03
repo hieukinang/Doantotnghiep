@@ -15,7 +15,7 @@ const Cart = sequelize.define(
       allowNull: true,
     },
     clientId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       unique: true, // Đảm bảo mỗi client chỉ có 1 cart
       references: {

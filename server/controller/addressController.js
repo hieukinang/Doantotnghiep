@@ -4,7 +4,6 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import {
   getAll,
-  createOne,
   updateOne,
   deleteOne,
 } from "../utils/refactorControllers.utils.js";

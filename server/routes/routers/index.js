@@ -2,6 +2,7 @@ import express from "express";
 
 import clientRouter from "./clientRouter.js";
 import addressRouter from "./addressRouter.js";
+import favoriteRouter from "./favoriteRouter.js";
 import storeRouter from "./storeRouter.js";
 import adminRouter from "./adminRouter.js";
 import shipperRouter from "./shipperRouter.js";
@@ -22,6 +23,7 @@ const router = express.Router();
 
 router.use(`/clients`, clientRouter);
 router.use("/addresses", addressRouter);
+router.use("/favorites", favoriteRouter);
 router.use(`/stores`, storeRouter);
 router.use(`/products`, productRouter);
 router.use(`/banners`, bannerRouter);

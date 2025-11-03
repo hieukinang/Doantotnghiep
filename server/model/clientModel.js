@@ -9,9 +9,10 @@ const Client = sequelize.define(
   "Client",
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       primaryKey: true,
-      autoIncrement: true,
+      allowNull: false,
+      unique: true,
     },
     phone: {
       type: DataTypes.STRING(20),
@@ -114,6 +115,14 @@ const Client = sequelize.define(
     tableName: "clients",
     timestamps: true, // Sequelize sẽ tự động thêm createdAt và updatedAt
     hooks: {
+      /**
+       * Tạo ID tùy chỉnh trước khi tạo Client
+       */
+      beforeValidate: async (client) => {
+        if (!client.id) {
+          client.id = `CLIENT${Date.now()}`;
+        }
+      },
       /**
        * Hash password trước khi lưu
        */

@@ -12,7 +12,7 @@ const Favorite = sequelize.define(
       autoIncrement: true,
     },
     clientId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Client,

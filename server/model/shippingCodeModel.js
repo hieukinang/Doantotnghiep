@@ -37,7 +37,7 @@ const ShippingCode = sequelize.define(
       allowNull: true,
     },
     adminId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Admin, // dùng tên bảng để tránh lỗi tuần hoàn

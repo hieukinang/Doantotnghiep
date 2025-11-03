@@ -96,7 +96,7 @@ const Product = sequelize.define(
       },
     },
     storeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Store,

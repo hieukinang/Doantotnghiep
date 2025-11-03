@@ -7,9 +7,10 @@ const Admin = sequelize.define(
   "Admin",
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       primaryKey: true,
-      autoIncrement: true,
+      llowNull: false,
+      unique: true,
     },
     username: {
       type: DataTypes.STRING(255),
@@ -115,6 +116,13 @@ const Admin = sequelize.define(
     tableName: "admins",
     timestamps: true, // Sequelize sẽ tự động thêm createdAt, updatedAt
     hooks: {
+      /**
+       * Tạo ID tùy chỉnh trước khi tạo Admin
+       */
+      beforeValidate: async (admin) => {
+        // Tạo ID với tiền tố "ADMIN" + timestamp mili giây
+        admin.id = `ADMIN${Date.now()}`;
+      },
       /**
        * Hash password trước khi lưu
        */

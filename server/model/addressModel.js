@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
-import Client from "./clientModel.js";
 
 const Address = sequelize.define(
   "Address",
@@ -23,7 +22,7 @@ const Address = sequelize.define(
       allowNull: true,
     },
     clientId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: "clients",

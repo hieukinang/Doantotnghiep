@@ -32,7 +32,7 @@ export const getAll = (Model, options = {}) =>
       totalNumOfDocs: count,
       paginationStatus,
       data: {
-        docs,
+        docs: docs || [],
       },
     });
   });
