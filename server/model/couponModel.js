@@ -36,7 +36,7 @@ const Coupon = sequelize.define(
     //   allowNull: false,
     // },
     storeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Store,

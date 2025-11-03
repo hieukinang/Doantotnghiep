@@ -8,9 +8,10 @@ const Store = sequelize.define(
   "Store",
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       primaryKey: true,
-      autoIncrement: true,
+      unique: true,
+      allowNull: false,
     },
     citizen_id: {
       type: DataTypes.STRING,
@@ -132,6 +133,16 @@ const Store = sequelize.define(
     tableName: "stores",
     timestamps: true,
     hooks: {
+      /**
+       * Tạo ID tùy chỉnh trước khi tạo Store
+       */
+      beforeValidate: async (store) => {
+        // Tạo ID với tiền tố "STORE" + timestamp mili giây
+        store.id = `STORE${Date.now()}`;
+      },
+      /**
+       * Hash password trước khi lưu
+       */
       beforeSave: async (store) => {
         if (store.changed("password")) {
           store.password = await bcrypt.hash(store.password, 12);

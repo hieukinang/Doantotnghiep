@@ -26,7 +26,7 @@ const Banner = sequelize.define(
       defaultValue: "sidebar",
     },
     adminId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Admin,

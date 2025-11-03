@@ -30,7 +30,7 @@ const Complaint = sequelize.define(
       allowNull: true,
     },
     clientId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Client,
@@ -38,7 +38,7 @@ const Complaint = sequelize.define(
       },
     },
     adminId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Admin,
@@ -46,7 +46,7 @@ const Complaint = sequelize.define(
       },
     },
     storeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Store,
@@ -54,7 +54,7 @@ const Complaint = sequelize.define(
       },
     },
     shipperId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Shipper,

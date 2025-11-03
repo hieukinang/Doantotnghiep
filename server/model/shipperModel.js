@@ -9,9 +9,10 @@ const Shipper = sequelize.define(
   "Shipper",
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       primaryKey: true,
-      autoIncrement: true,
+      allowNull: false,
+      unique: true,
     },
     citizen_id: {
       type: DataTypes.STRING,
@@ -136,12 +137,22 @@ const Shipper = sequelize.define(
     tableName: "shippers",
     timestamps: true, // tự động có createdAt, updatedAt
     hooks: {
-      beforeSave: async (store) => {
-        if (store.changed("password")) {
-          store.password = await bcrypt.hash(store.password, 12);
-          store.passwordChangedAt = new Date();
+      /**
+       * Tạo ID tùy chỉnh trước khi tạo Shipper
+       */
+      beforeValidate: async (shipper) => {
+        // Tạo ID với tiền tố "SHIPPER" + timestamp mili giây
+        shipper.id = `SHIPPER${Date.now()}`;
+      },
+      /**
+       * Hash password trước khi lưu
+       */
+      beforeSave: async (shipper) => {
+        if (shipper.changed("password")) {
+          shipper.password = await bcrypt.hash(shipper.password, 12);
+          shipper.passwordChangedAt = new Date();
         }
-      }
+      },
     },
   }
 );

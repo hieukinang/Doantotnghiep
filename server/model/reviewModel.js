@@ -34,7 +34,7 @@ const Review = sequelize.define(
       },
     },
     clientId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: false,
       references: {
         model: Client,

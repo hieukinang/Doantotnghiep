@@ -47,7 +47,7 @@ const Order = sequelize.define(
       allowNull: true,
     },
     clientId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Client,
@@ -55,7 +55,7 @@ const Order = sequelize.define(
       },
     },
     shipperId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Shipper,
@@ -63,7 +63,7 @@ const Order = sequelize.define(
       },
     },
     storeId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: true,
       references: {
         model: Store,
