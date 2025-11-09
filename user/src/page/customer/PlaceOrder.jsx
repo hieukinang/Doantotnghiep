@@ -2,64 +2,81 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
-// 🎯 Import ShopContext từ file bạn vừa gửi
-import { ShopContext } from "../../context/ShopContext"; 
+import { ShopContext } from "../../context/ShopContext";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-// Định nghĩa base URL của API (dùng cho coupon)
-const API_BASE_URL = "http://127.0.0.1:5000/api/coupons";
+const API_BASE_URL = "http://127.0.0.1:5000/api";
 const format = (v) => (v ? v.toLocaleString("vi-VN") : "0");
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
-  // 🎯 Lấy dữ liệu từ ShopContext
-  const { cartItems, clientToken, fetchMyCart } = useContext(ShopContext) || { cartItems: [] };
+  const { cartItems, clientToken, fetchMyCart, backendURL } = useContext(ShopContext) || { cartItems: [] };
 
-  // Lấy dữ liệu sản phẩm đã chọn và số lượng từ localStorage
+  // Lấy dữ liệu từ localStorage
   const checkedItemsFromCart = JSON.parse(localStorage.getItem("checkedItems") || "[]");
-  const quantitiesFromCart = JSON.parse(localStorage.getItem("quantities") || "{}");
+  const [quantities, setQuantities] = useState(JSON.parse(localStorage.getItem("quantities") || "{}"));
+  const [appliedCoupons, setAppliedCoupons] = useState(JSON.parse(localStorage.getItem("appliedCoupons") || "{}"));
 
-  // 1. Lọc và chuẩn bị danh sách sản phẩm đặt hàng (orderItems)
+  // Chuẩn bị orderItems
   const orderItems = cartItems?.filter(item => checkedItemsFromCart.includes(item.id))
     .map(it => {
-      // Dữ liệu variant đã được làm giàu trong ShopContext
       const variant = it.CartItemProductVariant; 
-      // Giả định product info nằm trong variant (hoặc bạn cần điều chỉnh theo cấu trúc API thật)
       const product = variant?.ProductVariantProduct || { name: "Sản phẩm không rõ tên" }; 
       const storeId = variant?.storeId ?? product.storeId ?? null;
       
       return {
-        // ID của CartItem, dùng để xác định sản phẩm đặt hàng
         id: it.id, 
         name: product.name,
-        // Lấy giá và phí ship từ variant đã được làm giàu
+        image: product?.main_image,
         price: variant?.price || 0,
         shippingFee: variant?.shipping_fee || 30000, 
-        // Lấy số lượng từ localStorage (hoặc mặc định là số lượng trong cartItem nếu không có trong local)
-        qty: quantitiesFromCart[it.id] || it.quantity || 1, 
+        qty: quantities[it.id] || it.quantity || 1, 
         variantOptions: variant?.options,
-        product_variantId: it.product_variantId, // Cần thiết cho API đặt hàng
-        storeId, // Cần thiết để xử lý mã Store Coupon
+        product_variantId: it.product_variantId,
+        storeId,
         storeName: variant?.storeName || it.storeName || null,
       };
     }) || [];
     
-    // 🔔 Gợi ý: Nếu orderItems rỗng, nên chuyển hướng người dùng về trang giỏ hàng
-    useEffect(() => {
-        if (!clientToken) {
-            navigate("/login");
-            return;
-        }
-        if (orderItems.length === 0 && checkedItemsFromCart.length > 0) {
-            // Trường hợp dữ liệu giỏ hàng bị mất đồng bộ
-            fetchMyCart(); 
-        } else if (orderItems.length === 0 && checkedItemsFromCart.length === 0) {
-             // navigate("/cart"); // Có thể cân nhắc chuyển về trang giỏ hàng
-        }
-    }, [clientToken, cartItems]);
+  useEffect(() => {
+    if (!clientToken) {
+      navigate("/login");
+      return;
+    }
+    if (orderItems.length === 0 && checkedItemsFromCart.length === 0) {
+      navigate("/cart");
+    }
+  }, [clientToken, cartItems, navigate]);
 
+  // ------------------- LOGIC QUANTITY -------------------
+  const handleQtyChange = (id, value) => {
+    const newQuantities = { ...quantities, [id]: value };
+    setQuantities(newQuantities);
+    localStorage.setItem("quantities", JSON.stringify(newQuantities));
+  };
+
+  const handleQtyBlur = (id, value) => {
+    let num = parseInt(value, 10);
+    if (isNaN(num) || num < 1) num = 1;
+    const newQuantities = { ...quantities, [id]: num };
+    setQuantities(newQuantities);
+    localStorage.setItem("quantities", JSON.stringify(newQuantities));
+  };
+
+  const increment = (id) => {
+    const newQuantities = { ...quantities, [id]: Number(quantities[id] || 1) + 1 };
+    setQuantities(newQuantities);
+    localStorage.setItem("quantities", JSON.stringify(newQuantities));
+  };
+
+  const decrement = (id) => {
+    const newQuantities = { ...quantities, [id]: Math.max(1, Number(quantities[id] || 1) - 1) };
+    setQuantities(newQuantities);
+    localStorage.setItem("quantities", JSON.stringify(newQuantities));
+  };
 
   // ------------------- LOGIC ADDRESS -------------------
-  // ... (Giữ nguyên logic địa chỉ từ phiên bản trước)
   const [defaultAddress, setDefaultAddress] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -72,7 +89,7 @@ const PlaceOrder = () => {
       const addr = JSON.parse(saved);
       setDefaultAddress(addr);
     } else {
-        setShowAddressForm(true);
+      setShowAddressForm(true);
     }
   }, []);
 
@@ -86,8 +103,8 @@ const PlaceOrder = () => {
 
   const handleSaveAddress = () => {
     if (!formData.name || !formData.phone || !formData.address) {
-        alert("Vui lòng điền đủ thông tin địa chỉ.");
-        return;
+      alert("Vui lòng điền đủ thông tin địa chỉ.");
+      return;
     }
     setDefaultAddress(formData);
     setShowAddressForm(false);
@@ -97,201 +114,183 @@ const PlaceOrder = () => {
   };
   
   // ------------------- LOGIC COUPON (API CALL) -------------------
-  const [appliedStoreCoupon, setAppliedStoreCoupon] = useState(null);
-  const [appliedSystemCoupon, setAppliedSystemCoupon] = useState(null);
-  const [appliedShipCoupon, setAppliedShipCoupon] = useState(null);
-  const [couponCodeInput, setCouponCodeInput] = useState("");
-  
-  // Sử dụng axios để gọi API giống trong ShopContext
-  const fetchCouponByCode = async (code) => {
+  const [showStoreCouponModal, setShowStoreCouponModal] = useState(false);
+  const [showSystemCouponModal, setShowSystemCouponModal] = useState(false);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
+  const [couponList, setCouponList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCartItemId, setSelectedCartItemId] = useState(null);
+
+  // Mở modal Store Coupon
+  const handleOpenStoreCouponModal = async (cartItemId, storeId) => {
+    setSelectedCartItemId(cartItemId);
+    setShowStoreCouponModal(true);
+    setLoadingCoupons(true);
+    setSearchTerm("");
+    setCouponList([]);
+
     try {
-      const res = await axios.get(`${API_BASE_URL}/find-by-code?code=${code}`);
-      
-      if (res.data.status !== "success" || !res.data.data?.doc) {
-        throw new Error("Mã giảm giá không hợp lệ, không tồn tại hoặc đã hết hạn.");
-      }
-      return res.data.data.doc;
-    } catch (error) {
-      console.error("Lỗi khi tìm mã giảm giá:", error);
-      alert(error.message || "Đã xảy ra lỗi khi áp dụng mã.");
-      return null;
+      const res = await axios.get(`${API_BASE_URL}/coupons/from-store/${storeId}`);
+      const validCoupons = res.data?.data?.coupons?.filter(c => c.discount > 0 && c.quantity > 0) || [];
+      setCouponList(validCoupons);
+    } catch (err) {
+      console.error("❌ Lỗi khi lấy mã giảm giá cửa hàng:", err);
+      setCouponList([]);
+    } finally {
+      setLoadingCoupons(false);
     }
   };
 
-  const handleApplyCoupon = async () => {
-    if (!couponCodeInput) return;
-    const code = couponCodeInput.trim().toUpperCase();
-    const coupon = await fetchCouponByCode(code);
+  // Mở modal System Coupon
+  const handleOpenSystemCouponModal = async () => {
+    setShowSystemCouponModal(true);
+    setLoadingCoupons(true);
+    setSearchTerm("");
+    setCouponList([]);
 
-    if (coupon) {
-      // ⚠️ Cần điều chỉnh logic phân loại dựa trên cấu trúc API thật của bạn
-      const type = coupon.is_shipping_coupon ? 'SHIP' : 
-                   (coupon.stores && coupon.stores.length > 0) ? 'STORE' : 
-                   'SYSTEM'; 
-
-      // Kiểm tra Store Coupon có áp dụng được cho sản phẩm đã chọn không
-      if (type === 'STORE') {
-        // Lấy ID cửa hàng của sản phẩm đầu tiên được chọn (giả định Store Coupon chỉ áp dụng cho 1 cửa hàng)
-        const selectedStoreId = orderItems[0]?.storeId; 
-        
-        // Giả định: Coupon có danh sách `stores`
-        if (!coupon.stores?.includes(selectedStoreId)) {
-            alert("Mã này chỉ áp dụng cho cửa hàng khác.");
-            return;
-        }
-        setAppliedStoreCoupon(coupon);
-
-      } else if (type === 'SYSTEM') {
-        setAppliedSystemCoupon(coupon);
-      } else if (type === 'SHIP') {
-        setAppliedShipCoupon(coupon);
-      }
-      
-      alert(`Áp dụng thành công mã: ${coupon.code}`);
-      setCouponCodeInput("");
+    try {
+      const res = await axios.get(`${API_BASE_URL}/coupons/from-system`);
+      const validCoupons = res.data?.data?.coupons?.filter(c => c.discount > 0 && c.quantity > 0) || [];
+      setCouponList(validCoupons);
+    } catch (err) {
+      console.error("❌ Lỗi khi lấy mã giảm giá hệ thống:", err);
+      setCouponList([]);
+    } finally {
+      setLoadingCoupons(false);
     }
+  };
+
+  // Áp dụng coupon
+  const applyCoupon = async (code, cartItemId) => {
+    const item = orderItems.find(i => i.id === cartItemId);
+    if (!item) {
+      alert("Không tìm thấy sản phẩm!");
+      return;
+    }
+
+    try {
+      const res = await axios.patch(
+        `${backendURL}/carts/apply-coupon`,
+        { couponCode: code, product_variantId: item.product_variantId },
+        { headers: { Authorization: `Bearer ${clientToken}` } }
+      );
+
+      if (res.data.status === "success") {
+        const discountValue = res.data.data?.discountedItem?.discount || 0;
+        
+        const newAppliedCoupons = {
+          ...appliedCoupons,
+          [cartItemId]: { code, discountValue: Number(discountValue) }
+        };
+        
+        setAppliedCoupons(newAppliedCoupons);
+        localStorage.setItem("appliedCoupons", JSON.stringify(newAppliedCoupons));
+        
+        toast.success("Áp dụng mã giảm giá thành công!");
+        setShowStoreCouponModal(false);
+        setShowSystemCouponModal(false);
+      } else {
+        alert(res.data.message || "Áp dụng mã giảm giá thất bại!");
+      }
+    } catch (err) {
+      console.error("❌ Lỗi áp mã:", err);
+      alert(err.response?.data?.message || "Không thể áp dụng mã giảm giá!");
+    }
+  };
+
+  // Xóa coupon
+  const removeCoupon = (cartItemId) => {
+    const newAppliedCoupons = { ...appliedCoupons };
+    delete newAppliedCoupons[cartItemId];
+    setAppliedCoupons(newAppliedCoupons);
+    localStorage.setItem("appliedCoupons", JSON.stringify(newAppliedCoupons));
+    toast.success("Đã loại bỏ mã giảm giá!");
   };
 
   // ------------------- LOGIC TÍNH TOÁN -------------------
-
-  // 1. Tạm tính (Subtotal)
+  // 1. Tạm tính
   const productSubtotal = orderItems.reduce((s, i) => s + i.price * i.qty, 0);
 
-  // 2. Tính giảm giá hàng hóa (STORE + SYSTEM)
-  let productDiscount = 0;
+  // 2. Tính tổng giảm giá từ coupons đã áp dụng
+  let totalDiscountValue = 0;
+  orderItems.forEach(item => {
+    const coupon = appliedCoupons[item.id];
+    if (coupon && coupon.discountValue) {
+      totalDiscountValue += Number(coupon.discountValue);
+    }
+  });
   
-  // Giảm giá từ mã STORE 
-  if (appliedStoreCoupon) {
-      // **Chỉ áp dụng cho các sản phẩm của cửa hàng tương ứng**
-      const applicableSubtotal = orderItems.filter(i => i.storeId === appliedStoreCoupon.stores[0])
-                                            .reduce((s, i) => s + i.price * i.qty, 0);
-      
-      if (appliedStoreCoupon.is_percent) {
-          let discountAmount = applicableSubtotal * (appliedStoreCoupon.discount_value / 100);
-          productDiscount += Math.min(discountAmount, appliedStoreCoupon.max_discount || Infinity);
-      } else {
-          productDiscount += appliedStoreCoupon.discount_value || 0;
-      }
-  }
-  
-  // Giảm giá từ mã SYSTEM 
-  if (appliedSystemCoupon) {
-      if (appliedSystemCoupon.is_percent) {
-          let discountRate = appliedSystemCoupon.discount_value / 100;
-          let discountAmount = productSubtotal * discountRate;
-          productDiscount += Math.min(discountAmount, appliedSystemCoupon.max_discount || Infinity);
-      } else {
-          productDiscount += appliedSystemCoupon.discount_value || 0;
-      }
-  }
-  
-  // 3. Tính Phí vận chuyển gốc (theo từng cửa hàng)
+  // 3. Tính Phí vận chuyển (theo từng cửa hàng - lấy phí cao nhất)
   const storeShippingMap = new Map();
   orderItems.forEach((item) => {
-      const storeKey = item.storeId ?? `product-${item.product_variantId}`;
-      const fee = item.shippingFee ?? 30000;
-      if (!storeShippingMap.has(storeKey) || fee > (storeShippingMap.get(storeKey) ?? 0)) {
-          storeShippingMap.set(storeKey, fee);
-      }
+    const storeKey = item.storeId ?? `product-${item.product_variantId}`;
+    const fee = item.shippingFee ?? 30000;
+    if (!storeShippingMap.has(storeKey) || fee > (storeShippingMap.get(storeKey) ?? 0)) {
+      storeShippingMap.set(storeKey, fee);
+    }
   });
 
-  const baseShippingFee = Array.from(storeShippingMap.values()).reduce(
-      (sum, fee) => sum + fee,
-      0
-  );
-  let finalShippingFee = baseShippingFee;
-  let shipDiscount = 0;
+  const totalShippingFee = Array.from(storeShippingMap.values()).reduce((sum, fee) => sum + fee, 0);
 
-  // 4. Tính giảm giá vận chuyển (SHIP)
-  if (appliedShipCoupon) {
-      if (appliedShipCoupon.is_free_shipping) {
-          shipDiscount = baseShippingFee;
-          finalShippingFee = 0;
-      } else if (appliedShipCoupon.discount_value) {
-          shipDiscount = appliedShipCoupon.discount_value;
-          finalShippingFee = Math.max(0, baseShippingFee - shipDiscount);
-      }
-  }
-
-  // Tổng giảm giá (Hàng hóa + Ship)
-  const totalDiscount = productDiscount + shipDiscount;
-
-  // 5. Tổng thanh toán cuối cùng
-  const totalPayment = productSubtotal - productDiscount + finalShippingFee;
+  // 4. Tổng thanh toán cuối cùng
+  const totalPayment = productSubtotal - totalDiscountValue + totalShippingFee;
 
   // ------------------- LOGIC ĐẶT HÀNG (API) -------------------
-  
   const handlePlaceOrder = async () => {
     if (!defaultAddress || showAddressForm) {
-        alert("Vui lòng xác nhận địa chỉ nhận hàng.");
-        return;
+      alert("Vui lòng xác nhận địa chỉ nhận hàng.");
+      return;
     }
     if (orderItems.length === 0) {
-        alert("Không có sản phẩm nào được chọn để đặt hàng.");
-        return;
+      alert("Không có sản phẩm nào được chọn để đặt hàng.");
+      return;
     }
     
-    // Chuẩn bị dữ liệu để gửi lên API đặt hàng
     const orderData = {
-        // Địa chỉ nhận hàng
-        shipping_address: defaultAddress, 
-        
-        // Chi tiết sản phẩm
-        order_items: (() => {
-            const storeUsed = new Set();
-            return orderItems.map(item => {
-                const storeKey = item.storeId ?? `product-${item.product_variantId}`;
-                const feeForItem = storeUsed.has(storeKey)
-                    ? 0
-                    : storeShippingMap.get(storeKey) ?? item.shippingFee ?? 30000;
-                storeUsed.add(storeKey);
-                return {
-                    product_variantId: item.product_variantId,
-                    quantity: item.qty,
-                    price_at_order: item.price,
-                    shipping_fee_at_order: feeForItem,
-                };
-            });
-        })(),
-        
-        // Mã giảm giá
-        coupon_codes: [
-            appliedStoreCoupon?.code,
-            appliedSystemCoupon?.code,
-            appliedShipCoupon?.code,
-        ].filter(Boolean),
-        
-        // Tính toán tổng tiền
-        total_amount: totalPayment,
-        total_shipping_fee: finalShippingFee,
-        total_discount: totalDiscount,
-        
-        // Phương thức thanh toán (cần lấy từ input người dùng)
-        payment_method: "COD", 
+      shipping_address: defaultAddress, 
+      order_items: (() => {
+        const storeUsed = new Set();
+        return orderItems.map(item => {
+          const storeKey = item.storeId ?? `product-${item.product_variantId}`;
+          const feeForItem = storeUsed.has(storeKey)
+            ? 0
+            : storeShippingMap.get(storeKey) ?? item.shippingFee ?? 30000;
+          storeUsed.add(storeKey);
+          return {
+            product_variantId: item.product_variantId,
+            quantity: item.qty,
+            price_at_order: item.price,
+            shipping_fee_at_order: feeForItem,
+          };
+        });
+      })(),
+      coupon_codes: Object.values(appliedCoupons).map(c => c.code).filter(Boolean),
+      total_amount: totalPayment,
+      total_shipping_fee: totalShippingFee,
+      total_discount: totalDiscountValue,
+      payment_method: "COD", 
     };
 
     try {
-        const res = await axios.post(
-            `${backendURL}/orders/checkout-cash`, // Giả định API đặt hàng là /api/orders
-            orderData,
-            { headers: { Authorization: `Bearer ${clientToken}` } }
-        );
-        
-        if (res.data.status === "success") {
-            toast.success("Đơn hàng đã được đặt thành công!");
-            // 🎯 Sau khi đặt hàng thành công, gọi lại fetchMyCart để làm mới giỏ hàng
-            await fetchMyCart(); 
-            // Xóa checkedItems và quantities khỏi localStorage
-            localStorage.removeItem("checkedItems");
-            localStorage.removeItem("quantities");
-            navigate(`/order-success/${res.data.data.doc.id}`); // Chuyển hướng đến trang thành công
-        } else {
-            alert(res.data.message || "Đặt hàng thất bại!");
-        }
-
+      const res = await axios.post(
+        `${backendURL}/orders/checkout-cash`,
+        orderData,
+        { headers: { Authorization: `Bearer ${clientToken}` } }
+      );
+      
+      if (res.data.status === "success") {
+        toast.success("Đơn hàng đã được đặt thành công!");
+        await fetchMyCart(); 
+        localStorage.removeItem("checkedItems");
+        localStorage.removeItem("quantities");
+        localStorage.removeItem("appliedCoupons");
+        navigate(`/order-success/${res.data.data.doc.id}`);
+      } else {
+        alert(res.data.message || "Đặt hàng thất bại!");
+      }
     } catch (error) {
-        console.error("❌ Lỗi khi đặt hàng:", error);
-        alert(error.response?.data?.message || "Đặt hàng thất bại!");
+      console.error("❌ Lỗi khi đặt hàng:", error);
+      alert(error.response?.data?.message || "Đặt hàng thất bại!");
     }
   };
 
@@ -310,7 +309,7 @@ const PlaceOrder = () => {
               {defaultAddress && !showAddressForm ? (
                 <div className="mt-3 text-sm">
                   <div className="font-medium">
-                    **{defaultAddress.name}** • {defaultAddress.phone}{" "}
+                    {defaultAddress.name} • {defaultAddress.phone}{" "}
                     {localStorage.getItem("defaultAddress") && (
                       <span className="text-xs text-green-600 border border-green-600 px-1 rounded ml-1">
                         Mặc định
@@ -324,8 +323,8 @@ const PlaceOrder = () => {
                   <button
                     className="mt-3 px-3 py-1 border rounded text-sm text-[#116AD1] border-[#116AD1] hover:bg-[#116AD1] hover:text-white transition-colors"
                     onClick={() => {
-                        setShowAddressForm(true);
-                        setFormData(defaultAddress);
+                      setShowAddressForm(true);
+                      setFormData(defaultAddress);
                     }}
                   >
                     Thay đổi / Thêm địa chỉ khác
@@ -333,14 +332,14 @@ const PlaceOrder = () => {
                 </div>
               ) : (
                 <div className="mt-3 space-y-3 text-sm">
-                    {defaultAddress && (
-                        <button
-                            className="text-sm text-red-500 underline mb-2"
-                            onClick={() => setShowAddressForm(false)}
-                        >
-                            Hủy và dùng địa chỉ mặc định
-                        </button>
-                    )}
+                  {defaultAddress && (
+                    <button
+                      className="text-sm text-red-500 underline mb-2"
+                      onClick={() => setShowAddressForm(false)}
+                    >
+                      Hủy và dùng địa chỉ mặc định
+                    </button>
+                  )}
                   <input
                     name="name" placeholder="Họ và tên" value={formData.name} onChange={handleAddressChange}
                     className="w-full border rounded px-3 py-2"
@@ -351,12 +350,12 @@ const PlaceOrder = () => {
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <input
-                        name="city" placeholder="Tỉnh/Thành phố" value={formData.city} onChange={handleAddressChange}
-                        className="w-full border rounded px-3 py-2"
+                      name="city" placeholder="Tỉnh/Thành phố" value={formData.city} onChange={handleAddressChange}
+                      className="w-full border rounded px-3 py-2"
                     />
                     <input
-                        name="ward" placeholder="Xã/Phường" value={formData.ward} onChange={handleAddressChange}
-                        className="w-full border rounded px-3 py-2"
+                      name="ward" placeholder="Xã/Phường" value={formData.ward} onChange={handleAddressChange}
+                      className="w-full border rounded px-3 py-2"
                     />
                   </div>
                   <input
@@ -384,30 +383,102 @@ const PlaceOrder = () => {
             {/* ===================== SẢN PHẨM ĐÃ CHỌN ===================== */}
             <div className="bg-white rounded-lg p-5 shadow">
               <div className="font-semibold text-lg border-b pb-2">
-                🛍️ Sản phẩm
+                🛍️ Sản phẩm đã chọn
               </div>
               <div className="divide-y">
-                {orderItems.map((i) => (
-                  <div key={i.id} className="flex items-center justify-between py-3 text-sm">
-                    <div className="flex-1 pr-4">
-                        <span className="font-medium text-gray-800">{i.name}</span> x{i.qty}
-                        <div className="text-xs text-gray-500">
-                            {i.variantOptions?.length > 0 && 
-                                i.variantOptions
-                                .filter(opt => opt.value)
-                                .map((opt, idx) => (
-                                    <span key={idx} className="mr-2">
-                                        {opt.name}: {opt.value}
-                                    </span>
-                                ))
-                            }
+                {orderItems.map((item) => {
+                  const appliedCoupon = appliedCoupons[item.id];
+                  
+                  return (
+                    <div key={item.id} className="flex items-start gap-4 py-4">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-20 h-20 rounded object-cover border"
+                      />
+                      
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-800">{item.name}</div>
+                        
+                        <div className="text-sm text-gray-500 flex flex-wrap gap-x-2 mt-1">
+                          {item.variantOptions?.length > 0 ? (
+                            item.variantOptions
+                              .filter(opt => opt.value !== null && opt.value !== "" && opt.value !== undefined)
+                              .map((opt, i, arr) => (
+                                <span key={i}>
+                                  {opt.name}: <span className="font-medium">{opt.value}</span>
+                                  {i < arr.length - 1 && " | "}
+                                </span>
+                              ))
+                          ) : (
+                            <span>Không có tùy chọn</span>
+                          )}
                         </div>
+                        
+                        <div className="text-[#116AD1] font-semibold mt-1">
+                          {format(item.price)}₫
+                        </div>
+                        
+                        {appliedCoupon && (
+                          <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 w-fit">
+                            <span className="text-xs font-semibold text-green-700">
+                              🎉 {appliedCoupon.code}
+                            </span>
+                            <span className="text-xs text-red-600 font-medium">
+                              (-{format(appliedCoupon.discountValue)}₫)
+                            </span>
+                            <button
+                              onClick={() => removeCoupon(item.id)}
+                              className="text-red-500 hover:text-red-700 text-sm font-bold ml-1"
+                              title="Hủy mã"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                        
+                        {!appliedCoupon && item.storeId && (
+                          <button
+                            onClick={() => handleOpenStoreCouponModal(item.id, item.storeId)}
+                            className="mt-2 text-blue-600 hover:text-blue-700 underline text-sm font-medium"
+                          >
+                            📋 Chọn mã giảm giá
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => decrement(item.id)}
+                          className="w-8 h-8 border rounded hover:bg-gray-100 transition"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="text"
+                          value={item.qty}
+                          onChange={(e) => handleQtyChange(item.id, e.target.value)}
+                          onBlur={(e) => handleQtyBlur(item.id, e.target.value)}
+                          className="w-12 text-center border rounded h-8"
+                        />
+                        <button
+                          onClick={() => increment(item.id)}
+                          className="w-8 h-8 border rounded hover:bg-gray-100 transition"
+                        >
+                          +
+                        </button>
+                      </div>
+                      
+                      <div className="font-semibold text-gray-800">
+                        {format(item.price * item.qty)}₫
+                      </div>
                     </div>
-                    <div className="font-semibold">{format(i.price * i.qty)}₫</div>
-                  </div>
-                ))}
+                  );
+                })}
                 {orderItems.length === 0 && (
-                    <div className="py-3 text-gray-500 text-sm">Không có sản phẩm nào được chọn để đặt hàng.</div>
+                  <div className="py-3 text-gray-500 text-sm">
+                    Không có sản phẩm nào được chọn để đặt hàng.
+                  </div>
                 )}
               </div>
               <Link to="/cart" className="mt-3 text-sm text-[#116AD1] underline block">
@@ -415,66 +486,103 @@ const PlaceOrder = () => {
               </Link>
             </div>
 
-            {/* ===================== MÃ GIẢM GIÁ (API) ===================== */}
+            {/* ===================== MÃ GIẢM GIÁ ===================== */}
             <div className="bg-white rounded-lg p-5 shadow">
-              <div className="font-semibold text-lg border-b pb-2">
+              <div className="font-semibold text-lg border-b pb-2 mb-4">
                 🏷️ Mã giảm giá
               </div>
               
-              <div className="mt-3 flex items-center gap-2">
-                <input
-                    type="text"
-                    placeholder="Nhập mã giảm giá"
-                    value={couponCodeInput}
-                    onChange={(e) => setCouponCodeInput(e.target.value)}
-                    className="flex-1 border rounded px-3 py-2 text-sm"
-                />
-                <button
-                    onClick={handleApplyCoupon}
-                    className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]"
-                    disabled={!couponCodeInput}
-                >
-                    Áp dụng
-                </button>
-              </div>
-
-              <div className="mt-4 space-y-3 text-sm">
-                <div className="text-gray-700 font-medium">Mã đã áp dụng:</div>
-                
-                <div className="border p-3 rounded bg-gray-50">
-                    <div className="font-medium">Mã từ cửa hàng:</div>
-                    {appliedStoreCoupon ? (
-                        <div className="flex justify-between items-center text-green-600 mt-1">
-                            <span>**{appliedStoreCoupon.code}** (Giảm: {appliedStoreCoupon.is_percent ? appliedStoreCoupon.discount_value + "%" : format(appliedStoreCoupon.discount_value) + "₫"})</span>
-                            <button onClick={() => setAppliedStoreCoupon(null)} className="text-red-500 text-xs underline">Hủy</button>
-                        </div>
-                    ) : (
-                        <div className="text-gray-500 mt-1">Chưa áp dụng.</div>
-                    )}
+              <div className="space-y-4">
+                {/* Mã giảm giá từ cửa hàng */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-gray-700">Mã từ cửa hàng</span>
+                  </div>
+                  
+                  {Object.entries(appliedCoupons).filter(([cartItemId, _]) => {
+                    const item = orderItems.find(i => i.id === Number(cartItemId));
+                    return item && item.storeId;
+                  }).length > 0 ? (
+                    <div className="space-y-2">
+                      {Object.entries(appliedCoupons)
+                        .filter(([cartItemId, _]) => {
+                          const item = orderItems.find(i => i.id === Number(cartItemId));
+                          return item && item.storeId;
+                        })
+                        .map(([cartItemId, coupon]) => {
+                          const item = orderItems.find(i => i.id === Number(cartItemId));
+                          return (
+                            <div key={cartItemId} className="flex justify-between items-center bg-white border border-green-200 rounded px-3 py-2">
+                              <div className="flex-1">
+                                <span className="text-sm font-semibold text-green-700">
+                                  {coupon.code}
+                                </span>
+                                <div className="text-xs text-gray-500 mt-0.5">
+                                  Cho: {item?.name}
+                                </div>
+                              </div>
+                              <span className="text-sm text-red-600 font-medium mr-2">
+                                -{format(coupon.discountValue)}₫
+                              </span>
+                              <button
+                                onClick={() => removeCoupon(Number(cartItemId))}
+                                className="text-red-500 hover:text-red-700 text-sm font-bold"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">
+                      Chưa áp dụng mã nào. Chọn mã ở phần sản phẩm bên trên.
+                    </div>
+                  )}
                 </div>
-                
-                <div className="border p-3 rounded bg-gray-50">
-                    <div className="font-medium">Mã toàn hệ thống (sản phẩm):</div>
-                    {appliedSystemCoupon ? (
-                        <div className="flex justify-between items-center text-green-600 mt-1">
-                            <span>**{appliedSystemCoupon.code}** (Giảm: {appliedSystemCoupon.is_percent ? appliedSystemCoupon.discount_value + "%" : format(appliedSystemCoupon.discount_value) + "₫"})</span>
-                            <button onClick={() => setAppliedSystemCoupon(null)} className="text-red-500 text-xs underline">Hủy</button>
-                        </div>
-                    ) : (
-                        <div className="text-gray-500 mt-1">Chưa áp dụng.</div>
-                    )}
-                </div>
 
-                <div className="border p-3 rounded bg-gray-50">
-                    <div className="font-medium">Mã vận chuyển:</div>
-                    {appliedShipCoupon ? (
-                        <div className="flex justify-between items-center text-green-600 mt-1">
-                            <span>**{appliedShipCoupon.code}** (Giảm: {appliedShipCoupon.is_free_shipping ? "Miễn phí" : format(appliedShipCoupon.discount_value) + "₫"})</span>
-                            <button onClick={() => setAppliedShipCoupon(null)} className="text-red-500 text-xs underline">Hủy</button>
-                        </div>
-                    ) : (
-                        <div className="text-gray-500 mt-1">Chưa áp dụng.</div>
-                    )}
+                {/* Mã giảm giá hệ thống */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-gray-700">Mã toàn hệ thống</span>
+                    <button
+                      onClick={handleOpenSystemCouponModal}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium underline"
+                    >
+                      Chọn mã
+                    </button>
+                  </div>
+                  
+                  {Object.entries(appliedCoupons).filter(([cartItemId, _]) => {
+                    const item = orderItems.find(i => i.id === Number(cartItemId));
+                    return item && !item.storeId;
+                  }).length > 0 ? (
+                    <div className="space-y-2">
+                      {Object.entries(appliedCoupons)
+                        .filter(([cartItemId, _]) => {
+                          const item = orderItems.find(i => i.id === Number(cartItemId));
+                          return item && !item.storeId;
+                        })
+                        .map(([cartItemId, coupon]) => (
+                          <div key={cartItemId} className="flex justify-between items-center bg-white border border-green-200 rounded px-3 py-2">
+                            <span className="text-sm font-semibold text-green-700">
+                              {coupon.code}
+                            </span>
+                            <span className="text-sm text-red-600 font-medium mr-2">
+                              -{format(coupon.discountValue)}₫
+                            </span>
+                            <button
+                              onClick={() => removeCoupon(Number(cartItemId))}
+                              className="text-red-500 hover:text-red-700 text-sm font-bold"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">Chưa áp dụng.</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -485,10 +593,9 @@ const PlaceOrder = () => {
                 💳 Phương thức thanh toán
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                {/* ⚠️ Cần thêm logic lưu trữ phương thức thanh toán đã chọn */}
                 <label className="flex items-center gap-2 border rounded px-3 py-2 cursor-pointer hover:border-[#116AD1]">
                   <input name="pm" type="radio" defaultChecked className="accent-[#116AD1]" />
-                  **COD** - Thanh toán khi nhận
+                  COD - Thanh toán khi nhận
                 </label>
                 <label className="flex items-center gap-2 border rounded px-3 py-2 cursor-pointer hover:border-[#116AD1]">
                   <input name="pm" type="radio" className="accent-[#116AD1]" />
@@ -501,36 +608,30 @@ const PlaceOrder = () => {
           {/* ===================== TỔNG KẾT THANH TOÁN ===================== */}
           <div className="bg-white rounded-lg shadow p-5 h-fit">
             <div className="font-semibold text-lg border-b pb-2 mb-3">
-                💰 Chi tiết thanh toán
+              💰 Chi tiết thanh toán
             </div>
 
             {/* Tạm tính */}
             <div className="flex justify-between text-sm py-1">
-              <span>Tạm tính (Giá gốc)</span>
+              <span>Tạm tính</span>
               <span className="font-medium">{format(productSubtotal)}₫</span>
             </div>
             
-            {/* Giảm giá hàng hóa */}
+            {/* Phí vận chuyển */}
             <div className="flex justify-between text-sm py-1">
-                <span className={productDiscount > 0 ? "text-red-500" : ""}>Giảm giá hàng hóa</span>
-                <span className={`font-medium ${productDiscount > 0 ? "text-red-500" : ""}`}>
-                    - {format(Math.round(productDiscount))}₫
-                </span>
+              <span>Phí vận chuyển</span>
+              <span className="font-medium">{format(totalShippingFee)}₫</span>
             </div>
             
-            {/* Phí vận chuyển gốc */}
-            <div className="flex justify-between text-sm py-1">
-              <span>Phí vận chuyển (Gốc)</span>
-              <span className="font-medium">{format(baseShippingFee)}₫</span>
-            </div>
-            
-            {/* Giảm phí vận chuyển */}
-            <div className="flex justify-between text-sm py-1">
-                <span className={shipDiscount > 0 ? "text-red-500" : ""}>Giảm phí vận chuyển</span>
-                <span className={`font-medium ${shipDiscount > 0 ? "text-red-500" : ""}`}>
-                    - {format(Math.round(shipDiscount))}₫
+            {/* Giảm giá */}
+            {totalDiscountValue > 0 && (
+              <div className="flex justify-between text-sm py-1">
+                <span className="text-red-500">Giảm giá</span>
+                <span className="font-medium text-red-500">
+                  -{format(totalDiscountValue)}₫
                 </span>
-            </div>
+              </div>
+            )}
             
             <div className="h-px bg-gray-200 my-3" />
             
@@ -559,6 +660,160 @@ const PlaceOrder = () => {
         </div>
       </main>
       <Footer />
+
+      {/* ===================== MODAL STORE COUPON ===================== */}
+      {showStoreCouponModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-lg w-[500px] p-6 relative flex flex-col max-h-[600px]">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Mã giảm giá cửa hàng
+              </h2>
+              <button
+                onClick={() => setShowStoreCouponModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Tìm kiếm mã giảm giá..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+
+            {loadingCoupons ? (
+              <p className="text-center text-gray-500 py-8">Đang tải...</p>
+            ) : (
+              <div className="overflow-y-auto flex-1 space-y-3">
+                {couponList
+                  .filter((c) => c.code.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((coupon) => (
+                    <div
+                      key={coupon.id}
+                      onClick={() => applyCoupon(coupon.code, selectedCartItemId)}
+                      className="border border-gray-200 rounded-xl p-4 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-800 text-lg">
+                            {coupon.code}
+                          </p>
+                          <p className="text-sm text-red-600 font-medium mt-1">
+                            Giảm: {format(coupon.discount)}₫
+                          </p>
+                          <div className="flex gap-3 mt-2 text-xs text-gray-500">
+                            <span>Còn lại: {coupon.quantity}</span>
+                            <span>•</span>
+                            <span>
+                              HSD: {new Date(coupon.expire).toLocaleDateString("vi-VN")}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-blue-600 font-medium text-sm whitespace-nowrap ml-3">
+                          Áp dụng →
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                {couponList.filter((c) =>
+                  c.code.toLowerCase().includes(searchTerm.toLowerCase())
+                ).length === 0 && (
+                  <p className="text-center text-gray-500 text-sm py-8">
+                    {searchTerm ? "Không tìm thấy mã phù hợp." : "Không có mã nào."}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL SYSTEM COUPON ===================== */}
+      {showSystemCouponModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-lg w-[500px] p-6 relative flex flex-col max-h-[600px]">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Mã giảm giá hệ thống
+              </h2>
+              <button
+                onClick={() => setShowSystemCouponModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Tìm kiếm mã giảm giá..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+
+            {loadingCoupons ? (
+              <p className="text-center text-gray-500 py-8">Đang tải...</p>
+            ) : (
+              <div className="overflow-y-auto flex-1 space-y-3">
+                <p className="text-sm text-gray-600 mb-3">
+                  Chọn sản phẩm để áp dụng mã:
+                </p>
+                
+                {orderItems.map((item) => (
+                  <div key={item.id} className="border rounded-lg p-3 mb-3">
+                    <div className="font-medium text-gray-800 mb-2">{item.name}</div>
+                    
+                    {couponList
+                      .filter((c) => c.code.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((coupon) => (
+                        <div
+                          key={coupon.id}
+                          onClick={() => applyCoupon(coupon.code, item.id)}
+                          className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all mb-2"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-800">
+                                {coupon.code}
+                              </p>
+                              <p className="text-sm text-red-600 font-medium">
+                                Giảm: {format(coupon.discount)}₫
+                              </p>
+                              <div className="flex gap-3 mt-1 text-xs text-gray-500">
+                                <span>Còn: {coupon.quantity}</span>
+                                <span>•</span>
+                                <span>
+                                  HSD: {new Date(coupon.expire).toLocaleDateString("vi-VN")}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-blue-600 font-medium text-sm whitespace-nowrap ml-3">
+                              Áp dụng →
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ))}
+
+                {couponList.filter((c) =>
+                  c.code.toLowerCase().includes(searchTerm.toLowerCase())
+                ).length === 0 && (
+                  <p className="text-center text-gray-500 text-sm py-8">
+                    {searchTerm ? "Không tìm thấy mã phù hợp." : "Không có mã nào."}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
