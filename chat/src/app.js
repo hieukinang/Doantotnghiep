@@ -1,14 +1,16 @@
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const mongoose = require('mongoose');
-const routes = require('./routes');
-const { mongoUri } = require('./config');
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import mongoose from 'mongoose';
+import routes from './routes/index.js';
+import { mongoUri } from './config.js';
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
@@ -21,4 +23,13 @@ app.use('/api', routes);
 
 app.get('/', (req, res) => res.json({ ok: true, version: '1.0' }));
 
-module.exports = app;
+// Middleware xử lý lỗi trả về JSON
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  res.status(status).json({
+    message: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+  });
+});
+
+export default app;

@@ -1,20 +1,42 @@
-const jwt = require('jsonwebtoken');
-const { jwtSecret } = require('../config');
-const User = require('../models/user.model');
+import jwt from 'jsonwebtoken';
+import User from '../models/user.model.js';
+import APIError from '../utils/apiError.js';
 
 async function authMiddleware(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  const token = auth.split(' ')[1];
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+  if (!token && req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+  if (!token) {
+    return next(new APIError("Unauthorized , Please login to get access", 401));
+  }
+
   try {
-    const payload = jwt.verify(token, jwtSecret);
-    const user = await User.findById(payload.userId);
-    if (!user) return res.status(401).json({ error: 'User not found' });
-    req.user = user;
+    const payload = jwt.verify(token, process.env.JWT_SECRET || 'change_this_secret');
+    const { userId } = payload;
+
+    // Tìm user trong DB theo userId
+    const currentUser = await User.findOne({ user_id: userId });
+    if (!currentUser) {
+      return next(new APIError("The user that belong to this token does no longer exist", 401));
+    }
+
+    // Nếu có logic đổi mật khẩu, kiểm tra tại đây (bỏ qua nếu không dùng)
+    // if (currentUser.isPasswordChangedAfterJwtIat && currentUser.isPasswordChangedAfterJwtIat(payload.iat)) {
+    //   return next(new APIError("User recently changed password, please log in again", 401));
+    // }
+
+    req.user = currentUser;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid token' });
+    return next(new APIError('Invalid token', 401));
   }
 }
 
-module.exports = authMiddleware;
+export default authMiddleware;

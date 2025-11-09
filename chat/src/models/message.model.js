@@ -1,13 +1,12 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const MessageSchema = new mongoose.Schema({
   conversation_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation', required: true },
-  sender_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  sender_id: { user_id: { type: String, required: true }, role: { type: String, enum: ['ADMIN', 'CLIENT', 'STORE', 'SHIPPER'], required: true } },
   content: { type: String },
-  attachments: [{ type: String }],
-  reactions: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, reaction: String }],
-  seen_by: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  attachments: [{ type: String }], // URLs of images uploaded to cloudinary
+  reactions: [{ user: { user_id: { type: String, required: true }, role: { type: String, enum: ['ADMIN', 'CLIENT', 'STORE', 'SHIPPER'], required: true } }, reaction: String }],
   sent_at: { type: Date, default: Date.now }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Message', MessageSchema);
+export default mongoose.model('Message', MessageSchema);
