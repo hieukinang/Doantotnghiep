@@ -30,6 +30,10 @@ const Order = sequelize.define(
       defaultValue: ORDER_STATUS.PROCESSING,
       allowNull: true,
     },
+    real_location: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     shipping_address: {
       type: DataTypes.STRING(255),
       allowNull: true,

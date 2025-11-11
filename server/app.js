@@ -17,6 +17,7 @@ import helmet from "helmet";
 import xss from "xss-clean";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
+import { webhookCheckout } from "./controller/transactionController.js";
 
 //_________ENV_VARIABLES_________//
 dotenv.config();
@@ -34,11 +35,11 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "uploads")));
 
 //_________STRIPE_WEBHOOK_________//
-// app.post(
-//   "/api/webhook",
-//   express.raw({type: "application/json"}),
-//   webhookCheckout
-// );
+app.post(
+  "/api/webhook",
+  express.raw({type: "application/json"}),
+  webhookCheckout
+);
 
 //_________MIDDLEWARES_________//
 // 1)_[SECURITY]-{CROSS_SITE_SCRIPTING(XSS)}_HELMET_HEADERS_

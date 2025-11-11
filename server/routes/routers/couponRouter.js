@@ -27,14 +27,14 @@ router
   .get(getCouponByCode);
 
 router.route("/admin")
-  .get(isAuth(Admin), checkAdminStatus, getAllCouponsForAdmin)
+  .get(isAuth(Admin), checkAdminStatus, getAllCouponsForAdmin) // lấy tất cả coupon cho admin
   .post(isAuth(Admin), checkAdminStatus, createCouponforAdminValidator, createCouponforAdmin);
 
 router.route("/admin/:id")
   .delete(isAuth(Admin), checkAdminStatus, IdValidator, deleteSingleCoupon);
 
 router.route("/store")
-  .get(isAuth(Store), checkStoreStatus, getAllCouponsForStore)
+  .get(isAuth(Store), checkStoreStatus, getAllCouponsForStore) // lấy tất cả coupon cho store
   .post(isAuth(Store), checkStoreStatus, createCouponforStoreValidator, createCouponforStore);
 
 router.route("/store/:id")

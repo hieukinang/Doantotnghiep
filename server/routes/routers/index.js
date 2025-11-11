@@ -18,6 +18,7 @@ import notificationRouter from "./notificationRouter.js";
 import followRouter from "./followRouter.js";
 import reviewRouter from "./reviewRouter.js";
 import shippingCodeRouter from "./shippingCodeRouter.js";
+import transactionRouter from "./transactionRouter.js";
 
 const router = express.Router();
 
@@ -39,5 +40,6 @@ router.use("/notifications", notificationRouter);
 router.use("/follows", followRouter); // follow endpoints attached to stores
 router.use("/reviews", reviewRouter);
 router.use("/shipping-codes", shippingCodeRouter);
+router.use("/transactions", transactionRouter);
 
 export default router;

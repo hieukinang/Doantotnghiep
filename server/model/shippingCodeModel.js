@@ -23,8 +23,7 @@ const ShippingCode = sequelize.define(
       type: DataTypes.INTEGER, // phần trăm giảm giá phí vận chuyển
       allowNull: false,
       validate: {
-        min: 1,
-        max: 100,   
+        min: 1,  
       }
     },
     quantity: {
