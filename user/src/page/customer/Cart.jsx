@@ -18,10 +18,10 @@ const Cart = () => {
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   const [couponList, setCouponList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProductVariantId, setSelectedProductVariantId] = useState(null);
+  const [selectedStoreId, setSelectedStoreId] = useState(null);
 
-  // State lưu mã giảm giá đã áp dụng
-  const [appliedCoupons, setAppliedCoupons] = useState({});
+  // State lưu mã giảm giá đã áp dụng theo storeId (thay vì cartItemId)
+  const [appliedStoreCoupons, setAppliedStoreCoupons] = useState({});
 
   // ==================== LOAD INITIAL DATA ====================
   useEffect(() => {
@@ -30,13 +30,13 @@ const Cart = () => {
     // Load trạng thái từ localStorage
     const savedChecked = JSON.parse(localStorage.getItem("checkedItems") || "[]");
     const savedQuantities = JSON.parse(localStorage.getItem("quantities") || "{}");
-    const savedCoupons = JSON.parse(localStorage.getItem("appliedCoupons") || "{}");
-    
+    const savedStoreCoupons = JSON.parse(localStorage.getItem("appliedStoreCoupons") || "{}");
+
     if (savedChecked.length > 0) setCheckedItems(savedChecked);
     if (Object.keys(savedQuantities).length > 0) setQuantities(savedQuantities);
-    if (Object.keys(savedCoupons).length > 0) {
-      setAppliedCoupons(savedCoupons);
-      console.log("🎟️ Loaded coupons from localStorage:", savedCoupons);
+    if (Object.keys(savedStoreCoupons).length > 0) {
+      setAppliedStoreCoupons(savedStoreCoupons);
+      console.log("🎟️ Loaded store coupons from localStorage:", savedStoreCoupons);
     }
   }, []);
 
@@ -61,25 +61,32 @@ const Cart = () => {
         );
       }
 
-      // ✅ Dọn dẹp appliedCoupons: Xóa các coupon của item không còn trong cart
-      setAppliedCoupons((prev) => {
+      // ✅ Dọn dẹp appliedStoreCoupons: Xóa các coupon của store không còn sản phẩm trong cart
+      setAppliedStoreCoupons((prev) => {
         const cleanedCoupons = {};
-        const currentCartItemIds = new Set(cartItems.map(item => item.id));
-        
-        Object.keys(prev).forEach(cartItemId => {
-          if (currentCartItemIds.has(Number(cartItemId))) {
-            cleanedCoupons[cartItemId] = prev[cartItemId];
+        const currentStoreIds = new Set();
+
+        cartItems.forEach((item) => {
+          const variant = item.CartItemProductVariant;
+          const product = variant?.ProductVariantProduct;
+          const storeId = variant?.storeId ?? product?.storeId ?? null;
+          if (storeId) currentStoreIds.add(storeId);
+        });
+
+        Object.keys(prev).forEach(storeId => {
+          if (currentStoreIds.has(storeId)) {
+            cleanedCoupons[storeId] = prev[storeId];
           } else {
-            console.log(`🧹 Removed coupon for deleted item ${cartItemId}`);
+            console.log(`🧹 Removed coupon for deleted store ${storeId}`);
           }
         });
-        
+
         return cleanedCoupons;
       });
     } else {
       setQuantities({});
       setCheckedItems([]);
-      setAppliedCoupons({});
+      setAppliedStoreCoupons({});
     }
   }, [cartItems]);
 
@@ -93,9 +100,9 @@ const Cart = () => {
   }, [quantities]);
 
   useEffect(() => {
-    localStorage.setItem("appliedCoupons", JSON.stringify(appliedCoupons));
-    console.log("💾 Saved coupons to localStorage:", appliedCoupons);
-  }, [appliedCoupons]);
+    localStorage.setItem("appliedStoreCoupons", JSON.stringify(appliedStoreCoupons));
+    console.log("💾 Saved store coupons to localStorage:", appliedStoreCoupons);
+  }, [appliedStoreCoupons]);
 
   // ==================== XỬ LÝ SỐ LƯỢNG ====================
   const handleQtyChange = (id, value) => {
@@ -129,14 +136,6 @@ const Cart = () => {
     );
     if (cartItem) {
       setCheckedItems((prev) => prev.filter((id) => id !== cartItem.id));
-      
-      // ✅ Xóa coupon của item này
-      setAppliedCoupons((prev) => {
-        const newState = { ...prev };
-        delete newState[cartItem.id];
-        console.log(`🗑️ Removed coupon for item ${cartItem.id}`);
-        return newState;
-      });
     }
     await removeFromCart(productVariantId);
   };
@@ -159,6 +158,32 @@ const Cart = () => {
     }
   };
 
+  // Chọn tất cả sản phẩm của một store
+  const handleCheckAllStore = (storeItems, e) => {
+    const storeItemIds = storeItems.map((item) => item.id);
+    if (e.target.checked) {
+      // Thêm tất cả sản phẩm của store vào checkedItems
+      setCheckedItems((prev) => {
+        const newChecked = [...prev];
+        storeItemIds.forEach((id) => {
+          if (!newChecked.includes(id)) {
+            newChecked.push(id);
+          }
+        });
+        return newChecked;
+      });
+    } else {
+      // Xóa tất cả sản phẩm của store khỏi checkedItems
+      setCheckedItems((prev) => prev.filter((id) => !storeItemIds.includes(id)));
+    }
+  };
+
+  // Kiểm tra xem tất cả sản phẩm của store đã được chọn chưa
+  const isAllStoreItemsChecked = (storeItems) => {
+    if (storeItems.length === 0) return false;
+    return storeItems.every((item) => checkedItems.includes(item.id));
+  };
+
   // ==================== TÍNH TỔNG TIỀN ====================
   let subtotal = 0;
   let totalShippingFee = 0;
@@ -166,6 +191,9 @@ const Cart = () => {
 
   if (cartItems && cartItems.length > 0) {
     const storeShippingMap = new Map();
+
+    // Tính discount theo store (mỗi store chỉ tính 1 lần)
+    const storeDiscountMap = new Map();
 
     cartItems.forEach((it) => {
       const isChecked = checkedItems.includes(it.id);
@@ -175,21 +203,25 @@ const Cart = () => {
       const product = variant?.ProductVariantProduct;
       const price = variant?.price || 0;
       const qty = quantities[it.id] || it.quantity || 1;
-      const appliedCoupon = appliedCoupons[it.id];
 
-      // Tính tạm tính
-      subtotal += price * qty;
-
-      // ✅ Tính tổng giảm giá - CHỈ TÍNH 1 LẦN cho mỗi sản phẩm
-      if (appliedCoupon && appliedCoupon.discountValue) {
-        totalDiscountValue += Number(appliedCoupon.discountValue);
-      }
-
-      // Tính phí vận chuyển (theo shop)
       const storeId =
         variant?.storeId ??
         product?.storeId ??
         `product-${product?.id ?? variant?.productId ?? it.product_variantId ?? it.id}`;
+
+      // Tính tạm tính
+      subtotal += price * qty;
+
+      // ✅ Tính tổng giảm giá theo store (mỗi store chỉ tính 1 lần)
+      if (storeId && !storeDiscountMap.has(storeId)) {
+        const storeCoupon = appliedStoreCoupons[storeId];
+        if (storeCoupon && storeCoupon.discountValue) {
+          storeDiscountMap.set(storeId, Number(storeCoupon.discountValue));
+          totalDiscountValue += Number(storeCoupon.discountValue);
+        }
+      }
+
+      // Tính phí vận chuyển (theo shop)
       const storeShippingFee = variant?.shipping_fee ?? 30000;
 
       if (!storeShippingMap.has(storeId)) {
@@ -211,8 +243,8 @@ const Cart = () => {
   const totalAmount = subtotal + totalShippingFee - totalDiscountValue;
 
   // ==================== XỬ LÝ COUPON ====================
-  const handleOpenStoreCouponModal = async (storeId, productVariantId) => {
-    setSelectedProductVariantId(productVariantId);
+  const handleOpenStoreCouponModal = async (storeId) => {
+    setSelectedStoreId(storeId);
     setIsModalOpen(true);
     setLoadingCoupons(true);
     setSearchTerm("");
@@ -234,18 +266,32 @@ const Cart = () => {
     }
   };
 
-  const applyCoupon = async (code, productVariantId) => {
-    if (!productVariantId || !clientToken) {
+  const applyCoupon = async (code) => {
+    if (!selectedStoreId || !clientToken) {
       alert("Lỗi: Không đủ thông tin để áp dụng mã giảm giá!");
       return;
     }
 
     try {
-      console.log("🎟️ Đang áp dụng coupon:", { code, productVariantId });
-      
+      console.log("🎟️ Đang áp dụng coupon cho store:", { code, storeId: selectedStoreId });
+
+      // Lấy một productVariantId bất kỳ của store để validate coupon
+      const storeItems = cartItems.filter((item) => {
+        const variant = item.CartItemProductVariant;
+        const product = variant?.ProductVariantProduct;
+        const storeId = variant?.storeId ?? product?.storeId ?? null;
+        return storeId === selectedStoreId;
+      });
+
+      if (storeItems.length === 0) {
+        alert("Không tìm thấy sản phẩm của cửa hàng này!");
+        return;
+      }
+
+      const firstItem = storeItems[0];
       const res = await axios.patch(
         `${backendURL}/carts/apply-coupon`,
-        { couponCode: code, product_variantId: productVariantId },
+        { couponCode: code, product_variantId: firstItem.product_variantId },
         { headers: { Authorization: `Bearer ${clientToken}` } }
       );
 
@@ -258,35 +304,27 @@ const Cart = () => {
 
         console.log("💰 Discount value:", discountValue);
 
-        // ✅ Tìm cart item ID
-        const cartItem = cartItems.find(
-          (item) => item.product_variantId === productVariantId
-        );
+        // ✅ Cập nhật state appliedStoreCoupons theo storeId
+        setAppliedStoreCoupons((prev) => ({
+          ...prev,
+          [selectedStoreId]: {
+            code: code,
+            discountValue: Number(discountValue),
+          },
+        }));
 
-        if (cartItem) {
-          // ✅ Cập nhật state appliedCoupons
-          setAppliedCoupons((prev) => ({
-            ...prev,
-            [cartItem.id]: {
-              code: code,
-              discountValue: Number(discountValue),
-            },
-          }));
-          
-          console.log("✅ Đã cập nhật appliedCoupons:", {
-            cartItemId: cartItem.id,
-            code,
-            discountValue,
-          });
+        console.log("✅ Đã cập nhật appliedStoreCoupons:", {
+          storeId: selectedStoreId,
+          code,
+          discountValue,
+        });
 
-          alert("Áp dụng mã giảm giá thành công!");
-        }
-
+        alert("Áp dụng mã giảm giá thành công cho toàn bộ cửa hàng!");
         handleCloseModal();
       } else {
         alert(
           "Áp dụng mã giảm giá thất bại: " +
-            (res.data.message || "Lỗi không xác định")
+          (res.data.message || "Lỗi không xác định")
         );
       }
     } catch (err) {
@@ -297,15 +335,15 @@ const Cart = () => {
     }
   };
 
-  const removeCoupon = (cartItemId) => {
+  const removeStoreCoupon = (storeId) => {
     // ✅ Xóa khỏi state local (và tự động lưu vào localStorage qua useEffect)
-    setAppliedCoupons((prev) => {
+    setAppliedStoreCoupons((prev) => {
       const newState = { ...prev };
-      delete newState[cartItemId];
-      console.log(`🗑️ Removed coupon for cart item ${cartItemId}`);
+      delete newState[storeId];
+      console.log(`🗑️ Removed coupon for store ${storeId}`);
       return newState;
     });
-    
+
     alert("Đã loại bỏ mã giảm giá!");
   };
 
@@ -313,13 +351,42 @@ const Cart = () => {
     setIsModalOpen(false);
     setCouponList([]);
     setSearchTerm("");
-    setSelectedProductVariantId(null);
+    setSelectedStoreId(null);
   };
 
   const isAllChecked =
     cartItems &&
     cartItems.length > 0 &&
     checkedItems.length === cartItems.length;
+
+  // ==================== NHÓM SẢN PHẨM THEO STORE ====================
+  const groupItemsByStore = () => {
+    if (!cartItems || cartItems.length === 0) return {};
+
+    const grouped = {};
+    cartItems.forEach((it) => {
+      const variant = it.CartItemProductVariant;
+      const product = variant?.ProductVariantProduct;
+      const storeId =
+        variant?.storeId ??
+        product?.storeId ??
+        `product-${product?.id ?? variant?.productId ?? it.product_variantId ?? it.id}`;
+      const storeName = variant?.storeName || product?.storeName || "Cửa hàng không xác định";
+
+      if (!grouped[storeId]) {
+        grouped[storeId] = {
+          storeId,
+          storeName,
+          items: [],
+        };
+      }
+      grouped[storeId].items.push(it);
+    });
+
+    return grouped;
+  };
+
+  const groupedStores = groupItemsByStore();
 
   // ==================== JSX ====================
   return (
@@ -352,89 +419,50 @@ const Cart = () => {
                 </Link>
               </div>
             ) : (
-              <div className="divide-y">
-                {cartItems.map((it) => {
-                  const id = it.id;
-                  const variant = it.CartItemProductVariant;
-                  const product = variant?.ProductVariantProduct;
-                  const name = product?.name || "Không có tên sản phẩm";
-                  const img = product?.main_image;
-                  const price = variant?.price || 0;
-                  const shipping = variant?.shipping_fee || 30000;
-                  const qty = quantities[id] || it.quantity || 1;
-
-                  // ✅ Lấy coupon từ state (localStorage)
-                  const appliedCoupon = appliedCoupons[id];
-
-                  return (
-                    <div
-                      key={id}
-                      className="flex items-start gap-4 p-4 hover:bg-gray-50"
-                    >
-                      <input
-                        type="checkbox"
-                        className="accent-[#116AD1] w-5 h-5 mt-1"
-                        checked={checkedItems.includes(id)}
-                        onChange={(e) => {
-                          if (e.target.checked)
-                            setCheckedItems((prev) => [...prev, id]);
-                          else
-                            setCheckedItems((prev) =>
-                              prev.filter((x) => x !== id)
-                            );
-                        }}
-                      />
-                      <img
-                        src={img}
-                        alt={name}
-                        className="w-20 h-20 rounded object-cover border"
-                      />
-
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-800">
-                          {name}
+              <div className="divide-y divide-gray-200">
+                {Object.values(groupedStores).map((storeGroup, storeIndex) => (
+                  <div
+                    key={storeGroup.storeId}
+                    className={`${storeIndex > 0 ? "border-t-2 border-gray-300" : ""
+                      }`}
+                  >
+                    {/* Header của Store */}
+                    <div className="px-5 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">🏪</span>
+                          <div>
+                            <h3 className="font-semibold text-gray-800 text-base">
+                              {storeGroup.storeName}
+                            </h3>
+                            <p className="text-xs text-gray-600">
+                              {storeGroup.items.length} sản phẩm
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500 flex flex-wrap gap-x-2">
-                          {variant?.options?.length > 0 ? (
-                            variant.options
-                              .filter(
-                                (opt) =>
-                                  opt.value !== null &&
-                                  opt.value !== "" &&
-                                  opt.value !== undefined
-                              )
-                              .map((opt, i, arr) => (
-                                <span key={i}>
-                                  {opt.name}:{" "}
-                                  <span className="font-medium">
-                                    {opt.value}
-                                  </span>
-                                  {i < arr.length - 1 && " | "}
-                                </span>
-                              ))
-                          ) : (
-                            <span>Không có tùy chọn</span>
-                          )}
-                        </div>
+                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-[#116AD1] transition-colors">
+                          <input
+                            type="checkbox"
+                            className="accent-[#116AD1] w-4 h-4"
+                            checked={isAllStoreItemsChecked(storeGroup.items)}
+                            onChange={(e) => handleCheckAllStore(storeGroup.items, e)}
+                          />
+                          <span className="font-medium">Chọn tất cả</span>
+                        </label>
+                      </div>
 
-                        <div className="text-[#116AD1] font-semibold mt-1">
-                          {format(price)}₫
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Phí vận chuyển: {format(shipping)}₫
-                        </div>
-
-                        {/* ✅ Hiển thị mã giảm giá đã áp dụng */}
-                        {appliedCoupon ? (
-                          <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 w-fit">
+                      {/* Mã giảm giá của Store */}
+                      <div className="mt-2 flex items-center gap-2">
+                        {appliedStoreCoupons[storeGroup.storeId] ? (
+                          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
                             <span className="text-sm font-semibold text-green-700">
-                              🎉 {appliedCoupon.code}
+                              🎉 {appliedStoreCoupons[storeGroup.storeId].code}
                             </span>
                             <span className="text-sm text-red-600 font-medium">
-                              (-{format(appliedCoupon.discountValue)}₫)
+                              (-{format(appliedStoreCoupons[storeGroup.storeId].discountValue)}₫)
                             </span>
                             <button
-                              onClick={() => removeCoupon(id)}
+                              onClick={() => removeStoreCoupon(storeGroup.storeId)}
                               className="text-red-500 hover:text-red-700 text-sm font-bold ml-1"
                               title="Hủy mã"
                             >
@@ -443,55 +471,121 @@ const Cart = () => {
                           </div>
                         ) : (
                           <button
-                            onClick={() => {
-                              const storeId =
-                                variant?.storeId ??
-                                product?.storeId ??
-                                `product-${product?.id ?? variant?.productId ?? it.product_variantId ?? it.id}`;
-                              handleOpenStoreCouponModal(
-                                storeId,
-                                it.product_variantId
-                              );
-                            }}
-                            className="mt-2 text-blue-600 hover:text-blue-700 underline text-sm font-medium"
+                            onClick={() => handleOpenStoreCouponModal(storeGroup.storeId)}
+                            className="text-blue-600 hover:text-blue-700 underline text-sm font-medium"
                           >
-                            📋 Chọn mã giảm giá
+                            📋 Chọn mã giảm giá của {storeGroup.storeName}
                           </button>
                         )}
                       </div>
-
-                      {/* Điều chỉnh số lượng */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => decrement(id)}
-                          className="w-8 h-8 border rounded hover:bg-gray-100 transition"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="text"
-                          value={qty}
-                          onChange={(e) => handleQtyChange(id, e.target.value)}
-                          onBlur={(e) => handleQtyBlur(id, e.target.value)}
-                          className="w-12 text-center border rounded h-8"
-                        />
-                        <button
-                          onClick={() => increment(id)}
-                          className="w-8 h-8 border rounded hover:bg-gray-100 transition"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <button
-                        onClick={() => handleRemove(it.product_variantId)}
-                        className="px-3 py-2 text-sm rounded text-white bg-red-500 hover:bg-red-600 transition mt-1"
-                      >
-                        Xóa
-                      </button>
                     </div>
-                  );
-                })}
+
+                    {/* Sản phẩm của Store */}
+                    <div className="divide-y divide-gray-100">
+                      {storeGroup.items.map((it) => {
+                        const id = it.id;
+                        const variant = it.CartItemProductVariant;
+                        const product = variant?.ProductVariantProduct;
+                        const name = product?.name || "Không có tên sản phẩm";
+                        const img = product?.main_image;
+                        const price = variant?.price || 0;
+                        const shipping = variant?.shipping_fee || 30000;
+                        const qty = quantities[id] || it.quantity || 1;
+
+                        return (
+                          <div
+                            key={id}
+                            className="flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              className="accent-[#116AD1] w-5 h-5 mt-1"
+                              checked={checkedItems.includes(id)}
+                              onChange={(e) => {
+                                if (e.target.checked)
+                                  setCheckedItems((prev) => [...prev, id]);
+                                else
+                                  setCheckedItems((prev) =>
+                                    prev.filter((x) => x !== id)
+                                  );
+                              }}
+                            />
+                            <img
+                              src={img}
+                              alt={name}
+                              className="w-20 h-20 rounded object-cover border"
+                            />
+
+                            <div className="flex-1">
+                              <div className="font-semibold text-gray-800">
+                                {name}
+                              </div>
+                              <div className="text-sm text-gray-500 flex flex-wrap gap-x-2">
+                                {variant?.options?.length > 0 ? (
+                                  variant.options
+                                    .filter(
+                                      (opt) =>
+                                        opt.value !== null &&
+                                        opt.value !== "" &&
+                                        opt.value !== undefined
+                                    )
+                                    .map((opt, i, arr) => (
+                                      <span key={i}>
+                                        {opt.name}:{" "}
+                                        <span className="font-medium">
+                                          {opt.value}
+                                        </span>
+                                        {i < arr.length - 1 && " | "}
+                                      </span>
+                                    ))
+                                ) : (
+                                  <span>Không có tùy chọn</span>
+                                )}
+                              </div>
+
+                              <div className="text-[#116AD1] font-semibold mt-1">
+                                {format(price)}₫
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Phí vận chuyển: {format(shipping)}₫
+                              </div>
+                            </div>
+
+                            {/* Điều chỉnh số lượng */}
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => decrement(id)}
+                                className="w-8 h-8 border rounded hover:bg-gray-100 transition"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="text"
+                                value={qty}
+                                onChange={(e) => handleQtyChange(id, e.target.value)}
+                                onBlur={(e) => handleQtyBlur(id, e.target.value)}
+                                className="w-12 text-center border rounded h-8"
+                              />
+                              <button
+                                onClick={() => increment(id)}
+                                className="w-8 h-8 border rounded hover:bg-gray-100 transition"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <button
+                              onClick={() => handleRemove(it.product_variantId)}
+                              className="px-3 py-2 text-sm rounded text-white bg-red-500 hover:bg-red-600 transition mt-1"
+                            >
+                              Xóa
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -592,9 +686,7 @@ const Cart = () => {
                   .map((coupon) => (
                     <div
                       key={coupon.id}
-                      onClick={() =>
-                        applyCoupon(coupon.code, selectedProductVariantId)
-                      }
+                      onClick={() => applyCoupon(coupon.code)}
                       className="border border-gray-200 rounded-xl p-4 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all"
                     >
                       <div className="flex justify-between items-start">
@@ -626,12 +718,12 @@ const Cart = () => {
                 {couponList.filter((c) =>
                   c.code.toLowerCase().includes(searchTerm.toLowerCase())
                 ).length === 0 && (
-                  <p className="text-center text-gray-500 text-sm py-8">
-                    {searchTerm
-                      ? "Không tìm thấy mã giảm giá phù hợp."
-                      : "Không có mã giảm giá nào cho shop này."}
-                  </p>
-                )}
+                    <p className="text-center text-gray-500 text-sm py-8">
+                      {searchTerm
+                        ? "Không tìm thấy mã giảm giá phù hợp."
+                        : "Không có mã giảm giá nào cho shop này."}
+                    </p>
+                  )}
               </div>
             )}
           </div>

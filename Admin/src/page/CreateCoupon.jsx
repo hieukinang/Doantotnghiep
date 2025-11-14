@@ -127,7 +127,7 @@ const CreateCoupon = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block mb-1 font-medium">Giảm giá (%) *</label>
+            <label className="block mb-1 font-medium">Giảm giá (đ) *</label>
             <input
               type="number"
               name="discount"

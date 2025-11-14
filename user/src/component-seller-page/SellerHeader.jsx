@@ -26,6 +26,10 @@ const SellerHeader = () => {
     navigate("/seller/edit-profile");
     setIsToggleOpen(false);
   };
+    const handleBackHome = () => {
+    navigate("/");
+    setIsToggleOpen(false);
+  };
 
   const handleLogout = async () => {
     try {
@@ -113,7 +117,12 @@ const SellerHeader = () => {
               >
                 Trang cá nhân
               </button>
-
+              <button
+                onClick={handleBackHome}
+                className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
+              >
+                Về trang chủ
+              </button>
               <button
                 onClick={handleLogout}
                 className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-b-lg"
