@@ -27,7 +27,7 @@ const Order = sequelize.define(
     },
     status: {
       type: DataTypes.ENUM(...Object.values(ORDER_STATUS)),
-      defaultValue: ORDER_STATUS.PROCESSING,
+      defaultValue: ORDER_STATUS.PENDING,
       allowNull: true,
     },
     real_location: {

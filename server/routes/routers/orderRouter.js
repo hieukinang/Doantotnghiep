@@ -4,45 +4,40 @@ import {
   createCashOrder,
   getAllOrdersByClient,
   getSingleOrder,
-//   updateOrderToPaid,
-//   updateOrderToDelivered,
-//   getAllOrders,
-//   getSingleOrder,
-//   updateSingleOrder,
-//   deleteSingleOrder,
-//   filterUserOrders,
-//   createCheckoutSession,
+  getAllOrdersByStore,
+  confirmOrderByStore,
+  shipperFindOrderById,
+  shipperReceiveOrder,
 } from "../../controller/orderController.js";
 import {
   OrderIdValidator,
 } from "../../validators/order.validator.js";
 import Client from "../../model/clientModel.js";
-import { checkClientStatus } from "../../validators/status.validator.js";
+import { 
+  checkClientStatus, 
+  checkShipperStatus, 
+  checkStoreStatus,
+} from "../../validators/status.validator.js";
+import Store from "../../model/storeModel.js";
+import Shipper from "../../model/shipperModel.js";
 
 const router = express.Router();
 
-// router.route("/checkout-session").post(createCheckoutSession);
 router.route("/checkout-cash").post(
     isAuth(Client), 
     checkClientStatus,
-    // createCashOrderValidator, 
     createCashOrder);
 
 router.route("/client").get(isAuth(Client), checkClientStatus, getAllOrdersByClient);
 
 router.route("/client/:id").get(isAuth(Client), checkClientStatus, OrderIdValidator, getSingleOrder);
 
-// router.use(allowedTo(USER_ROLES.ADMIN));
-// router
-//   .route("/:id")
-//   .patch(updateSingleOrder)
-//   .delete(deleteOrderValidator, deleteSingleOrder);
+router.route("/store").get(isAuth(Store), checkStoreStatus, getAllOrdersByStore);
 
-// router
-//   .route("/:orderId/is-paid")
-//   .patch(updateOrderStatusValidator, updateOrderToPaid);
-// router
-//   .route("/:orderId/is-delivered")
-//   .patch(updateOrderStatusValidator, updateOrderToDelivered);
+router.route("/store/:id").post(isAuth(Store), checkStoreStatus, OrderIdValidator, confirmOrderByStore);
+
+router.route("/shipper/:id").get(isAuth(Shipper), checkShipperStatus, shipperFindOrderById);
+
+router.route("/shipper/:id").post(isAuth(Shipper), checkShipperStatus, OrderIdValidator, shipperReceiveOrder);
 
 export default router;

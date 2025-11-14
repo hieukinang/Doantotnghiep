@@ -35,19 +35,19 @@ export const createCheckoutSession = asyncHandler(async (req, res, next) => {
     line_items: [
       {
         price_data: {
-          currency: "usd",
-          unit_amount: amount * 100,
+          currency: "vnd",
+          unit_amount: amount,
           product_data: {
             name: `Top-up for ${username}`,
             description: description || "Account Wallet Top-up",
-            images: ["https://cdn3d.ifull-sh35048.png?f=webp"]
+            images: ["https://cdn3d.iconscout.com/3d/premium/thumb/full-shopping-cart-5685678-4735048.png?f=webp"]
           }
         },
         quantity: 1
       }
     ],
     mode: "payment",
-    success_url: `${process.env.CLIENT_URL}/wallet/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${process.env.CLIENT_URL}/wallet/success`,
     cancel_url: `${process.env.CLIENT_URL}/wallet`,
     customer_email: email,
 
@@ -55,7 +55,7 @@ export const createCheckoutSession = asyncHandler(async (req, res, next) => {
     metadata: {
       userId: userId,
       role: role,
-      amount: amountInCents
+      amount: amount
     }
   });
 
