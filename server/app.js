@@ -17,7 +17,10 @@ import helmet from "helmet";
 import xss from "xss-clean";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
-import { webhookCheckout } from "./controller/transactionController.js";
+import { 
+  webhookCheckout,
+  webhookCheckoutMoMo
+ } from "./controller/transactionController.js";
 
 //_________ENV_VARIABLES_________//
 dotenv.config();
@@ -33,6 +36,13 @@ app.options("*", cors());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "uploads")));
+
+//_________MOMO_WEBHOOK_________//
+app.get(
+  "/api/webhook/momo",
+  express.raw({type: "application/json"}),
+  webhookCheckoutMoMo
+);
 
 //_________STRIPE_WEBHOOK_________//
 app.post(

@@ -74,6 +74,10 @@ const Admin = sequelize.define(
         min: 0,
       },
     },
+    wallet: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
+    },
     address: {
       type: DataTypes.STRING(255),
       allowNull: true,

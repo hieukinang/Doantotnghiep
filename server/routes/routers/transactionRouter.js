@@ -1,11 +1,89 @@
 
 import express from "express";
-import { createCheckoutSession } from "../../controller/transactionController.js";
-import { isAuth } from "../../middleware/auth.middleware.js";
+import { 
+    createCheckoutSessionStripe,
+    createCheckoutSessionMomo,
+    getTransactionHistory
+} from "../../controller/transactionController.js";
 import Client from "../../model/clientModel.js";
+import Admin from "../../model/adminModel.js";
+import Store from "../../model/storeModel.js";
+import Shipper from "../../model/shipperModel.js";
+import asyncHandler from "../../utils/asyncHandler.utils.js";
+import { verifyToken } from "../../utils/tokenHandler.utils.js";
+import APIError from "../../utils/apiError.utils.js";
+
+
+
+const isAuth = () => asyncHandler(async (req, res, next) => {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+    if (!token && req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+    if (!token) {
+      return next(new APIError("Unauthorized, please login to get access", 401));
+    }
+
+    const decoded = verifyToken(token);
+    const userId = decoded && decoded.userId;
+    if (!userId) {
+      return next(new APIError("Invalid token payload", 401));
+    }
+
+    const match = userId.match(/^[A-Za-z]+/);
+    if (!match) {
+      return next(new APIError("Invalid userId format in token", 401));
+    }
+    const role = match[0];
+
+    let UserModel;
+    switch (role) {
+      case "ADMIN":
+        UserModel = Admin;
+        break;
+      case "CLIENT":
+        UserModel = Client;
+        break;
+      case "STORE":
+        UserModel = Store;
+        break;
+      case "SHIPPER":
+        UserModel = Shipper;
+        break;
+      default:
+        return next(new APIError("Invalid user role", 401));
+    }
+
+    const currentUser = await UserModel.findByPk(userId);
+    if (!currentUser) {
+      return next(new APIError("The user that belong to this token does no longer exist", 401));
+    }
+
+    if (currentUser.isPasswordChangedAfterJwtIat && currentUser.isPasswordChangedAfterJwtIat(decoded.iat)) {
+      return next(new APIError("User recently changed password, please log in again", 401));
+    }
+
+    req.user = currentUser;
+    req.model = UserModel;
+    next();
+  });
 
 const router = express.Router();
 
-router.route("/checkout-session").post(isAuth(Client), createCheckoutSession);
+router.route("/checkout-session/stripe").post(isAuth(), createCheckoutSessionStripe);
+router.route("/checkout-session/momo").post(isAuth(), createCheckoutSessionMomo);
+
+router.route("/get-wallet").get(isAuth(), asyncHandler(async (req, res, next) => {
+    const user = req.user;
+    res.status(200).json({
+        status: "success",
+        wallet: user.wallet
+    });
+}));
+
+router.route("/").get(isAuth(), getTransactionHistory);
 
 export default router;

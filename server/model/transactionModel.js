@@ -26,6 +26,10 @@ const Transaction = sequelize.define(
       type: DataTypes.ENUM(...Object.values(TRANSACTION_TYPE)),
       allowNull: false,
     },
+    payment_method: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
     reference_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
