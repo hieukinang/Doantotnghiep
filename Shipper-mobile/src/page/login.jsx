@@ -5,8 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import logo from '../../assets/icon.png';
 import { useAuth } from '../shipper-context/auth-context'; // sửa đường dẫn cho đúng
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const backendUrl = 'http://10.0.2.2:5000/api';
+import config from '../shipper-context/config';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -23,7 +22,7 @@ const Login = () => {
   const handleSubmit = async () => {
     try {
       const res = await axios.post(
-        `${backendUrl}/shippers/login`,
+        `${config.backendUrl}/shippers/login`,
         {
           emailOrPhone: formData.emailOrPhone,
           password: formData.password,

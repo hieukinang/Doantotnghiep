@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert 
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
-import Config from 'react-native-config';
 import UploadImage from '../component/upload-image';
+import config from '../shipper-context/config';
 
 
 const Register = () => {
@@ -46,7 +46,6 @@ const Register = () => {
     'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái'
   ];
 
-  const backendUrl = 'http://10.0.2.2:5000/api';
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -110,7 +109,7 @@ const Register = () => {
     }
 
     try {
-      const res = await axios.post(`${backendUrl}/shippers/register`, data, {
+      const res = await axios.post(`${config.backendUrl}/shippers/register`, data, {
         headers: {
           "Content-Type": "multipart/form-data"
         }

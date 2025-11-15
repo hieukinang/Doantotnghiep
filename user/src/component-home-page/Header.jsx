@@ -6,6 +6,7 @@ import logo from "../assets/home/logo.svg";
 import cartIcon from "../assets/home/cart.svg";
 import languageIcon from "../assets/language.svg";
 import searchIcon from "../assets/home/search.svg";
+import walletIcon from "../assets/home/icon_wallet.svg"
 
 const Header = () => {
   const {
@@ -169,7 +170,14 @@ const Header = () => {
             )}
           </div>
 
-          <div className="flex items-center relative">
+          <div className="flex items-center relative gap-6">
+            <Link to="/wallet" className="w-7 h-7">
+              <img
+                src={walletIcon}
+                alt="Customer wallet"
+                className="h-7 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
             <Link to="/cart" className="relative inline-block">
               <img
                 src={cartIcon}
