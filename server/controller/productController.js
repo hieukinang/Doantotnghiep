@@ -8,10 +8,10 @@ import {
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
 import sharp from "sharp";
+import Fuse from "fuse.js";
 
 import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
-import Category from "../model/categoryModel.js";
 import VariantOption from "../model/variantOptionModel.js";
 import Attribute from "../model/attributeModel.js";
 
@@ -139,13 +139,53 @@ export const getAllProductsForAdmin = getAll(Product, {
   order: [["createdAt", "DESC"]],
 });
 
-export const getAllProductsForClient = getAll(Product, {
-  where: { status: "ACTIVE" },
-  include: [
-    { model: ProductImage, as: "ProductImages" },
-    { model: ProductVariant, as: "ProductVariants" }
-  ],
-  order: [["createdAt", "DESC"]],
+export const getAllProductsForClient = asyncHandler(async (req, res, next) => {
+  const nameString = req.query.nameString || "";
+
+  // Phân trang
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10; // mặc định 10 sản phẩm/trang
+  const offset = (page - 1) * limit;
+
+  // Lấy toàn bộ sản phẩm ACTIVE
+  const products = await Product.findAll({
+    where: { status: "ACTIVE" },
+    include: [
+      { model: ProductImage, as: "ProductImages" },
+      { model: ProductVariant, as: "ProductVariants" }
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+
+  // Nếu không truyền nameString, trả về toàn bộ (có phân trang)
+  if (!nameString.trim()) {
+    const paginated = products.slice(offset, offset + limit);
+    return res.status(200).json({
+      status: "success",
+      results: paginated.length,
+      page,
+      total: products.length,
+      data: { products: paginated },
+    });
+  }
+
+  // Fuse.js search
+  const fuse = new Fuse(products, {
+    keys: ["name"],
+    threshold: 0.3,
+  });
+
+  const result = fuse.search(nameString);
+  const filteredProducts = result.map(r => r.item);
+  const paginated = filteredProducts.slice(offset, offset + limit);
+
+  res.status(200).json({
+    status: "success",
+    results: paginated.length,
+    page,
+    total: filteredProducts.length,
+    data: { products: paginated },
+  });
 });
 
 // @desc    GET Single Product

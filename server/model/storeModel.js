@@ -94,6 +94,10 @@ const Store = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    wallet: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
+    },
     city: {
       type: DataTypes.STRING(100),
       allowNull: true,
