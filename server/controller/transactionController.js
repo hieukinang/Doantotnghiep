@@ -6,6 +6,7 @@ import Shipper from "../model/shipperModel.js";
 import Transaction from "../model/transactionModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
+import { sequelize } from "../config/db.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -379,4 +380,65 @@ export const getTransactionHistory = asyncHandler(async (req, res, next) => {
     },
     data: transactions,
   });
+});
+
+export const withdrawWallet = asyncHandler(async (req, res, next) => {
+  const userId = req.user.id;
+  const { amount, password } = req.body;
+
+  if (!amount || isNaN(amount) || amount <= 0) {
+    return next(new APIError("Invalid amount", 400));
+  }
+  // Lấy user
+  const user = await req.model.findByPk(userId);
+  if (!user) {
+    return next(new APIError("User not found", 404));
+  }
+
+  if (user.wallet < Number(amount)) {
+    return next(new APIError("Insufficient wallet balance", 400));
+  }
+
+  // Yêu cầu password để xác thực
+  if (!password) {
+    return next(new APIError("Password is required to withdraw", 400));
+  }
+
+  // Kiểm tra method isCorrectPassword có tồn tại và password có đúng không
+  if (typeof user.isCorrectPassword !== "function") {
+    return next(new APIError("Password verification not available for this user", 400));
+  }
+
+  const passwordMatches = await user.isCorrectPassword(password);
+  if (!passwordMatches) {
+    return next(new APIError("Incorrect password", 401));
+  }
+
+  // Thực hiện cập nhật wallet và tạo Transaction trong 1 transaction DB
+  const t = await sequelize.transaction();
+  try {
+    user.wallet = Number(user.wallet) - Number(amount);
+    await user.save({ transaction: t });
+
+    await Transaction.create({
+      user_id: userId,
+      amount: Number(amount),
+      new_balance: user.wallet,
+      payment_method: "wallet",
+      type: TRANSACTION_TYPE.WITHDRAW,
+      status: "SUCCESS",
+      description: "Rút tiền từ ví"
+    }, { transaction: t });
+
+    await t.commit();
+
+    res.status(200).json({
+      status: "success",
+      message: "Withdraw successful",
+      newBalance: user.wallet
+    });
+  } catch (err) {
+    await t.rollback();
+    return next(err);
+  }
 });
