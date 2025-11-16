@@ -19,19 +19,38 @@ dotenv.config();
 
 // @ desc middleware to filter orders for the logged user
 // @access  Protected
+
 export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
+  const status = req.query.status;
+
+  // Build where clause: always filter by clientId, optionally by status if provided and valid
+  const where = { clientId };
+  if (status !== undefined && status !== null && String(status).trim() !== "") {
+    if (!Object.values(ORDER_STATUS).includes(status)) {
+      return next(new APIError("Invalid order status", 400));
+    }
+    where.status = status;
+  }
+
   const orders = await Order.findAll({
-    where: { clientId },
+    where,
     include: [
-      { model: OrderItem, as: "OrderItems", include: [
-        { model: ProductVariant, as: "OrderItemProductVariant", include: [
-          { model: Product, as: "ProductVariantProduct" }
-        ] }
-      ] }
+      {
+        model: OrderItem,
+        as: "OrderItems",
+        // include: [
+        //   {
+        //     model: ProductVariant,
+        //     as: "OrderItemProductVariant",
+        //     include: [{ model: Product, as: "ProductVariantProduct" }],
+        //   },
+        // ],
+      },
     ],
     order: [["createdAt", "DESC"]],
   });
+
   res.status(200).json({ status: "success", results: orders.length, data: { orders } });
 });
 
@@ -59,17 +78,36 @@ export const getSingleOrder = asyncHandler(async (req, res, next) => {
 // @access  Private("STORE")
 export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
   const storeId = req.user && req.user.id;
+  const status = req.query.status;
+
+  const where = { storeId };
+  if (status !== undefined && status !== null && String(status).trim() !== "") {
+    if (!Object.values(ORDER_STATUS).includes(status)) {
+      return next(new APIError("Invalid order status", 400));
+    }
+    where.status = status;
+  }
+
   const orders = await Order.findAll({
-    where: { storeId },
+    where,
     include: [
-      { model: OrderItem, as: "OrderItems", include: [
-        { model: ProductVariant, as: "OrderItemProductVariant", include: [
-          { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] }
-        ] }
-      ] }
-    ]
+      {
+        model: OrderItem,
+        as: "OrderItems",
+        include: [
+          {
+            model: ProductVariant,
+            as: "OrderItemProductVariant",
+            include: [
+              { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] },
+            ],
+          },
+        ],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
   });
-  if (!orders) return next(new APIError("No orders found", 404));
+
   res.status(200).json({ status: "success", results: orders.length, data: { orders } });
 });
 
@@ -497,9 +535,18 @@ export const getAllOrdersByShipper = asyncHandler(async (req, res, next) => {
   const page = Number(req.query.page) || 1;
   const limit = 10; // <--- thêm dòng này
   const offset = (page - 1) * limit;
+  const status = req.query.status;
+
+  const where = { shipperId };
+  if (status !== undefined && status !== null && String(status).trim() !== "") {
+    if (!Object.values(ORDER_STATUS).includes(status)) {
+      return next(new APIError("Invalid order status", 400));
+    }
+    where.status = status;
+  }
 
   const { count, rows } = await Order.findAndCountAll({
-    where: { shipperId },
+    where,
     include: [
       {
         model: OrderItem,
