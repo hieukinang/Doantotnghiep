@@ -272,7 +272,7 @@ const ShopContextProvider = ({ children }) => {
     try {
       const res = await axios.get(`${backendURL}/products`);
       if (res.data.status === "success") {
-        setAllProducts(res.data.data.docs);
+        setAllProducts(res.data.data.products);
         return res.data;
       } else {
         toast.error(res.data.message || "❌ Lấy sản phẩm thất bại!");

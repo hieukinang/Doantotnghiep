@@ -64,7 +64,7 @@ export const createCheckoutSessionStripe = asyncHandler(async (req, res, next) =
   });
 
   // 5) send session to response
-  res.status(200).json({status: "success", session});
+  res.status(200).json({ status: "success", session });
 });
 
 export const createCheckoutSessionMomo = asyncHandler(async (req, res, next) => {
@@ -74,16 +74,16 @@ export const createCheckoutSessionMomo = asyncHandler(async (req, res, next) => 
   var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
   var orderInfo = 'pay with MoMo';
   var partnerCode = 'MOMO';
-  var redirectUrl = `${process.env.CLIENT__URL}/wallet`;
+  var redirectUrl = `${process.env.CLIENT_URL}/wallet/success`;
   var ipnUrl = `${process.env.BASE_URL}/api/webhook/momo`;
   var requestType = "payWithMethod";
   var amount = req.body.amount;
   var orderId = partnerCode + new Date().getTime();
   var requestId = req.user.id;
-  var extraData ='';
+  var extraData = '';
   var paymentCode = 'T8Qii53fAXyUftPV3m9ysyRhEanUs9KlOPfHgpMR0ON50U10Bh+vZdpJU7VY4z+Z2y77fJHkoDc69scwwzLuW5MzeUKTwPo3ZMaB29imm6YulqnWfTkgzqRaion+EuD7FN9wZ4aXE1+mRt0gHsU193y+yxtRgpmY7SDMU9hCKoQtYyHsfFR5FUAOAKMdw2fzQqpToei3rnaYvZuYaxolprm9+/+WIETnPUDlxCYOiw7vPeaaYQQH0BF0TxyU3zu36ODx980rJvPAgtJzH1gUrlxcSS1HQeQ9ZaVM1eOK/jl8KJm6ijOwErHGbgf/hVymUQG65rHU2MWz9U8QUjvDWA==';
-  var orderGroupId ='';
-  var autoCapture =true;
+  var orderGroupId = '';
+  var autoCapture = true;
   var lang = 'vi';
 
   //before sign HMAC SHA256 with format
@@ -91,38 +91,38 @@ export const createCheckoutSessionMomo = asyncHandler(async (req, res, next) => 
   var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType;
   //signature
   var signature = crypto.createHmac('sha256', secretKey)
-      .update(rawSignature)
-      .digest('hex');
+    .update(rawSignature)
+    .digest('hex');
 
   //json object send to MoMo endpoint
   const requestBody = JSON.stringify({
-      partnerCode : partnerCode,
-      partnerName : "Test",
-      storeId : "MomoTestStore",
-      requestId : requestId,
-      amount : amount,
-      orderId : orderId,
-      orderInfo : orderInfo,
-      redirectUrl : redirectUrl,
-      ipnUrl : ipnUrl,
-      lang : lang,
-      requestType: requestType,
-      autoCapture: autoCapture,
-      extraData : extraData,
-      paymentCode: paymentCode,
-      orderGroupId: orderGroupId,
-      signature : signature
+    partnerCode: partnerCode,
+    partnerName: "Test",
+    storeId: "MomoTestStore",
+    requestId: requestId,
+    amount: amount,
+    orderId: orderId,
+    orderInfo: orderInfo,
+    redirectUrl: redirectUrl,
+    ipnUrl: ipnUrl,
+    lang: lang,
+    requestType: requestType,
+    autoCapture: autoCapture,
+    extraData: extraData,
+    paymentCode: paymentCode,
+    orderGroupId: orderGroupId,
+    signature: signature
   });
   //Create the HTTPS objects
   const options = {
-      hostname: 'test-payment.momo.vn',
-      port: 443,
-      path: '/v2/gateway/api/create',
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(requestBody)
-      }
+    hostname: 'test-payment.momo.vn',
+    port: 443,
+    path: '/v2/gateway/api/create',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(requestBody)
+    }
   }
   //Send the request and get the response
   let momoResponse = "";
@@ -178,20 +178,20 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
     // chọn đúng model theo role
     let UserModel;
     switch (role) {
-    case "ADMIN":
+      case "ADMIN":
         UserModel = Admin;
         break;
-    case "CLIENT":
+      case "CLIENT":
         UserModel = Client;
         break;
-    case "STORE":
+      case "STORE":
         UserModel = Store;
         break;
-    case "SHIPPER":
+      case "SHIPPER":
         UserModel = Shipper;
         break;
-    // Nếu có thêm role khác, thêm case ở đây
-    default:
+      // Nếu có thêm role khác, thêm case ở đây
+      default:
         return res.status(400).send("Invalid user role");
     }
 
@@ -329,14 +329,14 @@ export const getTransactionHistory = asyncHandler(async (req, res, next) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    if(isNaN(start))
+    if (isNaN(start))
 
-    if (isNaN(start) || isNaN(end)) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Invalid date format. Use YYYY-MM-DD",
-      });
-    }
+      if (isNaN(start) || isNaN(end)) {
+        return res.status(400).json({
+          status: "fail",
+          message: "Invalid date format. Use YYYY-MM-DD",
+        });
+      }
 
     if (start >= end) {
       return res.status(400).json({

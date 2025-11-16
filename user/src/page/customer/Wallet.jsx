@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function Wallet() {
     const [amount, setAmount] = useState("");
@@ -14,14 +15,30 @@ export default function Wallet() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    useEffect(() => {
-        if (startDate && endDate) fetchHistory();
-    }, [startDate, endDate, page]);
+    const [wallet, setWallet] = useState(0);
+    const [tab, setTab] = useState("deposit"); // deposit | withdraw
+
     const clientToken = localStorage.getItem("clientToken");
+
+    // Lấy số dư ví
+    const fetchWallet = async () => {
+        try {
+            const res = await axios.get("http://127.0.0.1:5000/api/transactions/get-wallet", {
+                headers: { Authorization: `Bearer ${clientToken}` },
+            });
+            console.log(res.data.wallet)
+            setWallet(res.data.wallet);
+        } catch (err) {
+            console.error("Lỗi lấy số dư:", err);
+        }
+    };
+
+    // Lấy lịch sử giao dịch
     const fetchHistory = async () => {
         try {
             const res = await axios.get("http://127.0.0.1:5000/api/transactions", {
-                params: { startDate, endDate, page }, headers: { Authorization: `Bearer ${clientToken}` },
+                params: { startDate, endDate, page },
+                headers: { Authorization: `Bearer ${clientToken}` },
             });
 
             setHistory(res.data.data);
@@ -32,22 +49,64 @@ export default function Wallet() {
         }
     };
 
-    const accountBalance = async () => {
-        try {
-            const res = await axios.get("http://127.0.0.1:5000/api/transactions/get-wallet", {
-                headers: { Authorization: `Bearer ${clientToken}` },
-            })
-        } catch (error) {
+    useEffect(() => {
+        fetchWallet();
+    }, []);
 
-        }
-    }
+    useEffect(() => {
+        if (startDate && endDate) fetchHistory();
+    }, [startDate, endDate, page]);
 
-    const handleTopUp = () => {
+    // Nạp tiền
+    const handleTopUp = async () => {
         if (!amount || Number(amount) <= 0) {
-            alert("Vui lòng nhập số tiền muốn nạp!");
+            return toast.error("Vui lòng nhập số tiền muốn nạp!");
+        }
+        try {
+            let url = "";
+            if (method === "stripe") {
+                const res = await axios.post(
+                    "http://localhost:5000/api/transactions/checkout-session/stripe",
+                    { amount: Number(amount) },
+                    {
+                        headers: { Authorization: `Bearer ${clientToken}` },
+                        "Content-Type": "application/json"
+                    }
+                );
+                url = res.data.session.url;  // backend trả về { url: "https://checkout.stripe.com/..." }
+            } else {
+                const res = await axios.post(
+                    "http://127.0.0.1:5000/api/transactions/checkout-session/momo",
+                    { amount: Number(amount) },
+                    {
+                        headers: { Authorization: `Bearer ${clientToken}` },
+                        "Content-Type": "application/json"
+                    }
+                );
+                url = res.data.shortLink;  // momo trả về link thanh toán
+            }
+
+            if (!url) {
+                return toast.error("Không lấy được URL thanh toán!");
+            }
+
+            // 🚀 Redirect sang trang thanh toán
+            window.location.href = url;
+
+        } catch (err) {
+            console.log(err);
+            toast.error("Có lỗi xảy ra, vui lòng thử lại!");
+        }
+    };
+
+
+    // Rút tiền
+    const handleWithdraw = () => {
+        if (!amount || Number(amount) <= 0) {
+            alert("Vui lòng nhập số tiền muốn rút!");
             return;
         }
-        console.log("Nạp:", amount, "qua:", method);
+        console.log("Rút:", amount);
     };
 
     return (
@@ -58,11 +117,31 @@ export default function Wallet() {
 
                     {/* ===== CỘT TRÁI ===== */}
                     <section className="bg-white p-6 rounded-xl shadow min-h-[500px] flex flex-col">
-                        <div className="font-semibold text-xl mb-4">Nạp tiền</div>
+
+                        {/* TAB */}
+                        <div className="flex gap-4 mb-4 border-b pb-2">
+                            <button
+                                className={`pb-2 font-semibold ${tab === "deposit" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
+                                onClick={() => setTab("deposit")}
+                            >
+                                Nạp tiền
+                            </button>
+
+                            <button
+                                className={`pb-2 font-semibold ${tab === "withdraw" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
+                                onClick={() => setTab("withdraw")}
+                            >
+                                Rút tiền
+                            </button>
+                        </div>
 
                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex-1 flex flex-col">
+
+                            {/* Số dư */}
                             <p className="text-gray-500 text-sm">Số dư khả dụng</p>
-                            <p className="text-3xl font-bold text-blue-600 mt-1">₫ 1,250,000</p>
+                            <p className="text-3xl font-bold text-blue-600 mt-1">
+                                ₫ {wallet.toLocaleString()}
+                            </p>
 
                             {/* Input số tiền */}
                             <div className="mt-5">
@@ -75,47 +154,49 @@ export default function Wallet() {
                                 />
                             </div>
 
-                            {/* PHƯƠNG THỨC THANH TOÁN */}
-                            <div className="mt-6">
-                                <p className="font-medium mb-2">Chọn phương thức thanh toán:</p>
+                            {/* Nếu đang ở tab nạp thì show phương thức */}
+                            {tab === "deposit" && (
+                                <div className="mt-6">
+                                    <p className="font-medium mb-2">Chọn phương thức thanh toán:</p>
 
-                                <label className="flex items-center gap-3 mb-3 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="method"
-                                        value="stripe"
-                                        checked={method === "stripe"}
-                                        onChange={() => setMethod("stripe")}
-                                        className="w-4 h-4"
-                                    />
-                                    <span className="font-medium">Nạp qua Stripe</span>
-                                </label>
+                                    <label className="flex items-center gap-3 mb-3 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="method"
+                                            value="stripe"
+                                            checked={method === "stripe"}
+                                            onChange={() => setMethod("stripe")}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="font-medium">Nạp qua Stripe</span>
+                                    </label>
 
-                                <label className="flex items-center gap-3 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="method"
-                                        value="momo"
-                                        checked={method === "momo"}
-                                        onChange={() => setMethod("momo")}
-                                        className="w-4 h-4"
-                                    />
-                                    <span className="font-medium">Nạp qua MoMo</span>
-                                </label>
-                            </div>
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="method"
+                                            value="momo"
+                                            checked={method === "momo"}
+                                            onChange={() => setMethod("momo")}
+                                            className="w-4 h-4"
+                                        />
+                                        <span className="font-medium">Nạp qua MoMo</span>
+                                    </label>
+                                </div>
+                            )}
 
+                            {/* BUTTON */}
                             <button
-                                onClick={handleTopUp}
+                                onClick={tab === "deposit" ? handleTopUp : handleWithdraw}
                                 className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow"
                             >
-                                Nạp tiền
+                                {tab === "deposit" ? "Nạp tiền" : "Rút tiền"}
                             </button>
                         </div>
                     </section>
 
                     {/* ===== CỘT PHẢI ===== */}
                     <section className="bg-white p-6 rounded-xl shadow min-h-[500px] flex flex-col">
-                        {/* title + date filter */}
                         <div className="flex items-center justify-between mb-5">
                             <div className="font-semibold text-xl">Lịch sử giao dịch</div>
 
@@ -123,14 +204,13 @@ export default function Wallet() {
                                 <input
                                     type="date"
                                     value={startDate}
-                                    placeholder="Từ ngày"
                                     onChange={(e) => setStartDate(e.target.value)}
                                     className="border px-2 py-1 rounded-lg w-32 text-sm"
                                 />
+
                                 <input
                                     type="date"
                                     value={endDate}
-                                    placeholder="Đến ngày"
                                     onChange={(e) => setEndDate(e.target.value)}
                                     className="border px-2 py-1 rounded-lg w-32 text-sm"
                                 />
