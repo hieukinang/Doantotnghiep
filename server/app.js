@@ -38,9 +38,9 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "uploads")));
 
 //_________MOMO_WEBHOOK_________//
-app.get(
+app.post(
   "/api/webhook/momo",
-  express.raw({type: "application/json"}),
+  express.json(), 
   webhookCheckoutMoMo
 );
 

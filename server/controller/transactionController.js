@@ -75,7 +75,7 @@ export const createCheckoutSessionMomo = asyncHandler(async (req, res, next) => 
   var orderInfo = 'pay with MoMo';
   var partnerCode = 'MOMO';
   var redirectUrl = `${process.env.CLIENT_URL}/wallet/success`;
-  var ipnUrl = `${process.env.BASE_URL}/api/webhook/momo`;
+  var ipnUrl = `${process.env.NGROK_URL}/api/webhook/momo`;
   var requestType = "payWithMethod";
   var amount = req.body.amount;
   var orderId = partnerCode + new Date().getTime();
@@ -234,17 +234,17 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
 
 export const webhookCheckoutMoMo = asyncHandler(async (req, res, next) => {
 
-  console.log("MoMo Webhook called with query:", req.query);
+  console.log("MoMo Webhook called with query:", req.body);
   // Nhận dữ liệu từ MoMo (qua query)
   const {
     amount,
     requestId,
     resultCode,
     message,
-  } = req.query;
+  } = req.body;
 
   // Chỉ xử lý khi thanh toán thành công (resultCode === '0')
-  if (resultCode !== '0') {
+  if (resultCode != 0) {
     return res.status(400).json({ status: "fail", message: "MoMo payment not successful", resultCode, messageMoMo: message });
   }
 
