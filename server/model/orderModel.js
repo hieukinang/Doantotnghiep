@@ -13,6 +13,19 @@ const Order = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    qr_code: {
+      type: DataTypes.STRING(255),
+      defaultValue: "default-order.jpg",
+      get() {
+        const rawValue = this.getDataValue("qr_code");
+        if (!rawValue) return null;
+
+        // Nếu là URL đầy đủ thì return luôn
+        if (rawValue.startsWith("http")) return rawValue;
+
+        return `${process.env.BASE_URL}/orders/${rawValue}`;
+      },
+    },
     payment_method: {
       type: DataTypes.STRING(50),
       allowNull: true,

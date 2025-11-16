@@ -6,6 +6,7 @@ import Coupon from "../model/couponModel.js";
 import ShippingCode from "../model/shippingCodeModel.js";
 import { sequelize } from "../config/db.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
+import {generateQRCodeJPG} from "../utils/barcode.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import { ORDER_STATUS } from "../constants/index.js";
 import {PAYMENT_METHODS} from "../constants/index.js";
@@ -18,7 +19,6 @@ dotenv.config();
 
 // @ desc middleware to filter orders for the logged user
 // @access  Protected
-
 export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const orders = await Order.findAll({
@@ -349,6 +349,12 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
 
     await t.commit();
 
+    // Generate QR code for the order
+    const qrCodeFileName = `order-${order.id}-qr.jpg`;
+    await generateQRCodeJPG(`${order.id}`, process.env.FILES_UPLOADS_PATH + "/orders", qrCodeFileName);
+    order.qr_code = qrCodeFileName;
+    await order.save();
+    
     const created = await Order.findByPk(order.id, {
       include: [
         { model: OrderItem, as: "OrderItems" },

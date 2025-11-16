@@ -140,9 +140,6 @@ const Admin = sequelize.define(
   }
 );
 
-// Thiết lập các quan hệ
-
-
 // Kiểm tra mật khẩu có chính xác không
 Admin.prototype.isCorrectPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
