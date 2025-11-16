@@ -3,7 +3,8 @@ import express from "express";
 import { 
     createCheckoutSessionStripe,
     createCheckoutSessionMomo,
-    getTransactionHistory
+    getTransactionHistory,
+    withdrawWallet
 } from "../../controller/transactionController.js";
 import Client from "../../model/clientModel.js";
 import Admin from "../../model/adminModel.js";
@@ -12,8 +13,6 @@ import Shipper from "../../model/shipperModel.js";
 import asyncHandler from "../../utils/asyncHandler.utils.js";
 import { verifyToken } from "../../utils/tokenHandler.utils.js";
 import APIError from "../../utils/apiError.utils.js";
-
-
 
 const isAuth = () => asyncHandler(async (req, res, next) => {
     let token;
@@ -83,6 +82,8 @@ router.route("/get-wallet").get(isAuth(), asyncHandler(async (req, res, next) =>
         wallet: user.wallet
     });
 }));
+
+router.route("/withdraw").post(isAuth(), withdrawWallet);
 
 router.route("/").get(isAuth(), getTransactionHistory);
 

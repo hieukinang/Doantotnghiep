@@ -11,7 +11,9 @@ export const createShippingCode = asyncHandler(async (req, res, next) => {
 
   const { code, description, discount, quantity, expire } = req.body;
   if (!code || discount === undefined) return next(new APIError("code and discount are required", 400));
-
+  if(expire && new Date(expire) <= new Date()) {
+    return next(new APIError("Expire date must be in the future", 400));
+  }
   const shippingCode = await ShippingCode.create({
     code,
     description: description || null,

@@ -8,6 +8,10 @@ import {
   confirmOrderByStore,
   shipperFindOrderById,
   shipperReceiveOrder,
+  cancelOrderByClient,
+  shipperDeliverOrder,
+  clientConfirmedOrderIsDeliveried,
+  getAllOrdersByShipper,
 } from "../../controller/orderController.js";
 import {
   OrderIdValidator,
@@ -32,12 +36,20 @@ router.route("/client").get(isAuth(Client), checkClientStatus, getAllOrdersByCli
 
 router.route("/client/:id").get(isAuth(Client), checkClientStatus, OrderIdValidator, getSingleOrder);
 
+router.route("/client/:id/cancel-order").post(isAuth(Client), checkClientStatus, OrderIdValidator, cancelOrderByClient);
+
 router.route("/store").get(isAuth(Store), checkStoreStatus, getAllOrdersByStore);
 
 router.route("/store/:id").post(isAuth(Store), checkStoreStatus, OrderIdValidator, confirmOrderByStore);
 
+router.route("/shipper").get(isAuth(Shipper), checkShipperStatus, getAllOrdersByShipper);
+
 router.route("/shipper/:id").get(isAuth(Shipper), checkShipperStatus, shipperFindOrderById);
 
 router.route("/shipper/:id").post(isAuth(Shipper), checkShipperStatus, OrderIdValidator, shipperReceiveOrder);
+
+router.route("/shipper/:id/deliver-order").post(isAuth(Shipper), checkShipperStatus, OrderIdValidator, shipperDeliverOrder);
+
+router.route("/client/:id/confirmed-order-is-deliveried").post(isAuth(Client), checkClientStatus, OrderIdValidator, clientConfirmedOrderIsDeliveried);
 
 export default router;

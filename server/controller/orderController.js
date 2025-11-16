@@ -10,10 +10,15 @@ import APIError from "../utils/apiError.utils.js";
 import { ORDER_STATUS } from "../constants/index.js";
 import {PAYMENT_METHODS} from "../constants/index.js";
 import dotenv from "dotenv";
+import Shipper from "../model/shipperModel.js";
+import Store from "../model/storeModel.js";
+import Transaction from "../model/transactionModel.js";
+import { TRANSACTION_TYPE } from "../constants/index.js";
 dotenv.config();
 
 // @ desc middleware to filter orders for the logged user
 // @access  Protected
+
 export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const orders = await Order.findAll({
@@ -138,9 +143,17 @@ export const shipperReceiveOrder = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const order = await Order.findByPk(id);
   if (!order) return next(new APIError("Order not found", 404));
-  if(order.status !== ORDER_STATUS.CONFIRMED){
-    return next(new APIError("Only confirmed orders can be received", 400));
+  if (order.status !== ORDER_STATUS.CONFIRMED) {
+    return next(new APIError("Order not found", 404));
   }
+
+  // Lấy shipper từ DB để kiểm tra wallet
+  const shipper = await Shipper.findByPk(shipperId);
+  if (!shipper) return next(new APIError("Shipper not found", 404));
+  if (shipper.wallet < 50000) {
+    return next(new APIError("Số tiền trong ví của bạn phải lớn hơn 50,000 để nhận đơn hàng", 400));
+  }
+
   order.status = ORDER_STATUS.IN_TRANSIT;
   order.shipperId = shipperId;
   await order.save();
@@ -312,9 +325,9 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
       if (it.variant.stock_quantity != null) {
         await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
       }
-      if (it.product) {
-        await it.product.increment("sold", { by: it.quantity, transaction: t });
-      }
+      // if (it.product) {
+      //   await it.product.increment("sold", { by: it.quantity, transaction: t });
+      // }
     }
     await OrderItem.bulkCreate(orderItemsPayload, { transaction: t });
 
@@ -347,4 +360,170 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     await t.rollback();
     return next(err);
   }
+});
+
+// @desc    POST Cancel Order by Client
+// @route   POST /client/:id/cancel-order
+// @access  Private("CLIENT")
+export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
+  const clientId = req.user && req.user.id;
+  const { id } = req.params;
+
+  // Tìm đơn hàng của client, kèm các OrderItem và ProductVariant
+  const order = await Order.findOne({
+    where: { id, clientId },
+    include: [
+      {
+        model: OrderItem,
+        as: "OrderItems",
+        include: [
+          { model: ProductVariant, as: "OrderItemProductVariant" }
+        ]
+      }
+    ]
+  });
+
+  if (!order) return next(new APIError("Không tìm thấy đơn hàng", 404));
+  if (
+    order.status !== ORDER_STATUS.PENDING &&
+    order.status !== ORDER_STATUS.CONFIRMED
+  ) {
+    return next(new APIError("Bạn không thể hủy đơn hàng này", 400));
+  }
+
+  // Cập nhật lại số lượng tồn kho cho từng ProductVariant trong OrderItem
+  for (const item of order.OrderItems) {
+    const variant = item.OrderItemProductVariant;
+    if (variant && typeof item.quantity === "number") {
+      await variant.increment("stock_quantity", { by: item.quantity });
+    }
+  }
+
+  order.status = ORDER_STATUS.CANCELLED;
+  await order.save();
+
+  res.status(200).json({ status: "success", data: order });
+});
+
+export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
+  const shipperId = req.user && req.user.id;
+  const { id } = req.params;
+
+  const order = await Order.findByPk(id);
+  if (!order) return next(new APIError("Order not found", 404));
+
+  // Only allow delivery when order is currently IN_TRANSIT
+  if (order.status !== ORDER_STATUS.IN_TRANSIT) {
+    return next(new APIError("Only orders in transit can be marked as delivered", 400));
+  }
+
+  if (!order.shipperId || order.shipperId !== shipperId) {
+    return next(new APIError("You are not assigned to this order", 403));
+  }
+
+  // Start DB transaction for atomic updates
+  const t = await sequelize.transaction();
+  try {
+    // 1) Update store: total_sales += total_price, wallet += 80% * total_price
+    if (order.storeId) {
+      const store = await Store.findByPk(order.storeId, { transaction: t, lock: t.LOCK.UPDATE });
+      if (store) {
+        const totalPrice = Number(order.total_price || 0);
+        const storeWalletAdd = Number((totalPrice * 0.8).toFixed(2));
+        await store.increment("total_sales", { by: Math.round(totalPrice), transaction: t });
+        await store.increment("wallet", { by: storeWalletAdd, transaction: t });
+      }
+    }
+
+    // 2) Update shipper: wallet += shipping_fee, debt += total_price
+    const shipper = await Shipper.findByPk(shipperId, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!shipper) {
+      await t.rollback();
+      return next(new APIError("Shipper not found", 404));
+    }
+
+    const shippingFee = Number(order.shipping_fee || 0);
+    const orderTotal = Number(order.total_price || 0);
+
+    await shipper.increment("wallet", { by: shippingFee, transaction: t });
+    await shipper.increment("debt", { by: orderTotal, transaction: t });
+    await shipper.reload({ transaction: t });
+
+    // 3) Create transaction for shipper for the shipping fee
+    await Transaction.create({
+      user_id: shipperId,
+      amount: shippingFee,
+      new_balance: shipper.wallet,
+      payment_method: "system_shipping_fee",
+      type: TRANSACTION_TYPE.TOP_UP,
+      status: "SUCCESS",
+      description: `Shipping fee for order ${order.id}`,
+    }, { transaction: t });
+
+    // 4) Mark order as delivered
+    order.status = ORDER_STATUS.DELIVERED;
+    await order.save({ transaction: t });
+
+    await t.commit();
+
+    res.status(200).json({ status: "success", data: { order } });
+  } catch (err) {
+    await t.rollback();
+    return next(err);
+  }
+});
+
+export const clientConfirmedOrderIsDeliveried = asyncHandler(async (req, res, next) => {
+  const clientId = req.user && req.user.id;
+  const { id } = req.params;  
+  const order = await Order.findOne({ where: { id, clientId } });
+  if (!order) return next(new APIError("Order not found", 404));
+  if (order.status !== ORDER_STATUS.DELIVERED) {
+    return next(new APIError("Order is not in delivered status", 400));
+  }
+  order.status = ORDER_STATUS.CLIENT_CONFIRMED;
+  await order.save();
+  res.status(200).json({ status: "success", data: order });
+});
+
+export const getAllOrdersByShipper = asyncHandler(async (req, res, next) => {
+  const shipperId = req.user && req.user.id;
+  const page = Number(req.query.page) || 1;
+  const limit = 10; // <--- thêm dòng này
+  const offset = (page - 1) * limit;
+
+  const { count, rows } = await Order.findAndCountAll({
+    where: { shipperId },
+    include: [
+      {
+        model: OrderItem,
+        as: "OrderItems",
+        include: [
+          {
+            model: ProductVariant,
+            as: "OrderItemProductVariant",
+            include: [
+              { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] },
+            ],
+          },
+        ],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+    limit,
+    offset,
+  });
+
+  const totalPages = Math.ceil(count / limit) || 1;
+  res.status(200).json({
+    status: "success",
+    pagination: {
+      page,
+      limit,
+      totalPages,
+      totalRecords: count,
+    },
+    results: rows.length,
+    data: { orders: rows },
+  });
 });
