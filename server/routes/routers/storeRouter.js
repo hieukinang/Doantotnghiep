@@ -10,6 +10,7 @@ import {
     resizeStoreImages,
     updateStoreProfile,
     getAllProcessingStores,
+    getStoreById,
 } from "../../controller/storeController.js";
 
 import {
@@ -39,6 +40,8 @@ router.route("/processing")
 
 router.route("/update-status/:id")
   .patch(isAuth(Admin), IdValidator, checkAdminStatus, updateStoreProfile);
+
+router.route("/:id").get(IdValidator, getStoreById);
 
 // router.route("/update-profile/:id")
 //   .patch(

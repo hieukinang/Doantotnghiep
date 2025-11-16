@@ -26,7 +26,6 @@ const checkStoreImages = (req, res, next) => {
 
 export const IdValidator = [
   check("id")
-    .isInt({ min: 1 }).withMessage("Invalid Id format") // Nếu id là số nguyên
     .custom((val) => isExistInDB(val, Store))
     .withMessage("Store not found"),
   validatorMiddleware,

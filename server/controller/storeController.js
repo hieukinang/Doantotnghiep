@@ -1,4 +1,6 @@
 import Store from "../model/storeModel.js";
+import Follow from "../model/followModel.js";
+import StoreBanner from "../model/storeBannerModel.js";
 import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {generateSendToken} from "../utils/tokenHandler.utils.js";
@@ -195,13 +197,32 @@ export const updateStoreProfile = asyncHandler(async (req, res, next) => {
   }
 
   res.status(200).json({
-    status: "success",
-    data: {
-      doc: store,
-    },
+    status: "success"
   });
 });
 
 export const getAllProcessingStores = getAll(Store, {
     status: STORE_STATUS.PROCESSING
+});
+
+export const getStoreById = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  // Lấy thông tin store
+  const store = await Store.findByPk(id);
+  if (!store) {
+    return next(new APIError(`Không tìm thấy cửa hàng với id: ${id}`, 404));
+  }
+  // Đếm số lượng follow
+  const followCount = await Follow.count({ where: { storeId: id } });
+  // Lấy danh sách banner của store
+  const banners = await StoreBanner.findAll({ where: { storeId: id } });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      ...store.toJSON(),
+      followCount,
+      banners
+    }
+  });
 });
