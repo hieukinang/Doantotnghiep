@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Sidebar from '../component/sidebar';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 const HEADER_HEIGHT = 80; // dùng cho overlay và popup vị trí top
 
 const DeliveryHistory = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   // ✅ Danh sách đơn hàng đã hoàn thành (demo)
   const completedOrders = [
@@ -90,6 +93,11 @@ const DeliveryHistory = () => {
           </TouchableOpacity>
         </View>
       )}
+      <View style={[styles.bottomButtonWrapper, { paddingBottom: insets.bottom }]}>
+        <TouchableOpacity style={styles.acceptBtn} onPress={() => navigation.navigate('TakeanOrder')} >
+          <Text style={styles.acceptBtnText}>Nhận đơn hàng mới</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -162,6 +170,32 @@ const styles = StyleSheet.create({
   },
   popupTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
   popupItem: { fontSize: 14, paddingVertical: 8, color: '#116AD1' },
+
+  //nut nhan don
+  bottomButtonWrapper:
+  {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0
+  },
+
+  acceptBtn: {
+    width: '100%',
+    backgroundColor: '#116AD1',
+    paddingVertical: 16,
+    borderRadius: 0,        // Không bo góc
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  acceptBtnText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+
+
 });
 
 export default DeliveryHistory;

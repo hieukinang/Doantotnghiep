@@ -2,7 +2,7 @@
 // Tất cả cấu hình dùng chung trong app sẽ được lưu ở đây
 
 const config = {
-//   backendUrl: 'http://10.0.2.2:5000/api',
+  // backendUrl: 'http://10.0.2.2:5000/api',
   backendUrl: 'http://192.168.1.7:5000/api',
 
 
