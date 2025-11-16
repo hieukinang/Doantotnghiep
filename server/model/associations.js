@@ -27,6 +27,9 @@ import Notification from "./notificationModel.js";
 import SuperCategory from "./superCategoryModel.js";
 import ReviewImage from "./reviewImageModel.js";
 import ShippingCode from "./shippingCodeModel.js";
+import Return from "./returnModel.js";
+import ReturnItem from "./returnItemModel.js";
+import ReturnImage from "./returnImageModel.js";
 
 // Define associations
 
@@ -66,11 +69,13 @@ Message.belongsTo(Conversation, { foreignKey: "conversationId", as: "MessageConv
 Notification.belongsTo(Admin, { foreignKey: "adminId", as: "NotificationAdmin" });
 OrderItem.belongsTo(Order, { foreignKey: "orderId", as: "OrderItemOrder" });
 OrderItem.belongsTo(ProductVariant, { foreignKey: "product_variantId", as: "OrderItemProductVariant" });
+OrderItem.belongsTo(ReturnItem, { foreignKey: "order_item_id", as: "OrderItemReturnItem" });
 Order.belongsTo(Client, { foreignKey: "clientId", as: "OrderClient" });
 Order.belongsTo(Shipper, { foreignKey: "shipperId", as: "OrderShipper" });
 Order.belongsTo(Store, { foreignKey: "storeId", as: "OrderStore" });
 Order.hasOne(Review, { foreignKey: "orderId", as: "OrderReview" });
 Order.hasMany(OrderItem, { foreignKey: "orderId", as: "OrderItems" });
+Order.hasMany(Return, { foreignKey: "orderId", as: "OrderReturns" });
 ProductImage.belongsTo(Product, { foreignKey: "productId", as: "ProductImageProduct" });
 Product.belongsTo(Category, { foreignKey: "categoryId", as: "ProductCategory" });
 Product.belongsTo(Store, { foreignKey: "storeId", as: "ProductStore" });
@@ -100,3 +105,8 @@ SuperCategory.hasMany(Category, { foreignKey: "superCategoryId", as: "SuperCateg
 Category.belongsTo(SuperCategory, { foreignKey: "superCategoryId", as: "CategorySuperCategory" });
 Review.hasMany(ReviewImage, { foreignKey: "reviewId", as: "ReviewImages", onDelete: "CASCADE" });
 ShippingCode.belongsTo(Admin, { foreignKey: "adminId", as: "ShippingCodeAdmin" });
+Return.belongsTo(Order, { foreignKey: "orderId", as: "ReturnOrder" });
+Return.hasMany(ReturnItem, { foreignKey: "return_id", as: "ReturnItems" });
+Return.hasMany(ReturnImage, { foreignKey: "return_id", as: "ReturnImages" });
+ReturnItem.belongsTo(Return, { foreignKey: "return_id", as: "ReturnItemReturn" });
+ReturnItem.hasOne(OrderItem, { foreignKey: "order_item_id", as: "ReturnItemOrderItem" });

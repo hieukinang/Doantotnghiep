@@ -354,7 +354,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     await generateQRCodeJPG(`${order.id}`, process.env.FILES_UPLOADS_PATH + "/orders", qrCodeFileName);
     order.qr_code = qrCodeFileName;
     await order.save();
-    
+
     const created = await Order.findByPk(order.id, {
       include: [
         { model: OrderItem, as: "OrderItems" },

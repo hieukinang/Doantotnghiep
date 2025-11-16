@@ -13,6 +13,15 @@ import {
   clientConfirmedOrderIsDeliveried,
   getAllOrdersByShipper,
 } from "../../controller/orderController.js";
+
+import {
+  returnOrderByClient,
+  uploadReturnImages,
+  resizeReturnImages,
+  getReturnRequest,
+  confirmReturnOrder,
+} from "../../controller/returnController.js";
+
 import {
   OrderIdValidator,
 } from "../../validators/order.validator.js";
@@ -38,9 +47,25 @@ router.route("/client/:id").get(isAuth(Client), checkClientStatus, OrderIdValida
 
 router.route("/client/:id/cancel-order").post(isAuth(Client), checkClientStatus, OrderIdValidator, cancelOrderByClient);
 
+router.route("/client/:id/confirmed-order-is-deliveried").post(isAuth(Client), checkClientStatus, OrderIdValidator, clientConfirmedOrderIsDeliveried);
+
+router.route("/client/:id/return-order")
+  .post(
+    isAuth(Client), 
+    checkClientStatus, 
+    OrderIdValidator,
+    uploadReturnImages,
+    resizeReturnImages,
+    returnOrderByClient
+);
+
 router.route("/store").get(isAuth(Store), checkStoreStatus, getAllOrdersByStore);
 
 router.route("/store/:id").post(isAuth(Store), checkStoreStatus, OrderIdValidator, confirmOrderByStore);
+
+router.route("/store/:id/get-return").get(isAuth(Store), checkStoreStatus, OrderIdValidator, getReturnRequest);
+
+router.route("/store/:id/confirm-return-order").post(isAuth(Store), checkStoreStatus, OrderIdValidator, confirmReturnOrder);
 
 router.route("/shipper").get(isAuth(Shipper), checkShipperStatus, getAllOrdersByShipper);
 
@@ -49,7 +74,5 @@ router.route("/shipper/:id").get(isAuth(Shipper), checkShipperStatus, shipperFin
 router.route("/shipper/:id").post(isAuth(Shipper), checkShipperStatus, OrderIdValidator, shipperReceiveOrder);
 
 router.route("/shipper/:id/deliver-order").post(isAuth(Shipper), checkShipperStatus, OrderIdValidator, shipperDeliverOrder);
-
-router.route("/client/:id/confirmed-order-is-deliveried").post(isAuth(Client), checkClientStatus, OrderIdValidator, clientConfirmedOrderIsDeliveried);
 
 export default router;
