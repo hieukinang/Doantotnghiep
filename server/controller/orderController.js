@@ -4,6 +4,7 @@ import Product from "../model/productModel.js";
 import ProductVariant from "../model/productVariantModel.js";
 import Coupon from "../model/couponModel.js";
 import ShippingCode from "../model/shippingCodeModel.js";
+import Client from "../model/clientModel.js";
 import { sequelize } from "../config/db.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {generateQRCodeJPG} from "../utils/barcode.utils.js";
@@ -200,7 +201,7 @@ export const shipperReceiveOrder = asyncHandler(async (req, res, next) => {
 });
 
 // @desc    CREATE Cash Order
-// @route   POST /api/orders/:cartId
+// @route   POST /api/orders/checkout-cash
 // @access  Protected
 export const createCashOrder = asyncHandler(async (req, res, next) => {
   // New payload shape: products is an object
@@ -406,13 +407,229 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
   }
 });
 
+// @desc CREATE wallet order
+// @route   POST /api/orders/checkout-wallet
+// @access  Protected
+export const createWalletOrder = asyncHandler(async (req, res, next) => {
+  let { products, shipping_address } = req.body;
+
+  if (!products) {
+    return next(new APIError("products is required", 400));
+  }
+
+  if (typeof products === "string") {
+    try {
+      products = JSON.parse(products);
+    } catch (err) {
+      return next(new APIError("Invalid products payload", 400));
+    }
+  }
+
+  const variantIds = products.product_variantIds || products.product_variant_ids || [];
+  const storeId = products.storeId || products.store_id || null;
+  const couponIds = products.coupon_ids || [];
+  const shipping_code_id = products.shipping_code_id || null;
+  const quantities = products.quantities || [];
+
+  if (!Array.isArray(variantIds) || variantIds.length === 0) {
+    return next(new APIError("product_variantIds must be a non-empty array", 400));
+  }
+  if (!storeId) {
+    return next(new APIError("storeId is required", 400));
+  }
+  if (quantities && quantities.length > 0) {
+    if (!Array.isArray(quantities) || quantities.length !== variantIds.length) {
+      return next(new APIError("quantities must be an array with same length as product_variantIds", 400));
+    }
+    for (const q of quantities) {
+      const qi = parseInt(q, 10);
+      if (!qi || qi <= 0) return next(new APIError("each quantity must be a positive integer", 400));
+    }
+  }
+  if (!Array.isArray(couponIds)) {
+    return next(new APIError("coupon_ids must be an array", 400));
+  }
+  if (couponIds.length > 2) {
+    return next(new APIError("You can provide at most 2 coupons", 400));
+  }
+
+  // Fetch variants
+  const items = [];
+  for (let idx = 0; idx < variantIds.length; idx++) {
+    const vId = variantIds[idx];
+    const variant = await ProductVariant.findByPk(vId, {
+      include: [{ model: Product, as: "ProductVariantProduct" }],
+    });
+    if (!variant) return next(new APIError(`No product variant match with id: ${vId}`, 404));
+    const product = variant.ProductVariantProduct;
+    if (!product) return next(new APIError(`Product for variant ${vId} not found`, 404));
+    if (product.storeId !== storeId) {
+      return next(new APIError(`Variant ${vId} does not belong to store ${storeId}`, 400));
+    }
+    const qty = quantities && quantities.length > 0 ? parseInt(quantities[idx], 10) : 1;
+    if (!qty || qty <= 0) return next(new APIError(`Invalid quantity for variant ${vId}`, 400));
+    if (variant.stock_quantity != null && variant.stock_quantity < qty) {
+      return next(new APIError(`Not enough stock for variant ${vId}`, 400));
+    }
+    items.push({ variant, product, quantity: qty });
+  }
+
+  // Validate coupons
+  const coupons = [];
+  if (couponIds.length > 0) {
+    for (const cid of couponIds) {
+      const coupon = await Coupon.findByPk(cid);
+      if (!coupon) return next(new APIError(`No coupon match with id: ${cid}`, 404));
+      if (coupon.quantity != null && coupon.quantity <= 0) {
+        return next(new APIError(`Coupon ${cid} is no longer available`, 400));
+      }
+      if (coupon.expire) {
+        const exp = new Date(coupon.expire);
+        const today = new Date();
+        if (exp < new Date(today.toDateString())) {
+          return next(new APIError(`Coupon ${cid} has expired`, 400));
+        }
+      }
+      if (coupon.storeId !== null && coupon.storeId !== storeId) {
+        return next(new APIError(`Coupon ${cid} does not apply to store ${storeId}`, 400));
+      }
+      coupons.push(coupon);
+    }
+    if (coupons.length === 2) {
+      const hasAdminCoupon = coupons.some(c => c.storeId === null);
+      const hasStoreCoupon = coupons.some(c => c.storeId === storeId);
+      if (!hasAdminCoupon || !hasStoreCoupon) {
+        return next(new APIError("If providing two coupons, one must be system-level and one must belong to the store", 400));
+      }
+    }
+  }
+
+  // Shipping fee
+  const BASE_SHIPPING_FEE = 30000;
+  let shippingDiscount = 0;
+  let shippingCodeDoc = null;
+  if (shipping_code_id) {
+    shippingCodeDoc = await ShippingCode.findByPk(shipping_code_id);
+    if (!shippingCodeDoc) return next(new APIError("Shipping code not found", 404));
+    if (shippingCodeDoc.quantity != null && shippingCodeDoc.quantity <= 0) {
+      return next(new APIError("Shipping code is no longer available", 400));
+    }
+    if (shippingCodeDoc.expire) {
+      const exp = new Date(shippingCodeDoc.expire);
+      const today = new Date();
+      if (exp < new Date(today.toDateString())) {
+        return next(new APIError("Shipping code has expired", 400));
+      }
+    }
+    shippingDiscount = Number(shippingCodeDoc.discount || 0);
+  }
+
+  // Subtotal & discounts
+  let subtotal = 0;
+  for (const it of items) {
+    const price = parseFloat(it.variant.price || 0);
+    subtotal += price * it.quantity;
+  }
+  const couponFixedDiscount = coupons.reduce((acc, c) => acc + Number(c.discount || 0), 0);
+  const total_price = Math.max(0, subtotal - couponFixedDiscount);
+  const shipping_fee = Math.max(0, BASE_SHIPPING_FEE - shippingDiscount);
+  const total_due = total_price + shipping_fee;
+
+  const clientId = req.user && req.user.id ? req.user.id : null;
+  if (!clientId) return next(new APIError("Authentication required", 401));
+  const client = await Client.findByPk(clientId);
+  if (!client) return next(new APIError("Client not found", 404));
+
+  const currentBalance = Number(client.wallet || 0);
+  if (currentBalance < total_due) {
+    return next(new APIError("Số dư ví không đủ để thanh toán đơn hàng", 400));
+  }
+
+  const t = await sequelize.transaction();
+  try {
+    // Create order
+    const order = await Order.create(
+      {
+        payment_method: PAYMENT_METHODS.WALLET,
+        total_price,
+        order_date: new Date(),
+        shipping_address: shipping_address || null,
+        shipping_fee,
+        clientId,
+        storeId,
+      },
+      { transaction: t }
+    );
+
+    // Order items & stock updates
+    const orderItemsPayload = [];
+    for (const it of items) {
+      const unitPrice = parseFloat(it.variant.price || 0);
+      orderItemsPayload.push({
+        quantity: it.quantity,
+        price: unitPrice,
+        orderId: order.id,
+        title: it.product ? it.product.name : null,
+        image: it.product ? it.product.main_image : null,
+        product_variantId: it.variant.id,
+      });
+      if (it.variant.stock_quantity != null) {
+        await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
+      }
+    }
+    await OrderItem.bulkCreate(orderItemsPayload, { transaction: t });
+
+    // Decrement coupons
+    for (const c of coupons) {
+      await c.decrement("quantity", { by: 1, transaction: t });
+    }
+    // Decrement shipping code quantity if used
+    if (shippingCodeDoc) {
+      await shippingCodeDoc.decrement("quantity", { by: 1, transaction: t });
+    }
+
+    // Deduct client wallet
+    client.wallet = currentBalance - total_due;
+    await client.save({ transaction: t });
+
+    // Record transaction
+    await Transaction.create({
+      user_id: client.id,
+      amount: -total_due,
+      new_balance: client.wallet,
+      payment_method: PAYMENT_METHODS.WALLET,
+      type: TRANSACTION_TYPE.PAY_ORDER,
+      status: "SUCCESS",
+      description: `Wallet payment for order ${order.id}`,
+    }, { transaction: t });
+
+    await t.commit();
+
+    const qrCodeFileName = `order-${order.id}-qr.jpg`;
+    await generateQRCodeJPG(`${order.id}`, process.env.FILES_UPLOADS_PATH + "/orders", qrCodeFileName);
+    order.qr_code = qrCodeFileName;
+    await order.save();
+
+    const created = await Order.findByPk(order.id, {
+      include: [
+        { model: OrderItem, as: "OrderItems" },
+      ],
+    });
+
+    res.status(201).json({ status: "success", data: created });
+  } catch (err) {
+    await t.rollback();
+    return next(err);
+  }
+});
+
 // @desc    POST Cancel Order by Client
 // @route   POST /client/:id/cancel-order
 // @access  Private("CLIENT")
 export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const { id } = req.params;
-
+  
   // Tìm đơn hàng của client, kèm các OrderItem và ProductVariant
   const order = await Order.findOne({
     where: { id, clientId },
@@ -435,18 +652,50 @@ export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
     return next(new APIError("Bạn không thể hủy đơn hàng này", 400));
   }
 
-  // Cập nhật lại số lượng tồn kho cho từng ProductVariant trong OrderItem
-  for (const item of order.OrderItems) {
-    const variant = item.OrderItemProductVariant;
-    if (variant && typeof item.quantity === "number") {
-      await variant.increment("stock_quantity", { by: item.quantity });
+  // Thực hiện cập nhật trong 1 transaction để atomic
+  const t = await sequelize.transaction();
+  try {
+    // Cập nhật lại số lượng tồn kho cho từng ProductVariant trong OrderItem
+    for (const item of order.OrderItems) {
+      const variant = item.OrderItemProductVariant;
+      if (variant && typeof item.quantity === "number") {
+        await variant.increment("stock_quantity", { by: item.quantity, transaction: t });
+      }
     }
+
+    // Nếu đơn hàng được thanh toán bằng ví, hoàn tiền lại vào ví của client và tạo Transaction
+    if (order.payment_method === PAYMENT_METHODS.WALLET) {
+      const client = await Client.findByPk(order.clientId, { transaction: t, lock: t.LOCK.UPDATE });
+      if (!client) {
+        await t.rollback();
+        return next(new APIError("Client not found for refund", 404));
+      }
+
+      const refundAmount = Number(order.total_price || 0) + Number(order.shipping_fee || 0);
+      client.wallet = Number(client.wallet || 0) + refundAmount;
+      await client.save({ transaction: t });
+
+      await Transaction.create({
+        user_id: client.id,
+        amount: refundAmount,
+        new_balance: client.wallet,
+        payment_method: "wallet",
+        type: TRANSACTION_TYPE.REFUND,
+        status: "SUCCESS",
+        description: `Refund for cancelled order ${order.id}`,
+      }, { transaction: t });
+    }
+
+    order.status = ORDER_STATUS.CANCELLED;
+    await order.save({ transaction: t });
+
+    await t.commit();
+
+    res.status(200).json({ status: "success", data: order });
+  } catch (err) {
+    await t.rollback();
+    return next(err);
   }
-
-  order.status = ORDER_STATUS.CANCELLED;
-  await order.save();
-
-  res.status(200).json({ status: "success", data: order });
 });
 
 export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {

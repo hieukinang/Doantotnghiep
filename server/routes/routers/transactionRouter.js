@@ -85,6 +85,6 @@ router.route("/get-wallet").get(isAuth(), asyncHandler(async (req, res, next) =>
 
 router.route("/withdraw").post(isAuth(), withdrawWallet);
 
-router.route("/").get(isAuth(), getTransactionHistory);
+router.route("").get(isAuth(), getTransactionHistory);
 
 export default router;

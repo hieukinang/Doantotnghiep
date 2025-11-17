@@ -12,6 +12,7 @@ import {
   shipperDeliverOrder,
   clientConfirmedOrderIsDeliveried,
   getAllOrdersByShipper,
+  createWalletOrder,
 } from "../../controller/orderController.js";
 
 import {
@@ -40,6 +41,11 @@ router.route("/checkout-cash").post(
     isAuth(Client), 
     checkClientStatus,
     createCashOrder);
+
+router.route("/checkout-wallet").post(
+    isAuth(Client), 
+    checkClientStatus,
+    createWalletOrder);
 
 router.route("/client").get(isAuth(Client), checkClientStatus, getAllOrdersByClient);
 

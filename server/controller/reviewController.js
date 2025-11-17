@@ -5,6 +5,7 @@ import Product from "../model/productModel.js";
 import Client from "../model/clientModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
+import { ORDER_STATUS } from "../constants/index.js";
 import { uploadMixOfImages } from "../middleware/imgUpload.middleware.js";
 import { getOne } from "../utils/refactorControllers.utils.js";
 import Sharp from "sharp";
@@ -57,7 +58,12 @@ export const createReview = asyncHandler(async (req, res, next) => {
   const order = await Order.findByPk(orderId);
   if (!order) return next(new APIError("Order not found", 404));
   if (order.clientId !== clientId) return next(new APIError("You cannot review this order", 403));
-  if (order.status !== "DELIVERED") return next(new APIError("Order must be DELIVERED before reviewing", 400));
+  if (![
+    ORDER_STATUS.DELIVERED,
+    ORDER_STATUS.CLIENT_CONFIRMED,
+  ].includes(order.status)) {
+    return next(new APIError("Order must be DELIVERED or CLIENT_CONFIRMED before reviewing", 400));
+  }
 
   // ensure product exists
   const product = await Product.findByPk(productId);

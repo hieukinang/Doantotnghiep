@@ -1,7 +1,7 @@
 // ENUM gợi ý (có thể thay đổi theo yêu cầu thực tế)
 export const PAYMENT_METHODS = {
   CASH: "cash",
-  CARD: "card",
+  WALLET: "wallet",
 };
 
 export const ADMIN_ROLES = {
