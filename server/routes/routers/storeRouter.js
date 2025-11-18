@@ -8,9 +8,12 @@ import {
     logout,
     uploadStoreImages,
     resizeStoreImages,
-    updateStoreProfile,
+    updateStoreStatus,
+    updateProfile,
     getAllProcessingStores,
     getStoreById,
+    uploadStoreImage,
+    resizeStoreImage,
 } from "../../controller/storeController.js";
 
 import {
@@ -39,7 +42,15 @@ router.route("/processing")
   .get(isAuth(Admin), getAllProcessingStores);
 
 router.route("/update-status/:id")
-  .patch(isAuth(Admin), IdValidator, checkAdminStatus, updateStoreProfile);
+  .patch(isAuth(Admin), IdValidator, checkAdminStatus, updateStoreStatus);
+
+router.route("/update-profile")
+  .patch(
+    isAuth(Store),
+    uploadStoreImage,
+    resizeStoreImage,
+    updateProfile
+  );
 
 router.route("/:id").get(IdValidator, getStoreById);
 

@@ -6,6 +6,9 @@ import {
     register, 
     login,
     logout,
+    updateProfile,
+    uploadClientImage,
+    resizeClientImage,
 } from "../../controller/clientController.js";
 import {
   loginValidator
@@ -23,5 +26,12 @@ const router = express.Router();
 router.route("/register").post(upload.none(), registerValidator, register);
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Client), logout);
+
+router.route("/update-profile").patch(
+  isAuth(Client),
+  uploadClientImage,
+  resizeClientImage,
+  updateProfile
+);
 
 export default router;

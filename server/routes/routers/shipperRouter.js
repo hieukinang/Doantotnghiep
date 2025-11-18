@@ -7,10 +7,13 @@ import {
     login,
     logout,
     uploadShipperImages,
+    uploadShipperImage,
+    resizeShipperImage,
     resizeShipperImages,
     getSingleShipper,
-    updateShipper,
+    updateStatusShipper,
     getAllProcessingShippers,
+    updateProfile,
 } from "../../controller/shipperController.js";
 
 import {
@@ -38,11 +41,19 @@ router.route("/processing")
 
 router.route("/:id")
   .get(isAuth(Shipper), getSingleShipper);
+
 router.route("/update-status/:id")
   .patch(
     isAuth(Admin),
     checkAdminStatus,
-    updateShipper
+    updateStatusShipper
   );
+
+router.route("/update-profile").patch(
+  isAuth(Shipper),
+  uploadShipperImage,
+  resizeShipperImage,
+  updateProfile  
+);
 
 export default router;

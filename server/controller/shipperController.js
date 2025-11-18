@@ -2,7 +2,7 @@ import Shipper from "../model/shipperModel.js";
 import APIError from "../utils/apiError.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import { generateSendToken } from "../utils/tokenHandler.utils.js";
-import { uploadMixOfImages } from "../middleware/imgUpload.middleware.js";
+import { uploadMixOfImages, uploadSingleImage } from "../middleware/imgUpload.middleware.js";
 
 import {sendEmail} from "../utils/sendEmail.utils.js";
 
@@ -23,6 +23,33 @@ export const uploadShipperImages = uploadMixOfImages([
     { name: "profile_image", maxCount: 1 },
     { name: "health_image", maxCount: 1 },
 ]);
+
+export const uploadShipperImage = uploadSingleImage("image");
+
+// 2) PROCESSING(Sharp)
+export const resizeShipperImage = asyncHandler(async (req, res, next) => {
+  if (!req.file) return next();
+  // console.log(req.file);
+
+    // safe filename using shipper id (from auth) or timestamp
+    const ownerId = req.user && req.user.id ? req.user.id : Date.now();
+    const safeName = `Shipper-${ownerId}.jpeg`;
+
+    // ensure shippers directory exists
+    const shippersDir = path.join(process.env.FILES_UPLOADS_PATH || "uploads", "shippers");
+    try { fs.mkdirSync(shippersDir, { recursive: true }); } catch (err) { }
+
+    const outPath = path.join(shippersDir, safeName);
+    await sharp(req.file.buffer)
+        .resize(400, 400)
+        .toFormat("jpeg")
+        .jpeg({ quality: 80 })
+        .toFile(outPath);
+
+    // set filename for controller to save into DB
+    req.body.image = safeName;
+    next();
+});
 
 // 2) PROCESSING(Sharp)
 export const resizeShipperImages = asyncHandler(async (req, res, next) => {
@@ -213,44 +240,45 @@ export const logout = asyncHandler(async (req, res, next) => {
     });
 });
 
-export const updateShipper = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
+export const updateStatusShipper = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const { status } = req.body;
 
-  // Cập nhật shipper
-  const [affectedRows] = await Shipper.update(req.body, {
-    where: { id },
-    individualHooks: true,
-  });
-
-  if (!affectedRows) {
-    return next(
-      new APIError(`There is no document match this id : ${id}`, 404)
-    );
-  }
-
-  // Lấy lại bản ghi vừa update để trả về
-  const shipper = await Shipper.findByPk(id);
-
-  // Gửi email thông báo nếu có email
-  if (shipper && shipper.email) {
-    try {
-      await sendEmail({
-        email: shipper.email,
-        subject: "Thông báo cập nhật hồ sơ shipper",
-        message: `Xin chào ${shipper.name},\n\nHồ sơ shipper của bạn đã được cập nhật thành công.\n\nTrân trọng,\nĐội ngũ hỗ trợ`
-      });
-    } catch (err) {
-      // Không làm gián đoạn flow nếu gửi email lỗi
-      console.error("Send email error:", err.message);
+    if (status === undefined) {
+        return next(new APIError("status is required", 400));
     }
-  }
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      doc: shipper,
-    },
-  });
+    if (!Object.values(SHIPPER_STATUS).includes(status)) {
+        return next(new APIError("Invalid status value", 400));
+    }
+
+    // Update only the status field
+    const [affectedRows] = await Shipper.update(
+        { status },
+        { where: { id }, individualHooks: true }
+    );
+
+    if (!affectedRows) {
+        return next(new APIError(`There is no shipper match this id : ${id}`, 404));
+    }
+
+    // Retrieve updated shipper
+    const shipper = await Shipper.findByPk(id);
+
+    // Send notification email if shipper has email
+    if (shipper && shipper.email) {
+        try {
+            await sendEmail({
+                email: shipper.email,
+                subject: "Thông báo trạng thái shipper",
+                message: `Xin chào ${shipper.fullname || "Shipper"},\n\nTrạng thái tài khoản của bạn đã được cập nhật thành: ${status}.\n\nTrân trọng,\nĐội ngũ hỗ trợ`
+            });
+        } catch (err) {
+            console.error("Send email error:", err.message);
+        }
+    }
+
+    res.status(200).json({ status: "success", data: { doc: shipper } });
 });
 
 export const getAllShippers = getAll(Shipper);
@@ -262,3 +290,60 @@ export const deleteShipper = deleteOne(Shipper);
 export const getAllProcessingShippers = getAll(Shipper, {
     where: { status: SHIPPER_STATUS.PROCESSING }
 });
+
+export const updateProfile = asyncHandler(async (req, res, next) => {
+    const shipperId = req.user && req.user.id;
+    if (!shipperId) return next(new APIError("Authentication required", 401));
+
+    const shipper = await Shipper.findByPk(shipperId);
+    req.body.image = `Shipper-${shipper.id}.jpeg`
+    
+    if (!shipper) return next(new APIError("Shipper not found", 404));
+
+    // Build allowed update set dynamically from req.body keys that match model attributes
+    const modelAttrs = Object.keys(Shipper.rawAttributes || {});
+    const forbidden = ["id", "passwordChangedAt"]; // fields we don't allow updating directly
+
+    const bodyKeys = Object.keys(req.body || {});
+    if (bodyKeys.length === 0) return next(new APIError("No fields to update", 400));
+
+    const allowed = {};
+
+    for (const key of bodyKeys) {
+        if (forbidden.includes(key)) continue;
+        if (!modelAttrs.includes(key)) continue; // skip unknown fields
+
+        const value = req.body[key];
+
+        // special handling for unique fields
+        if (key === "citizen_id" || key === "phone" || key === "email") {
+            if (value !== undefined && value !== shipper[key]) {
+                const exists = await Shipper.findOne({ where: { [key]: value } });
+                if (exists && String(exists.id) !== String(shipper.id)) {
+                    return next(new APIError(`${key} already in use`, 400));
+                }
+            }
+            allowed[key] = value;
+            continue;
+        }
+
+        // password requires confirmPassword
+        if (key === "password") {
+            const confirmPassword = req.body.confirmPassword;
+            if (!confirmPassword) return next(new APIError("confirmPassword is required when changing password", 400));
+            if (value !== confirmPassword) return next(new APIError("Password and confirmPassword do not match", 400));
+            allowed.password = value;
+            continue;
+        }
+
+        // image fields (id_image, image, profile_image, health_image) are set by resizeShipperImages
+        allowed[key] = value;
+    }
+
+    if (Object.keys(allowed).length === 0) return next(new APIError("No valid fields to update", 400));
+
+    await shipper.update(allowed);
+
+    res.status(200).json({ status: "success", data: { shipper } });
+});
+
