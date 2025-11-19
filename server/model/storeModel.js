@@ -110,6 +110,10 @@ const Store = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
+    is_mail: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     image: {
       type: DataTypes.STRING(255),
       defaultValue: "default-store.jpg",
