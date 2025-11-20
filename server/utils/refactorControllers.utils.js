@@ -85,19 +85,19 @@ export const createOne = (Model) =>
 export const updateOne = (Model, options = {}) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const [affectedRows] = await Model.update(req.body, {
-      where: { id },
-      individualHooks: true,
-    });
 
-    if (!affectedRows) {
-      return next(
-        new APIError(`There is no document match this id : ${id}`, 404)
-      );
+    // Try find by PK first to avoid silent 0 affectedRows when id type/value mismatch
+    const instance = await Model.findByPk(id);
+    if (!instance) {
+      return next(new APIError(`There is no document match this id : ${id}`, 404));
     }
 
-    // Lấy lại bản ghi vừa update để trả về, kèm liên kết nếu có
-    let doc = await Model.findByPk(id, options);
+    // Update the instance so hooks/validators run reliably
+    await instance.update(req.body, { individualHooks: true });
+
+    // Re-fetch with options (include, attributes, etc.) for response
+    const doc = await Model.findByPk(id, options);
+
     res.status(200).json({
       status: "success",
       data: {

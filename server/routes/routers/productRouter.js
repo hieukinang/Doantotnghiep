@@ -27,23 +27,43 @@ const router = express.Router();
 // Admin
 router.get("/admin", isAuth(Admin), checkAdminStatus, getAllProductsForAdmin);
 
-router.patch("/admin/update-status/:id", isAuth(Admin), checkAdminStatus, IdValidator, updateSingleProduct); // Admin cập nhật trạng thái sản phẩm
+router.patch("/admin/update-status/:id", 
+  isAuth(Admin), 
+  checkAdminStatus, 
+  IdValidator, 
+  updateSingleProduct); // Admin cập nhật trạng thái sản phẩm
 
 // Store
-router.post("/store", isAuth(Store), checkStoreStatus, uploadProductImages, createProductValidator, resizeProductImages, createProduct);
+router.post("/store", 
+  isAuth(Store), 
+  checkStoreStatus, 
+  uploadProductImages, 
+  createProductValidator, 
+  resizeProductImages, 
+  createProduct);
 
-router.route("/store").get(isAuth(Store), checkStoreStatus, getAllProductsByStore); // lay tat ca san phan theo store
+router.route("/store").get(
+  isAuth(Store), 
+  checkStoreStatus, 
+  getAllProductsByStore); // lay tat ca san phan theo store
+
 router
   .route("/store/:id", isAuth(Store), checkStoreStatus, IdValidator) // Cập nhật, xóa sản phẩm
   .patch(
     uploadProductImages,
     createProductValidator,
     resizeProductImages,
-    updateSingleProduct
-  )
+    updateSingleProduct)
   .delete(
-    deleteSingleProduct
-  );
+    deleteSingleProduct);
+
+// Update none image fields of product
+router.patch(
+  "/store/update-info/:id",
+  isAuth(Store),
+  checkStoreStatus,
+  IdValidator,
+  updateSingleProduct);  
 
 // Client
 router.route("/").get(getAllProductsForClient);

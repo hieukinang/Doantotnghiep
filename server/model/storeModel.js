@@ -110,7 +110,7 @@ const Store = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-    is_mail: {
+    is_mall: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },

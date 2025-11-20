@@ -141,15 +141,21 @@ export const getAllProductsForAdmin = getAll(Product, {
 
 export const getAllProductsForClient = asyncHandler(async (req, res, next) => {
   const nameString = req.query.nameString || "";
+  const category = req.query.category; // category id or 'null'
 
   // Phân trang
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10; // mặc định 10 sản phẩm/trang
   const offset = (page - 1) * limit;
 
-  // Lấy toàn bộ sản phẩm ACTIVE
+  // Lấy toàn bộ sản phẩm ACTIVE hoặc theo category nếu truyền category
+  const where = { status: "ACTIVE" };
+  if (typeof category !== "undefined" && category !== null && String(category).toLowerCase() !== "null" && String(category).trim() !== "") {
+    where.categoryId = category;
+  }
+
   const products = await Product.findAll({
-    where: { status: "ACTIVE" },
+    where,
     include: [
       { model: ProductImage, as: "ProductImages" },
       { model: ProductVariant, as: "ProductVariants" }
@@ -212,7 +218,7 @@ export const getSingleProduct = getOne(Product, {
 
 // @desc    UPDATE Single Product
 // @route   PATCH /api/products/:id
-// @access  Private("ADMIN")
+// @access  Private("ADMIN", "STORE")
 export const updateSingleProduct = updateOne(Product);
 
 // @desc    DELETE Single Product
