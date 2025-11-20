@@ -33,8 +33,8 @@ const Sidebar = ({ onClose }) => {
         <Text style={styles.sidebarItem}>Ví tiền</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => handleNavigate("Orders")}>
-        <Text style={styles.sidebarItem}>Đơn hàng</Text>
+      <TouchableOpacity onPress={() => handleNavigate("TakeanOrder")}>
+        <Text style={styles.sidebarItem}>Nhận thêm đơn hàng</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => handleNavigate("Profile")}>
         <Text style={styles.sidebarItem}>Hồ sơ cá nhân</Text>

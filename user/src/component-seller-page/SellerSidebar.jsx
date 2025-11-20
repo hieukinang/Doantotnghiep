@@ -12,6 +12,7 @@ import {
   People as UserIcon,
   Settings as SettingsIcon,
   Menu as MenuIcon,
+  Wallet,
 } from "@mui/icons-material";
 
 // Danh sách các mục trong sidebar cho Seller
@@ -20,6 +21,7 @@ const navItems = [
   { label: "Danh sách sản phẩm", icon: ProductListIcon, href: "/seller/list-product" },
   { label: "Thêm sản phẩm", icon: AddProductIcon, href: "/seller/add-product" },
   { label: "Thêm mã giảm giá", icon: AddProductIcon, href: "/seller/add-coupon" },
+  { label: "Ví tiền", icon: Wallet, href: "/seller/wallet" },
   { label: "Chỉnh sửa sản phẩm", icon: EditProductIcon, href: "/seller/update-product" },
   { label: "Báo cáo doanh số", icon: ReportIcon, href: "/seller/sales-report" },
   { label: "Đánh giá", icon: RatingIcon, href: "/seller/rating" },

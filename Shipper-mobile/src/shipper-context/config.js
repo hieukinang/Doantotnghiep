@@ -3,7 +3,8 @@
 
 const config = {
   // backendUrl: 'http://10.0.2.2:5000/api',
-  backendUrl: 'http://192.168.1.7:5000/api',
+  backendUrl: 'http://172.16.12.117:5000/api',//tina4
+  // backendUrl: 'http://192.168.1.7:5000/api', //gianghuyen5g
 
 
   appName: 'KOHI MALL',

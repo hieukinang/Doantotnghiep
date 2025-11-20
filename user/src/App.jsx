@@ -37,6 +37,8 @@ import AddCoupon from "./page/seller/AddCoupon";
 import LoginSeller from "./page/seller/LoginSeller";
 import SellerHeader from "./component-seller-page/SellerHeader";
 import SellerSidebar from "./component-seller-page/SellerSidebar";
+import WalletSeller from "./page/seller/Wallet"
+
 import { ToastContainer } from "react-toastify";
 import ShopContextProvider from "./context/ShopContext";
 
@@ -134,6 +136,7 @@ function App() {
           <Route path="/seller/finance" element={<Finance />} />
           <Route path="/seller/rating" element={<Rating />} />
           <Route path="/seller/sales-report" element={<SalesReport />} />
+          <Route path="/seller/wallet" element={<WalletSeller />} />
           <Route path="/seller/order-detail" element={<OrderDetailSeller />} />
         </Route>
       </Routes>

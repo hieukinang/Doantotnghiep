@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Image } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import scanIcon from '../../assets/scan.svg'
 import axios from 'axios';
 import config from '../shipper-context/config';
 import { useAuth } from '../shipper-context/auth-context';
+import Sidebar from '../component/sidebar';
+
 
 export default function TakeanOrder() {
     const [orderCode, setOrderCode] = useState('');
@@ -40,9 +41,12 @@ export default function TakeanOrder() {
 
             console.log("Đang gửi request...");
 
-            const res = await axios.post(`${config.backendUrl}/orders/shipper/${orderCode}`,
+            const res = await axios.post(
+                `${config.backendUrl}/orders/shipper/${orderCode}`,
+                {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
             if (res.status = 'success') {
                 Alert.alert("Nhận đơn thành công");
             }
@@ -157,8 +161,8 @@ export default function TakeanOrder() {
                     />
 
                     {/* BUTTON SCAN (2 phần) */}
-                    <TouchableOpacity style={styles.scanIconWrapper} onPress={handleScanQR}>
-                        <Image source={scanIcon} style={styles.scanImg} />
+                    <TouchableOpacity style={[styles.scanIconWrapper, { backgroundColor: '#fff' }]} onPress={handleScanQR}>
+                        <Image source={require('../../assets/scan.png')} style={styles.scanImg} />
                     </TouchableOpacity>
                 </View>
 
@@ -238,13 +242,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
         paddingHorizontal: 16
     },
-    ordercode: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        marginTop: 10,
-        paddingHorizontal: 16,
-    },
     input: {
         flex: 8,
         height: 50,                 // <<< chiều cao cố định
@@ -258,7 +255,7 @@ const styles = StyleSheet.create({
     scanIconWrapper: {
         flex: 2,
         height: 50,                 // <<< bằng input
-        backgroundColor: '#116AD1',
+        // backgroundColor: '#116AD1',
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
@@ -267,7 +264,6 @@ const styles = StyleSheet.create({
     scanImg: {
         width: 26,
         height: 26,
-        tintColor: "#fff"
     },
     menuBtn: { fontSize: 22, color: '#116AD1' },
     qrBtn: { backgroundColor: '#116AD1', padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 12 },
