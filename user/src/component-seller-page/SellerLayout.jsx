@@ -13,6 +13,7 @@ const navItems = [
   { label: 'Tài chính', href: '/seller/finance' },
   { label: 'Hồ sơ cửa hàng', href: '/seller/edit-profile' },
   { label: 'Quản lý người dùng', href: '/seller/edit-user' },
+  { label: 'Ví tiền', href: '/seller/wallet' },
 ]
 
 const SellerLayout = ({ title = 'Bảng điều khiển', children }) => {

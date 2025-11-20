@@ -36,7 +36,7 @@ export default function Wallet() {
     // Lấy lịch sử giao dịch
     const fetchHistory = async () => {
         try {
-            const res = await axios.get("http://127.0.0.1:5000/api/transactions", {
+            const res = await axios.get("http://127.0.0.1:5000/api/transactions/", {
                 params: { startDate, endDate, page },
                 headers: { Authorization: `Bearer ${clientToken}` },
             });
@@ -51,6 +51,7 @@ export default function Wallet() {
 
     useEffect(() => {
         fetchWallet();
+        fetchHistory();
     }, []);
 
     useEffect(() => {

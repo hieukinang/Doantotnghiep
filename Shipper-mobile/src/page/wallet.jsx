@@ -1,17 +1,36 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+    View, Text, TouchableOpacity, StyleSheet, Dimensions,
+    ActivityIndicator, ScrollView, Modal, TextInput, Linking
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Sidebar from '../component/sidebar';
 import Popup from '../component/popup';
+import axios from 'axios';
+import config from '../shipper-context/config';
+import { useAuth } from '../shipper-context/auth-context';
 
 const HEADER_HEIGHT = 80;
 
 const Wallet = () => {
     const navigation = useNavigation();
+    const { token } = useAuth();
+    const tokenShipper = "Bearer " + token;
+
     const [showSidebar, setShowSidebar] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
-    const [balance, setBalance] = useState(1250000);
+    const [balance, setBalance] = useState(0);
     const [activeFilter, setActiveFilter] = useState("today");
+    const [history, setHistory] = useState([]);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(false);
+
+    // ===== Modal Nạp tiền =====
+    const [showTopupModal, setShowTopupModal] = useState(false);
+    const [amount, setAmount] = useState('');
+    const [method, setMethod] = useState('stripe'); // 'stripe' | 'momo'
+    const [topupLoading, setTopupLoading] = useState(false);
 
     const toggleSidebar = () => {
         setShowSidebar(!showSidebar);
@@ -26,24 +45,93 @@ const Wallet = () => {
     const closeAll = () => {
         setShowSidebar(false);
         setShowPopup(false);
+        setShowTopupModal(false);
     };
 
+    const fetchWallet = async () => {
+        try {
+            const res = await axios.get(`${config.backendUrl}/transactions/get-wallet`, {
+                headers: { Authorization: tokenShipper }
+            });
+            setBalance(res.data.wallet ?? 0);
+        } catch (err) {
+            console.log("Lỗi get ví:", err);
+        }
+    };
+
+    const fetchHistory = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get(`${config.backendUrl}/transactions`, {
+                headers: { Authorization: tokenShipper }
+            });
+            setHistory(res.data.data || []);
+            setPage(res.data.pagination?.currentPage || 1);
+            setTotalPages(res.data.pagination?.totalPages || 1);
+        } catch (err) {
+            console.log("Lỗi history:", err);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        if (token) {
+            fetchWallet();
+            fetchHistory();
+        }
+    }, [token]);
+
+    const handleTopup = async () => {
+        if (!amount || isNaN(amount) || Number(amount) <= 0) {
+            alert("Vui lòng nhập số tiền hợp lệ");
+            return;
+        }
+
+        setTopupLoading(true);
+        try {
+            const endpoint = method === 'stripe'
+                ? '/transactions/checkout-session/stripe'
+                : '/transactions/checkout-session/momo';
+
+            const res = await axios.post(`${config.backendUrl}${endpoint}`, {
+                amount: Number(amount)
+            }, {
+                headers: { Authorization: tokenShipper }
+            });
+
+            console.log("Checkout session:", res.data);
+
+            // mở ngay URL thanh toán
+            const url = res.data.session?.url;
+            if (url) {
+                Linking.openURL(url);
+            } else {
+                alert("Không tìm thấy URL thanh toán!");
+            }
+
+            setShowTopupModal(false);
+            setAmount('');
+            fetchWallet(); // cập nhật số dư nếu cần sau khi thanh toán xong
+        } catch (err) {
+            console.log("Lỗi nạp tiền:", err.response?.data || err);
+            alert("Nạp tiền thất bại");
+        }
+        setTopupLoading(false);
+    };
     return (
         <View style={styles.container}>
-            {/* Header */}
+            {/* HEADER */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={toggleSidebar}>
                     <Text style={styles.menuBtn}>☰</Text>
                 </TouchableOpacity>
-
                 <Text style={styles.headerTitle}>KOHI MALL</Text>
-
                 <TouchableOpacity onPress={togglePopup}>
                     <Text style={styles.menuBtn}>⚙</Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Card số dư */}
+            {/* SỐ DƯ */}
             <View style={styles.balanceCard}>
                 <Text style={styles.balanceLabel}>Số dư ví</Text>
                 <Text style={styles.balanceAmount}>{balance.toLocaleString()} đ</Text>
@@ -51,7 +139,7 @@ const Wallet = () => {
 
             {/* Nút Nạp / Rút */}
             <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.actionBtn}>
+                <TouchableOpacity style={styles.actionBtn} onPress={() => setShowTopupModal(true)}>
                     <Text style={styles.actionText}>Nạp tiền</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionBtn}>
@@ -59,56 +147,71 @@ const Wallet = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* Biến động số dư */}
-            <View style={styles.historyContainer}>
-                <Text style={styles.historyTitle}>Biến động số dư</Text>
-                <View style={styles.filterRow}>
-                    {["today", "7days", "30days", "all"].map((filter) => (
-                        <TouchableOpacity
-                            key={filter}
-                            style={[styles.filterBtn, activeFilter === filter && styles.filterActive]}
-                            onPress={() => setActiveFilter(filter)}
-                        >
-                            <Text
-                                style={[styles.filterText, activeFilter === filter && styles.filterActiveText]}
-                            >
-                                {filter === "today"
-                                    ? "Hôm nay"
-                                    : filter === "7days"
-                                        ? "7 ngày"
-                                        : filter === "30days"
-                                            ? "30 ngày"
-                                            : "Tất cả"}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-                <View style={styles.historyBox}>
-                    <Text style={{ color: '#555' }}>
-                        👉 Hiển thị giao dịch: {activeFilter === "today"
-                            ? "Hôm nay"
-                            : activeFilter === "7days"
-                                ? "7 ngày qua"
-                                : activeFilter === "30days"
-                                    ? "30 ngày qua"
-                                    : "Tất cả"}
-                    </Text>
-                </View>
-            </View>
+            {/* MODAL NẠP TIỀN */}
+            <Modal
+                visible={showTopupModal}
+                transparent
+                animationType="fade"
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Nạp tiền vào ví</Text>
 
-            {/* Overlay */}
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Nhập số tiền"
+                            keyboardType="numeric"
+                            value={amount}
+                            onChangeText={setAmount}
+                        />
+
+                        <View style={styles.methodRow}>
+                            <TouchableOpacity
+                                style={[styles.methodBtn, method === 'stripe' && styles.methodActive]}
+                                onPress={() => setMethod('stripe')}
+                            >
+                                <Text style={method === 'stripe' ? { color: '#fff' } : {}}>Stripe</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.methodBtn, method === 'momo' && styles.methodActive]}
+                                onPress={() => setMethod('momo')}
+                            >
+                                <Text style={method === 'momo' ? { color: '#fff' } : {}}>Momo</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.modalBtnRow}>
+                            <TouchableOpacity
+                                style={[styles.modalBtn, { backgroundColor: '#ccc' }]}
+                                onPress={() => setShowTopupModal(false)}
+                            >
+                                <Text>Hủy</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalBtn, { backgroundColor: '#116AD1' }]}
+                                onPress={handleTopup}
+                                disabled={topupLoading}
+                            >
+                                {topupLoading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={{ color: '#fff' }}>Nạp</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* OVERLAY */}
             {(showSidebar || showPopup) && (
-                <TouchableOpacity
-                    activeOpacity={1}
-                    onPress={closeAll}
-                    style={styles.overlay}
-                />
+                <TouchableOpacity activeOpacity={1} onPress={closeAll} style={styles.overlay} />
             )}
 
-            {/* Sidebar */}
-            {showSidebar && <Sidebar onClose={() => setShowSidebar(false)} />}
+            {/* SIDEBAR */}
+            {showSidebar && <Sidebar onClose={closeAll} />}
 
-            {/* Popup */}
+            {/* POPUP */}
             {showPopup && (
                 <Popup
                     visible={showPopup}
@@ -147,10 +250,6 @@ const styles = StyleSheet.create({
         paddingVertical: 30,
         borderRadius: 12,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
         elevation: 5,
     },
     balanceLabel: { fontSize: 18, color: '#333', marginBottom: 8 },
@@ -172,27 +271,41 @@ const styles = StyleSheet.create({
     },
     actionText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
-    historyContainer: { marginTop: 30, paddingHorizontal: 20 },
-    historyTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-    filterRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-    filterBtn: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 20,
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    modalContent: {
+        width: width * 0.8,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 20,
+    },
+    modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+    input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 15,
+    },
+    methodRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 15 },
+    methodBtn: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
         backgroundColor: '#eee',
     },
-    filterText: { fontSize: 14, color: '#333' },
-    filterActive: { backgroundColor: '#116AD1' },
-    filterActiveText: { color: '#fff', fontWeight: 'bold' },
-    historyBox: {
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
+    methodActive: { backgroundColor: '#116AD1' },
+    modalBtnRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    modalBtn: {
+        flex: 1,
+        paddingVertical: 12,
+        marginHorizontal: 5,
+        borderRadius: 8,
+        alignItems: 'center'
     },
 
     overlay: {

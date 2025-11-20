@@ -217,7 +217,6 @@ const ShopContextProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error("❌ Lỗi khi tải supercategories:", error);
-      toast.error("Không thể tải danh mục cha!");
       return [];
     }
   };
@@ -230,7 +229,6 @@ const ShopContextProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error("❌ Lỗi khi tải categories:", error);
-      toast.error("Không thể tải danh mục con!");
       return [];
     }
   };
@@ -280,7 +278,6 @@ const ShopContextProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("❌ Lỗi khi tải products:", error);
-      toast.error("Không thể tải danh sách sản phẩm!");
       return [];
     }
   };

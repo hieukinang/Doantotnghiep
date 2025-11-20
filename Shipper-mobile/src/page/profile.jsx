@@ -12,6 +12,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Sidebar from "../component/sidebar";
 import Popup from "../component/popup";
+import config from "../shipper-context/config";
 
 const Profile = () => {
     const [shipper, setShipper] = useState(null);
@@ -44,7 +45,7 @@ const Profile = () => {
                 return;
             }
 
-            const response = await axios.get(`http://10.0.2.2:5000/api/shippers/${id}`);
+            const response = await axios.get(`${config.backendUrl}/shippers/${id}`);
             console.log("Dữ liệu trả về từ API:", response.data);
 
             setShipper(response.data.data.doc);
@@ -58,6 +59,9 @@ const Profile = () => {
     useEffect(() => {
         fetchShipper();
     }, []);
+
+    //thay bằng ip máy
+    const fixedImage = shipper.profile_image.replace("localhost", "172.16.12.117");
 
     return (
         <View style={{ flex: 1 }}>
@@ -85,7 +89,7 @@ const Profile = () => {
                         {/* Avatar */}
                         <View style={styles.center}>
                             <Image
-                                source={{ uri: shipper.image }}
+                                source={{ uri: fixedImage}}
                                 style={styles.avatar}
                             />
                             <Text style={styles.name}>{shipper.fullname}</Text>
@@ -99,7 +103,7 @@ const Profile = () => {
                             <Text>Số CMT/CCCD: {shipper.citizen_id}</Text>
                             <Text>Số điện thoại: {shipper.phone}</Text>
                             <Text>Khu vực: {shipper.work_area_city}, {shipper.work_area_village}</Text>
-                            <Text>Trạng thái: {shipper.is_available ? "Đang rảnh" : "Không rảnh"}</Text>
+                            <Text>Trạng thái: {shipper.status? "Đang rảnh" : "Không rảnh"}</Text>
                         </View>
 
                         {/* Xe cộ */}
@@ -115,7 +119,7 @@ const Profile = () => {
                             <Text>Ngân hàng: {shipper.bank_name}</Text>
                             <Text>Số tài khoản: {shipper.bank_account_number}</Text>
                             <Text>Chủ tài khoản: {shipper.bank_account_holder_name}</Text>
-                            <Text>Số dư: {shipper.balance} VNĐ</Text>
+                            <Text>Số dư: {shipper.wallet} VNĐ</Text>
                         </View>
                     </View>
                 )}
