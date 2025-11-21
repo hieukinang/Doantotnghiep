@@ -30,6 +30,8 @@ const ShopContextProvider = ({ children }) => {
   const [cartTotal, setCartTotal] = useState(0);
   const [shippingFee, setShippingFee] = useState(0);
   const [storeId, setStoreId] = useState(null);
+  const [orders, setOrders] = useState([]);
+  
   // ================== 🛒 GIỎ HÀNG ==================
 
   const fetchMyCart = async () => {
@@ -326,6 +328,22 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
+  const getOrdersofStore = async () => {
+    try {
+      const token = localStorage.getItem("sellerToken");
+
+      const res = await axios.get(`${backendURL}/orders/store`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setOrders(res.data.data.orders || []);
+    } catch (error) {
+      console.error("Lỗi tải đơn hàng:", error);
+    }
+  };
+
   // 🔁 Tải danh mục cha khi khởi động
   useEffect(() => {
     getAllSuperCategories();
@@ -347,6 +365,7 @@ const ShopContextProvider = ({ children }) => {
     cartTotal,
     shippingFee,
     storeId,
+    orders,
     fetchMyCart,
     removeFromCart,
     addToCart,
@@ -359,6 +378,7 @@ const ShopContextProvider = ({ children }) => {
     getProduct,
     getAllProducts,
     getAllProductsByStore,
+    getOrdersofStore
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

@@ -178,7 +178,6 @@ const CreateCategory = () => {
                     onChange={handleChange}
                     className="w-full border p-2 rounded-md"
                   >
-                    <option value="">-- Danh mục cha --</option>
                     {superCategories.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name}
