@@ -16,7 +16,7 @@ router
   .get(getAllShippingCodes);
 
 router
-  .route("/")
+  .route("")
   .get(isAuth(Admin), checkAdminStatus, getAllShippingCodes)
   .post(isAuth(Admin), checkAdminStatus, createShippingCode);
 

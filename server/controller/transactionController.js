@@ -33,6 +33,26 @@ export const createCheckoutSessionStripe = asyncHandler(async (req, res, next) =
     return next(new APIError("Invalid user or amount", 400));
   }
 
+  let BASE_URL = "";
+  switch (role) {
+    case "ADMIN":
+      BASE_URL = process.env.ADMIN_URL;
+      break;
+    case "CLIENT":
+      BASE_URL = process.env.CLIENT_URL;
+      break;
+    case "STORE":
+      BASE_URL = process.env.CLIENT_URL;
+      break;
+    case "SHIPPER":
+      BASE_URL = process.env.SHIPPER_URL;
+      break;
+    default:
+      return next(new APIError("Invalid user role", 400));
+  }
+
+  console.log(BASE_URL);
+
   // 4) Create stripe checkout session
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
@@ -51,8 +71,8 @@ export const createCheckoutSessionStripe = asyncHandler(async (req, res, next) =
       }
     ],
     mode: "payment",
-    success_url: `${process.env.CLIENT_URL}/wallet/success`,
-    cancel_url: `${process.env.CLIENT_URL}/wallet`,
+    success_url: `${BASE_URL}/wallet/success`,
+    cancel_url: `${BASE_URL}/wallet`,
     customer_email: email,
 
     // lưu thông tin để xử lý trong webhook
@@ -167,7 +187,6 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 

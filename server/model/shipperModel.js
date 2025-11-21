@@ -116,10 +116,6 @@ const Shipper = sequelize.define(
       type: DataTypes.FLOAT,
       defaultValue: 0,
     },
-    debt: {
-      type: DataTypes.FLOAT,
-      defaultValue: 0,
-    },
     bank_name: {
       type: DataTypes.STRING(100),
       allowNull: true,

@@ -6,6 +6,7 @@ import Coupon from "../model/couponModel.js";
 import ShippingCode from "../model/shippingCodeModel.js";
 import Client from "../model/clientModel.js";
 import { sequelize } from "../config/db.js";
+import { Op } from "sequelize";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {generateQRCodeJPG} from "../utils/barcode.utils.js";
 import APIError from "../utils/apiError.utils.js";
@@ -20,7 +21,6 @@ dotenv.config();
 
 // @ desc middleware to filter orders for the logged user
 // @access  Protected
-
 export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const status = req.query.status;
@@ -80,6 +80,8 @@ export const getSingleOrder = asyncHandler(async (req, res, next) => {
 export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
   const storeId = req.user && req.user.id;
   const status = req.query.status;
+  const startDateQ = req.query.startDate;
+  const endDateQ = req.query.endDate;
 
   const where = { storeId };
   if (status !== undefined && status !== null && String(status).trim() !== "") {
@@ -87,6 +89,36 @@ export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
       return next(new APIError("Invalid order status", 400));
     }
     where.status = status;
+  }
+
+  // Date range handling for order_date (DATEONLY)
+  if (startDateQ || endDateQ) {
+    // parse endDate: if not provided, set to today
+    const now = new Date();
+    let endDate = endDateQ ? new Date(endDateQ) : now;
+    if (Number.isNaN(endDate.getTime())) return next(new APIError("Invalid endDate", 400));
+
+    // parse startDate if provided
+    let startDate = null;
+    if (startDateQ) {
+      startDate = new Date(startDateQ);
+      if (Number.isNaN(startDate.getTime())) return next(new APIError("Invalid startDate", 400));
+    }
+
+    // If startDate provided, validate startDate <= endDate
+    if (startDate && startDate > endDate) {
+      return next(new APIError("startDate must be before or equal to endDate", 400));
+    }
+
+    // Normalize to YYYY-MM-DD for DATEONLY comparison
+    const endStr = endDate.toISOString().slice(0, 10);
+    if (startDate) {
+      const startStr = startDate.toISOString().slice(0, 10);
+      where.order_date = { [Op.between]: [startStr, endStr] };
+    } else {
+      // startDate not provided: get all orders up to endDate
+      where.order_date = { [Op.lte]: endStr };
+    }
   }
 
   const orders = await Order.findAll({
@@ -735,23 +767,55 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
       return next(new APIError("Shipper not found", 404));
     }
 
-    const shippingFee = Number(order.shipping_fee || 0);
+    const shippingFee = 21000;
     const orderTotal = Number(order.total_price || 0);
 
-    await shipper.increment("wallet", { by: shippingFee, transaction: t });
-    await shipper.increment("debt", { by: orderTotal, transaction: t });
-    await shipper.reload({ transaction: t });
+    // Behavior:
+    // - If payment was via wallet: credit shipper with shipping fee only.
+    // - If payment was via cash: deduct the order total from shipper wallet.
+    if (order.payment_method === "wallet") {
+      await shipper.increment("wallet", { by: shippingFee, transaction: t });
+      await shipper.reload({ transaction: t });
 
-    // 3) Create transaction for shipper for the shipping fee
-    await Transaction.create({
-      user_id: shipperId,
-      amount: shippingFee,
-      new_balance: shipper.wallet,
-      payment_method: "system_shipping_fee",
-      type: TRANSACTION_TYPE.TOP_UP,
-      status: "SUCCESS",
-      description: `Shipping fee for order ${order.id}`,
-    }, { transaction: t });
+      // record top-up for shipping fee
+      await Transaction.create({
+        user_id: shipperId,
+        amount: shippingFee,
+        new_balance: shipper.wallet,
+        payment_method: "system_shipping_fee",
+        type: TRANSACTION_TYPE.TOP_UP,
+        status: "SUCCESS",
+        description: `Shipping fee for order ${order.id}`,
+      }, { transaction: t });
+    } else if (order.payment_method === "cash") {
+      // deduct order total from shipper wallet
+      await shipper.decrement("wallet", { by: orderTotal, transaction: t });
+      await shipper.reload({ transaction: t });
+
+      // record deduction for order payment
+      await Transaction.create({
+        user_id: shipperId,
+        amount: -orderTotal,
+        new_balance: shipper.wallet,
+        payment_method: "cash",
+        type: TRANSACTION_TYPE.PAY_ORDER,
+        status: "SUCCESS",
+        description: `Order amount deducted for order ${order.id}`,
+      }, { transaction: t });
+    } else {
+      // fallback: still credit shipping fee
+      await shipper.increment("wallet", { by: shippingFee, transaction: t });
+      await shipper.reload({ transaction: t });
+      await Transaction.create({
+        user_id: shipperId,
+        amount: shippingFee,
+        new_balance: shipper.wallet,
+        payment_method: "system_shipping_fee",
+        type: TRANSACTION_TYPE.TOP_UP,
+        status: "SUCCESS",
+        description: `Shipping fee for order ${order.id}`,
+      }, { transaction: t });
+    }
 
     // 4) Mark order as delivered
     order.status = ORDER_STATUS.DELIVERED;
