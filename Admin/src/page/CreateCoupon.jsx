@@ -15,6 +15,7 @@ const CreateCoupon = () => {
   });
 
   const [message, setMessage] = useState("");
+  const [typeCode, setTypeCode] = useState("product");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,14 +71,15 @@ const CreateCoupon = () => {
         ...formData,
         expire: formatDateTime(formData.expire),
       };
+      const API_URL =
+        typeCode === "product"
+          ? `${backendURL}/coupons/admin`
+          : `${backendURL}/shipping-codes`;
 
-      const res = await axios.post(
-        `${backendURL}/coupons/admin`,
-        formattedData,
-        {
-          headers: { Authorization: `Bearer ${adminToken}` },
-        }
-      );
+      const res = await axios.post(API_URL, formattedData, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
 
       setMessage("✅ Tạo mã giảm giá thành công!");
       console.log(res.data);
@@ -149,9 +151,22 @@ const CreateCoupon = () => {
             />
           </div>
         </div>
+        <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block mb-1 font-medium">
-            Ngày hết hạn (chọn ngày & giờ) *
+            Loại mã giảm*
+          </label>
+            <select className="w-full border border-gray-300 p-2 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={typeCode}
+              onChange={(e) => setTypeCode(e.target.value)}
+              >
+            <option value="product">Mã giảm giá sản phẩm</option>
+            <option value="shipping">Mã giảm giá vận chuyển</option>
+          </select>
+        </div>
+        <div>
+          <label className="block mb-1 font-medium">
+            Ngày hết hạn *
           </label>
           <DatePicker
             selected={formData.expire}
@@ -165,7 +180,7 @@ const CreateCoupon = () => {
             minDate={new Date()}
           />
         </div>
-
+        </div>
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
