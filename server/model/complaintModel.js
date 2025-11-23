@@ -4,6 +4,7 @@ import Client from "./clientModel.js";
 import Admin from "./adminModel.js";
 import Store from "./storeModel.js";
 import Shipper from "./shipperModel.js";
+import { COMPLAINT_TYPE } from "../constants/index.js";
 
 const Complaint = sequelize.define(
   "Complaint",
@@ -14,7 +15,7 @@ const Complaint = sequelize.define(
       autoIncrement: true,
     },
     type: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.ENUM(...Object.values(COMPLAINT_TYPE)),
       allowNull: true,
     },
     details: {

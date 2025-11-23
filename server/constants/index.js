@@ -62,6 +62,14 @@ export const ORDER_STATUS = {
   RETURN_CONFIRMED: "RETURN_CONFIRMED",// xác nhận trả hàng thành công
 };
 
+export const COMPLAINT_TYPE = {
+  PRODUCT: "PRODUCT",
+  STORE: "STORE",
+  SERVICE: "SERVICE",
+  DELIVERY: "DELIVERY",
+  OTHER: "OTHER",
+}
+
 export const TRANSACTION_TYPE = {
   TOP_UP: "TOP_UP",
   PAY_ORDER: "PAY_ORDER",
