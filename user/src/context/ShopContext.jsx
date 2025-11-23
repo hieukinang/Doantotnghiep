@@ -353,6 +353,7 @@ const ShopContextProvider = ({ children }) => {
     backendURL,
     clientToken,
     clientUsername,
+    sellerToken,
     isLoggedIn,
     supercategories,
     categories,

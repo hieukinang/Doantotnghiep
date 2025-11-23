@@ -2,11 +2,12 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import Header from '../../component-home-page/Header'
 import Footer from '../../component-home-page/Footer'
+import MessageButton from '../../component-home-page/MessageButton'
 
 const shops = [
-  { id: 1, name: 'KOHI Official', followers: '120k', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop' },
-  { id: 2, name: 'Tech Station', followers: '80k', avatar: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=1200&auto=format&fit=crop' },
-  { id: 3, name: 'Sport Max', followers: '45k', avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=1200&auto=format&fit=crop' },
+  { id: 'STORE1763782804525', name: 'KOHI Official', followers: '120k', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop' },
+  { id: 'STORE1763782804526', name: 'Tech Station', followers: '80k', avatar: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=1200&auto=format&fit=crop' },
+  { id: 'STORE1763782804527', name: 'Sport Max', followers: '45k', avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=1200&auto=format&fit=crop' },
 ]
 
 const FollowedShops = () => {
@@ -24,7 +25,15 @@ const FollowedShops = () => {
                   <div className="font-semibold">{s.name}</div>
                   <div className="text-sm text-gray-500">{s.followers} người theo dõi</div>
                 </div>
-                <button className="px-3 py-1 border rounded text-sm text-[#116AD1] border-[#116AD1]">Hủy theo dõi</button>
+                <div className="flex flex-col gap-2">
+                  <MessageButton
+                    userId={s.id}
+                    userType="STORE"
+                    userName={s.name}
+                    userImage={s.avatar}
+                  />
+                  <button className="px-3 py-1 border rounded text-sm text-[#116AD1] border-[#116AD1]">Hủy theo dõi</button>
+                </div>
               </div>
             ))}
           </div>

@@ -5,6 +5,7 @@ import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import MessageButton from "../../component-home-page/MessageButton";
 const ProductDetail = () => {
   const { productId } = useParams();
   const { product, getProduct, backendURL } = useContext(ShopContext);
@@ -15,6 +16,7 @@ const ProductDetail = () => {
   const [selectedVariantPrice, setSelectedVariantPrice] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [variantAttributes, setVariantAttributes] = useState({});
+  const [storeInfo, setStoreInfo] = useState(null);
 
   // Lấy sản phẩm theo ID
   useEffect(() => {
@@ -23,6 +25,34 @@ const ProductDetail = () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [productId]);
+
+  // Lấy thông tin store từ product
+  useEffect(() => {
+    // Lấy storeId từ product hoặc từ variant đầu tiên
+    const storeId = product?.storeId || 
+                    product?.ProductStore?.id ||
+                    product?.ProductVariants?.[0]?.storeId ||
+                    product?.ProductVariants?.[0]?.ProductVariantProduct?.storeId;
+    
+    if (storeId) {
+      const fetchStoreInfo = async () => {
+        try {
+          const res = await axios.get(`${backendURL}/stores/${storeId}`);
+          if (res.data?.status === 'success' && res.data?.data?.doc) {
+            const store = res.data.data.doc;
+            setStoreInfo({
+              id: store.id || `STORE${store.id}`,
+              name: store.name || 'Cửa hàng',
+              image: store.image || null
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching store info:', error);
+        }
+      };
+      fetchStoreInfo();
+    }
+  }, [product?.storeId, product?.ProductStore, product?.ProductVariants, backendURL]);
 
   // Tạo gallery
   const gallery = [
@@ -266,6 +296,33 @@ const ProductDetail = () => {
                 {product.description || "Chưa có mô tả cho sản phẩm này."}
               </p>
             </div>
+
+            {/* Thông tin cửa hàng và nút nhắn tin */}
+            {storeInfo && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {storeInfo.image && (
+                      <img 
+                        src={storeInfo.image.startsWith('http') ? storeInfo.image : `${backendURL}/${storeInfo.image}`}
+                        alt={storeInfo.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    )}
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{storeInfo.name}</h4>
+                      <p className="text-sm text-gray-500">Cửa hàng</p>
+                    </div>
+                  </div>
+                  <MessageButton
+                    userId={storeInfo.id}
+                    userType="STORE"
+                    userName={storeInfo.name}
+                    userImage={storeInfo.image}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

@@ -14,6 +14,7 @@ import {
   Menu as MenuIcon,
   LocalActivity as CreateCouponIcon,
   Inventory2 as CreateCategoryIcon,
+  Chat as ChatIcon,
 } from "@mui/icons-material";
 
 const navItems = [
@@ -29,6 +30,7 @@ const navItems = [
   { name: "Vi phạm", icon: ViolationIcon, path: "/violations" },
   { name: "Báo cáo hệ thống", icon: ReportIcon, path: "/reports" },
   { name: "Cài đặt", icon: SettingsIcon, path: "/settings" },
+  {name: "Quản lý Chat", icon: ChatIcon, path: "/chat-management"}
 ];
 
 const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
