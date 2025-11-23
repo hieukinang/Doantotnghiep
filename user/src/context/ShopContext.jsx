@@ -396,7 +396,8 @@ const ShopContextProvider = ({ children }) => {
     getAllProducts,
     getAllProductsByStore,
     getOrdersofStore,
-    getOrderofClient
+    getOrderofClient,
+    setOrdersStore,
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

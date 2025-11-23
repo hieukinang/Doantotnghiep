@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-
-// Mapping API status -> UI status
 const STATUS_MAP = {
   PENDING: "Đang xử lý",
   CONFIRMED: "Đã xác nhận",
@@ -18,7 +18,6 @@ const STATUS_MAP = {
   RETURN_CONFIRMED: "Đã trả hàng",
 };
 
-// Tabs UI
 const tabs = [
   "Tất cả",
   "Đang xử lý",
@@ -34,25 +33,27 @@ const tabs = [
 
 const Orders = () => {
   const { ordersClient, getOrderofClient } = useContext(ShopContext);
-
   const [active, setActive] = useState("Tất cả");
+  const backendURL =
+    import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
 
   useEffect(() => {
     getOrderofClient();
   }, []);
 
-  // Chuẩn hóa dữ liệu API -> UI
   const formatOrders = (ordersClient || []).map((o) => {
     const statusUI = STATUS_MAP[o.status] || "Đang xử lý";
 
     return {
       id: o.orderCode || `ORDER-${o.id}`,
+      rawStatus: o.status, // lưu trạng thái gốc để kiểm tra nút
       status: statusUI,
       total: o.total_price || 0,
       items: o.items?.length || 0,
       date: o.createdAt
         ? new Date(o.createdAt).toLocaleDateString("vi-VN")
         : "",
+      clientOrderId: o.id, // dùng cho API xác nhận nhận hàng
     };
   });
 
@@ -61,10 +62,37 @@ const Orders = () => {
       ? formatOrders
       : formatOrders.filter((o) => o.status === active);
 
+  // 🔹 Xác nhận đã nhận hàng
+  const handleConfirmReceived = async (orderId) => {
+    const token = localStorage.getItem("clientToken");
+    if (!token) {
+      toast.warning("⚠️ Vui lòng đăng nhập!");
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${backendURL}/orders/client/${orderId}/confirmed-order-is-deliveried`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.status === "success") {
+        toast.success("Cập nhật trạng thái đơn hàng thành công!");
+        // 🔁 fetch lại danh sách đơn hàng
+        await getOrderofClient();
+      } else {
+        toast.error(res.data.message || "Cập nhật thất bại!");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Cập nhật thất bại!");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-
       <main className="pt-32 px-5 flex-1">
         <div className="max-w-6xl mx-auto">
 
@@ -87,9 +115,7 @@ const Orders = () => {
           {/* Order list */}
           <div className="mt-4 space-y-4">
             {filteredOrders.length === 0 ? (
-              <div className="text-center text-gray-500">
-                Không có đơn hàng.
-              </div>
+              <div className="text-center text-gray-500">Không có đơn hàng.</div>
             ) : (
               filteredOrders.map((o) => (
                 <div
@@ -123,13 +149,22 @@ const Orders = () => {
                     >
                       Đổi trả
                     </Link>
+
+                    {/* 🔹 Nút xác nhận đã nhận hàng chỉ hiển thị khi đang giao */}
+                    {o.rawStatus === "DELIVERED" && (
+                      <button
+                        onClick={() => handleConfirmReceived(o.clientOrderId)}
+                        className="text-sm px-3 py-1 border rounded text-green-600 hover:bg-green-50"
+                      >
+                        Đã nhận hàng
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          {/* Continue Shopping */}
           <div className="mt-6 text-center">
             <Link
               to="/"
@@ -140,7 +175,6 @@ const Orders = () => {
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );
