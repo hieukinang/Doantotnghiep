@@ -13,6 +13,7 @@ import TakeanOrder from './page/takeanorder';
 import OrderDetail from './page/order-detail';
 import Profile from './page/profile';
 import { AuthProvider } from './shipper-context/auth-context';
+import PaymentSuccess from './page/paymentsuccess';
 
 
 const Stack = createNativeStackNavigator();
@@ -64,6 +65,11 @@ export default function App() {
             <Stack.Screen
               name="Profile"
               component={Profile}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="PaymentSuccess"
+              component={PaymentSuccess}
               options={{ headerShown: false }}
             />
           </Stack.Navigator>

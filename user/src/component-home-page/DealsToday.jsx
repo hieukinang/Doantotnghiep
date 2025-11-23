@@ -23,7 +23,7 @@ const DealsToday = () => {
   }, [allProducts]);
 
   return (
-    <div className="max-w-7xl mx-auto mt-6">
+    <div className="mx-[100px] mt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Deal nổi bật hôm nay</h2>
         <Link to="/products" className="text-[#116AD1] text-sm">

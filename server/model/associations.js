@@ -10,8 +10,6 @@ import Attribute from "./attributeModel.js";
 import Category from "./categoryModel.js";
 import VariantOption from "./variantOptionModel.js";
 import ComplaintImage from "./complaintImageModel.js";
-import Conversation from "./conversationModel.js";
-import Message from "./messageModel.js";
 import Coupon from "./couponModel.js";
 import Favorite from "./favoriteModel.js";
 import Follow from "./followModel.js";
@@ -30,6 +28,8 @@ import ShippingCode from "./shippingCodeModel.js";
 import Return from "./returnModel.js";
 import ReturnItem from "./returnItemModel.js";
 import ReturnImage from "./returnImageModel.js";
+import ClientViewEvent from "./clientViewEventModel.js";
+import UserSearchQuery from "./userSearchQueryModel.js";
 
 // Define associations
 
@@ -54,18 +54,18 @@ Client.hasMany(Favorite, { foreignKey: "clientId", as: "ClientFavorites" });
 Client.hasMany(Follow, { foreignKey: "clientId", as: "ClientFollows" });
 Client.hasMany(Order, { foreignKey: "clientId", as: "ClientOrders" });
 Client.hasMany(Review, { foreignKey: "clientId", as: "ClientReview" });
+Client.hasMany(ClientViewEvent, { foreignKey: "client_id", as: "ClientViewEvents" });
+Client.hasMany(UserSearchQuery, { foreignKey: "client_id", as: "ClientSearchQueries" });
 ComplaintImage.belongsTo(Complaint, { foreignKey: "complaintId", as: "ComplaintImageComplaint" });
 Complaint.belongsTo(Client, { foreignKey: "clientId", as: "ComplaintClient" });
 Complaint.belongsTo(Admin, { foreignKey: "adminId", as: "ComplaintAdmin" });
 Complaint.belongsTo(Store, { foreignKey: "storeId", as: "ComplaintStore" });
 Complaint.belongsTo(Shipper, { foreignKey: "shipperId", as: "ComplaintShipper" });
 Complaint.hasMany(ComplaintImage, { foreignKey: "complaintId", as: "ComplaintImages" });
-Conversation.hasMany(Message, { foreignKey: "conversationId", as: "ConversationMessages" });
 Favorite.belongsTo(Client, { foreignKey: "clientId", as: "FavoriteClient" });
 Favorite.belongsTo(Product, { foreignKey: "productId", as: "FavoriteProduct" });
 Follow.belongsTo(Store, { foreignKey: "storeId", as: "FollowStore" });
 Follow.belongsTo(Client, { foreignKey: "clientId", as: "FollowClient" });
-Message.belongsTo(Conversation, { foreignKey: "conversationId", as: "MessageConversation" });
 Notification.belongsTo(Admin, { foreignKey: "adminId", as: "NotificationAdmin" });
 OrderItem.belongsTo(Order, { foreignKey: "orderId", as: "OrderItemOrder" });
 OrderItem.belongsTo(ProductVariant, { foreignKey: "product_variantId", as: "OrderItemProductVariant" });

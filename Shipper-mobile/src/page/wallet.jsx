@@ -9,6 +9,7 @@ import Popup from '../component/popup';
 import axios from 'axios';
 import config from '../shipper-context/config';
 import { useAuth } from '../shipper-context/auth-context';
+import * as WebBrowser from "expo-web-browser";
 
 const HEADER_HEIGHT = 80;
 
@@ -103,11 +104,19 @@ const Wallet = () => {
 
             // mở ngay URL thanh toán
             const url = res.data.session?.url;
-            if (url) {
-                Linking.openURL(url);
-            } else {
-                alert("Không tìm thấy URL thanh toán!");
-            }
+            const listener = Linking.addEventListener("url", (event) => {
+                const redirectUrl = event.url;
+
+                if (redirectUrl.includes("/wallet/success")) {
+                    console.log("THANH TOÁN THÀNH CÔNG");
+                    navigation.navigate("PaymentSuccess");
+                }
+            });
+
+            // 3. Mở web thanh toán
+            await WebBrowser.openBrowserAsync(url);
+
+            listener.remove();
 
             setShowTopupModal(false);
             setAmount('');

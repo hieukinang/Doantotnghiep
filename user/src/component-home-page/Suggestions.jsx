@@ -5,7 +5,7 @@
 
 // const Suggestions = ({ products }) => {
 //   return (
-//     <div className="max-w-7xl mx-auto mt-10">
+//     <div className="mx-[100px] mt-10">
 //       <h2 className="text-xl font-semibold">Gợi ý hôm nay</h2>
 //       <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
 //         {products.map((p) => (

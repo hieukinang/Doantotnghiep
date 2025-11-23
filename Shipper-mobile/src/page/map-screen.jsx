@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,16 @@ import {
   ScrollView,
   Alert,
   PanResponder,
-  Animated
+  Animated,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 import Sidebar from '../component/sidebar';
 import Popup from '../component/popup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from '../shipper-context/config';
+
 const MIN_HEIGHT = 300;
 const MAX_HEIGHT = 500;
 
@@ -19,15 +24,15 @@ const MapScreen = () => {
   const navigation = useNavigation();
   const [showSidebar, setShowSidebar] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [shipperToken, setShipperToken] = useState(null);
 
   const animatedHeight = useRef(new Animated.Value(MIN_HEIGHT)).current;
 
-  // PanResponder để kéo thanh Bottom Sheet
+  // PanResponder kéo bottom sheet
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dy) > 5;
-      },
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
       onPanResponderMove: (_, gestureState) => {
         let newHeight = MIN_HEIGHT - gestureState.dy;
         if (newHeight < MIN_HEIGHT) newHeight = MIN_HEIGHT;
@@ -35,19 +40,10 @@ const MapScreen = () => {
         animatedHeight.setValue(newHeight);
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy < 0) {
-          // Kéo lên → bung max
-          Animated.spring(animatedHeight, {
-            toValue: MAX_HEIGHT,
-            useNativeDriver: false,
-          }).start();
-        } else {
-          // Kéo xuống → thu về min
-          Animated.spring(animatedHeight, {
-            toValue: MIN_HEIGHT,
-            useNativeDriver: false,
-          }).start();
-        }
+        Animated.spring(animatedHeight, {
+          toValue: gestureState.dy < 0 ? MAX_HEIGHT : MIN_HEIGHT,
+          useNativeDriver: false,
+        }).start();
       },
     })
   ).current;
@@ -67,16 +63,108 @@ const MapScreen = () => {
     setShowPopup(false);
   };
 
-  const confirmCancel = () => {
+  const confirmCancel = (orderId) => {
     Alert.alert(
       "Xác nhận",
       "Bạn có chắc chắn muốn hủy đơn này?",
       [
         { text: "Không", style: "cancel" },
-        { text: "Có", onPress: () => console.log("Đơn hàng đã bị hủy") }
+        { text: "Có", onPress: () => console.log(`Đơn hàng ${orderId} đã bị hủy`) }
       ]
     );
   };
+  const confirmDelivery = async (orderId) => {
+    try {
+      if (!shipperToken) {
+        console.warn("Chưa có token!");
+        return;
+      }
+
+      // Gọi API xác nhận giao hàng
+      const res = await axios.post(
+        `${config.backendUrl}/orders/shipper/${orderId}/deliver-order`,
+        {}, // nếu API không cần body thì để {}
+        { headers: { Authorization: `Bearer ${shipperToken}` } }
+      );
+
+      if (res.data.status === "success") {
+        console.log(`Đơn ${orderId} đã được xác nhận giao hàng!`);
+
+        // Sau khi xác nhận xong, fetch lại danh sách đơn
+        const ordersRes = await axios.get(`${config.backendUrl}/orders/shipper`, {
+          headers: { Authorization: `Bearer ${shipperToken}` },
+          params: { status: "IN_TRANSIT" },
+        });
+
+        if (ordersRes.data.status === "success") {
+          setOrders(ordersRes.data.data.orders || []);
+        } else {
+          console.warn('Không lấy được đơn hàng:', ordersRes.data.message);
+        }
+
+      } else {
+        console.warn("Xác nhận giao hàng thất bại:", res.data.message);
+      }
+
+    } catch (err) {
+      // Log lỗi chi tiết
+      if (err.response) {
+        console.error('Lỗi response:', {
+          status: err.response.status,
+          data: err.response.data,
+          headers: err.response.headers,
+        });
+      } else if (err.request) {
+        console.error('Lỗi request (không có phản hồi):', err.request);
+      } else {
+        console.error('Lỗi khi setup request:', err.message);
+      }
+      console.error('Full error object:', err.toJSON ? err.toJSON() : err);
+    }
+  };
+
+
+  // Lấy token và fetch orders
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        setShipperToken(token);
+
+        if (!token) return console.warn("Chưa có token");
+
+        const res = await axios.get(`${config.backendUrl}/orders/shipper`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { status: "IN_TRANSIT" },
+        });
+
+        if (res.data.status === "success") {
+          setOrders(res.data.data.orders || []);
+        } else {
+          console.warn('Không lấy được đơn hàng:', res.data.message);
+        }
+      } catch (err) {
+        // Xử lý lỗi axios chi tiết
+        if (err.response) {
+          // Server trả về status lỗi
+          console.error('Lỗi response:', {
+            status: err.response.status,
+            data: err.response.data,
+            headers: err.response.headers,
+          });
+        } else if (err.request) {
+          // Request đã gửi nhưng không nhận được response
+          console.error('Lỗi request (không có phản hồi):', err.request);
+        } else {
+          // Lỗi khác khi thiết lập request
+          console.error('Lỗi khi setup request:', err.message);
+        }
+        console.error('Full error object:', err.toJSON ? err.toJSON() : err);
+      }
+    };
+    fetchOrders();
+  }, []);
+
 
   return (
     <View style={styles.container}>
@@ -100,51 +188,61 @@ const MapScreen = () => {
 
       {/* Bottom Info Tab */}
       <Animated.View style={[styles.bottomTab, { height: animatedHeight }]}>
-        {/* Thanh kéo */}
         <View {...panResponder.panHandlers} style={styles.dragHandleContainer}>
           <View style={styles.dragHandle} />
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          <TouchableOpacity onPress={() => navigation.navigate('OrderDetail')}>
-            <View style={styles.boxContainer}>
-              <Text style={styles.boxText}>Mã đơn: #DH00123</Text>
-              <Text style={styles.boxText}>Địa chỉ: 123 Đường ABC, Quận X</Text>
-              <Text style={styles.boxText}>Người nhận: Nguyễn Văn A</Text>
+          {orders.length === 0 ? (
+            <Text style={{ textAlign: 'center', marginTop: 20 }}>Không có đơn hàng</Text>
+          ) : (
+            orders.map((order) => (
+              <View key={order.id} style={styles.boxContainer}>
+                <TouchableOpacity onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}>
+                  <Text style={styles.boxText}>Mã đơn: #{order.id}</Text>
+                  <Text style={styles.boxText}>Địa chỉ: {order.shipping_address}</Text>
+                  <Text style={styles.boxText}>Tổng: {order.total_price.toLocaleString('vi-VN')}₫</Text>
 
-              <View style={styles.boxRow}>
-                <TouchableOpacity
-                  style={styles.buttonPrimary}
-                  onPress={() => console.log('Xác nhận giao hàng')}
-                >
-                  <Text style={styles.buttonText}>Xác nhận giao hàng</Text>
-                </TouchableOpacity>
+                  {order.OrderItems.map((item) => (
+                    <View key={item.id} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 6 }}>
+                      <Image source={{ uri: item.image }} style={{ width: 50, height: 50, borderRadius: 4, marginRight: 8 }} />
+                      <View>
+                        <Text>{item.title}</Text>
+                        <Text>Số lượng: {item.quantity}</Text>
+                      </View>
+                    </View>
+                  ))}
 
-                <TouchableOpacity
-                  style={styles.buttonCancel}
-                  onPress={confirmCancel}
-                >
-                  <Text style={styles.buttonCancelText}>Hủy</Text>
+                  <View style={styles.boxRow}>
+                    <TouchableOpacity
+                      style={styles.buttonPrimary}
+                      onPress={() => confirmDelivery(order.id)}
+                    >
+                      <Text style={styles.buttonText}>Xác nhận giao hàng</Text>
+                    </TouchableOpacity>
+
+
+                    <TouchableOpacity
+                      style={styles.buttonCancel}
+                      onPress={() => confirmCancel(order.id)}
+                    >
+                      <Text style={styles.buttonCancelText}>Hủy</Text>
+                    </TouchableOpacity>
+                  </View>
                 </TouchableOpacity>
               </View>
-            </View>
-          </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
       </Animated.View>
 
       {/* Overlay */}
       {(showSidebar || showPopup) && (
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={closeAll}
-          style={styles.overlay}
-        />
+        <TouchableOpacity activeOpacity={1} onPress={closeAll} style={styles.overlay} />
       )}
 
       {/* Sidebar */}
-      {showSidebar && (
-        <Sidebar onClose={() => setShowSidebar(false)} />
-      )}
+      {showSidebar && <Sidebar onClose={() => setShowSidebar(false)} />}
 
       {/* Popup */}
       {showPopup && (
@@ -165,7 +263,6 @@ const HEADER_HEIGHT = 80;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-
   header: {
     marginTop: 31,
     height: 50,
@@ -177,14 +274,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: '#116AD1', fontSize: 20, fontWeight: 'bold' },
   menuBtn: { fontSize: 22, color: '#116AD1' },
-
   mapPlaceholder: {
     flex: 1,
     backgroundColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   bottomTab: {
     position: 'absolute',
     bottom: 0,
@@ -200,76 +295,16 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
-
-  dragHandleContainer: {
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  dragHandle: {
-    width: 50,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: '#ccc',
-  },
-
-  boxContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    marginVertical: 10,
-    backgroundColor: '#fff',
-  },
+  dragHandleContainer: { alignItems: 'center', paddingVertical: 6 },
+  dragHandle: { width: 50, height: 5, borderRadius: 3, backgroundColor: '#ccc' },
+  boxContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginVertical: 10, backgroundColor: '#fff' },
   boxText: { fontSize: 14, marginBottom: 4 },
-
   boxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
-
-  buttonPrimary: {
-    flex: 1,
-    backgroundColor: '#116AD1',
-    paddingVertical: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginRight: 8,
-  },
+  buttonPrimary: { flex: 1, backgroundColor: '#116AD1', paddingVertical: 12, borderRadius: 6, alignItems: 'center', marginRight: 8 },
   buttonText: { color: 'white', fontWeight: 'bold' },
-
-  buttonCancel: {
-    backgroundColor: '#FDEDED',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
+  buttonCancel: { backgroundColor: '#FDEDED', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 6, alignItems: 'center' },
   buttonCancelText: { color: '#D32F2F', fontWeight: 'bold' },
-
-  overlay: {
-    position: 'absolute',
-    top: HEADER_HEIGHT,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    zIndex: 15,
-  },
-
-  popup: {
-    position: 'absolute',
-    top: HEADER_HEIGHT,
-    right: 10,
-    width: 180,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 10,
-    zIndex: 30,
-  },
-  popupTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  popupItem: { fontSize: 14, paddingVertical: 8, color: '#116AD1' },
+  overlay: { position: 'absolute', top: HEADER_HEIGHT, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 15 },
 });
 
 export default MapScreen;

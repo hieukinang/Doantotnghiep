@@ -15,6 +15,7 @@ const ProductDetail = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [selectedVariantPrice, setSelectedVariantPrice] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
+  const [selectedVariantStock, setSelectedVariantStock] = useState(0);
   const [variantAttributes, setVariantAttributes] = useState({});
   const [storeInfo, setStoreInfo] = useState(null);
 
@@ -77,6 +78,7 @@ const ProductDetail = () => {
 
   // Khởi tạo default options, variantAttributes, giá, variantId
   useEffect(() => {
+    console.log(product)
     if (product?.ProductVariants?.length > 0) {
       const firstVariant = product.ProductVariants[0];
       const defaultOptions = {};
@@ -89,7 +91,7 @@ const ProductDetail = () => {
       setSelectedOptions(defaultOptions);
       setSelectedVariantPrice(firstVariant.price || 0);
       setSelectedVariantId(firstVariant.id);
-
+      setSelectedVariantStock(firstVariant.stock_quantity || 0);
       // Tạo variantAttributes an toàn
       const attrObj = {};
       product.ProductVariants.forEach(v => {
@@ -128,6 +130,7 @@ const ProductDetail = () => {
     if (matched) {
       setSelectedVariantPrice(matched.price || 0);
       setSelectedVariantId(matched.id);
+      setSelectedVariantStock(matched.stock_quantity || 0);
     }
   };
 
@@ -228,7 +231,7 @@ const ProductDetail = () => {
           <div className="bg-white rounded-lg p-5 shadow">
             <h1 className="text-xl font-semibold">{product.name}</h1>
             <div className="mt-2 text-sm text-gray-500">
-              ⭐ {product.rating || "4.8"} • Đã bán {product.sold || 0} • Kho: {product.stock || 0}
+              ⭐ {product.rating || "4.8"} • Đã bán {product.sold || 0} • Kho: {selectedVariantStock}
             </div>
             {product.shipping_free && (
               <div className="mt-3 bg-[#116AD1]/10 text-[#116AD1] inline-block px-3 py-1 rounded">

@@ -55,7 +55,7 @@ const Banner = () => {
 
   return (
     <section className="w-full h-[300px] md:h-[350px] lg:h-[400px]">
-      <div className="max-w-7xl mx-auto h-full">
+      <div className="mx-[100px] h-full">
         {/* Banner wrapper */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full overflow-hidden">
           {/* Banner trượt bên trái */}

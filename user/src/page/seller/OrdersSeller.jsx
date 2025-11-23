@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useContext} from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import SellerLayout from "../../component-seller-page/SellerLayout";
 import { ShopContext } from "../../context/ShopContext";
+import { toast } from "react-toastify";
 
 const statusOptions = ["Tất cả", "CONFIRMED", "SHIPPING", "DELIVERED", "CANCELLED"];
 
@@ -10,16 +11,17 @@ const OrdersSeller = () => {
   const [statusFilter, setStatusFilter] = useState("Tất cả");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
+  const backendURL =
+    import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
   // ✅ Gọi API orders/store
-  const { orders, getOrdersofStore } = useContext(ShopContext);
+  const { ordersStore, getOrdersofStore, setOrdersStore } = useContext(ShopContext);
 
   useEffect(() => {
     getOrdersofStore();
   }, []);
 
   // 🔍 Lọc theo trạng thái + ngày
-  const filteredOrders = orders.filter((o) => {
+  const filteredOrders = (ordersStore || []).filter((o) => {
     const matchStatus = statusFilter === "Tất cả" || o.status === statusFilter;
 
     const date = new Date(o.order_date);
@@ -28,6 +30,23 @@ const OrdersSeller = () => {
 
     return matchStatus && matchStart && matchEnd;
   });
+  const handleUpdateOrderStatus = async (id) => {
+    const token = localStorage.getItem("sellerToken");
+    try {
+      const res = await axios.post(`${backendURL}/orders/store/${id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.status === "success") {
+        toast.success("Cập nhật trạng thái đơn hàng thành công!");
+        // 🔁 Fetch lại từ server để chắc chắn bảng reload
+        await getOrdersofStore();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Cập nhật trạng thái thất bại!");
+    }
+  };
 
   return (
     <div className="p-14 space-y-6">
@@ -102,9 +121,13 @@ const OrdersSeller = () => {
                       Chi tiết
                     </Link>
 
-                    <button className="px-3 py-1 border rounded">
-                      Cập nhật
+                    <button
+                      className="px-3 py-1 border rounded"
+                      onClick={() => handleUpdateOrderStatus(o.id)} // ✅ Đặt trong arrow function
+                    >
+                      Xác nhận
                     </button>
+
                   </div>
                 </td>
               </tr>
