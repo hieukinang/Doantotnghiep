@@ -222,7 +222,7 @@ export const login = asyncHandler(async (req, res, next) => {
     }
 
     if(shipper.status !== SHIPPER_STATUS.ACTIVE) {
-        return next(new APIError("Tài khoản của bạn hiện không hoạt động, vui lòng liên hệ quản trị viên", 403));
+        return next(new APIError("Tài khoản của bạn hiện chưa được duyệt, vui lòng liên hệ quản trị viên", 403));
     }
 
     generateSendToken(res, shipper, 200);

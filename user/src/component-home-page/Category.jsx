@@ -46,7 +46,7 @@ const Categories = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto mt-6 relative">
+    <div className="mx-[100px] mt-6 relative">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Danh mục</h2>
       </div>

@@ -70,7 +70,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/place-order" element={<PlaceOrder />} />
         <Route path="/payment" element={<Payment />} />
-        <Route path="/orders" element={<Orders />} />
+        <Route path="/my-order" element={<Orders />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/update-profile" element={<EditProfile />} />
         <Route path="/followed-shops" element={<FollowedShops />} />

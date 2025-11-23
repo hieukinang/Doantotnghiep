@@ -7,6 +7,7 @@ import cartIcon from "../assets/home/cart.svg";
 import languageIcon from "../assets/language.svg";
 import searchIcon from "../assets/home/search.svg";
 import walletIcon from "../assets/home/icon_wallet.svg"
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const {
@@ -16,11 +17,24 @@ const Header = () => {
     handleClientLogout,
     cartCount,
   } = useContext(ShopContext);
-
+  const navigate = useNavigate();
+  const [isToggleOpen, setIsToggleOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const handleToggle = () => {
+    setIsToggleOpen(!isToggleOpen);
+  };
 
+
+  const handleDetailProfile = () => {
+    navigate("/update-profile");
+    setIsToggleOpen(false);
+  };
+  const handleGetOrder = () => {
+    navigate("/my-order");
+    setIsToggleOpen(false);
+  };
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -41,7 +55,7 @@ const Header = () => {
     <header className="w-full fixed top-0 left-0 z-50 bg-[#116AD1]">
       {/* Thanh đầu (seller + ngôn ngữ + login/logout) */}
       <div className="py-2">
-        <div className="max-w-7xl mx-auto px-5 flex justify-between items-center">
+        <div className="mx-[100px] px-5 flex justify-between items-center">
           <div className="flex gap-5">
             <Link to="/seller/login" className="text-white text-sm hover:opacity-80">
               Vào kênh người bán
@@ -93,12 +107,31 @@ const Header = () => {
                 >
                   Đăng xuất
                 </button>
-                <Link
-                  to="/update-profile"
-                  className="text-white text-sm hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
-                >
-                  Tôi
-                </Link>
+                <div>
+                  <div className="relative">
+                    <button onClick={handleToggle} className="flex items-center text-white">
+                      Tôi
+                    </button>
+
+                    {isToggleOpen && (
+                      <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-40 bg-white rounded-lg shadow-lg text-gray-700 z-50">
+                        <button
+                          onClick={handleDetailProfile}
+                          className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
+                        >
+                          Cập nhật hồ sơ
+                        </button>
+                        <button
+                          onClick={handleGetOrder}
+                          className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
+                        >
+                          Đơn hàng của tôi
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
               </>
             )}
           </div>
@@ -107,7 +140,7 @@ const Header = () => {
 
       {/* Main Header Bar */}
       <div className="py-4 shadow-md pt-0 pb-[10px] relative">
-        <div className="max-w-7xl mx-auto px-5 flex items-center justify-between">
+        <div className="mx-[100px] px-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-3">
               <img src={logo} alt="KOHI MALL Logo" className="h-8 w-auto" />
@@ -118,7 +151,7 @@ const Header = () => {
           </div>
 
           {/* Thanh tìm kiếm */}
-          <div className="flex-1 bg-white max-w-4xl h-auto border border-gray-300 rounded-lg p-1 items-center relative">
+          <div className="flex-1 bg-white max-w-[50%] h-auto border border-gray-300 rounded-lg p-1 items-center relative">
             <form onSubmit={handleSearch} className="flex w-full">
               <input
                 type="text"
