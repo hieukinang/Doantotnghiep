@@ -14,6 +14,7 @@ import {
     getStoreById,
     uploadStoreImage,
     resizeStoreImage,
+    findStoresByName,
 } from "../../controller/storeController.js";
 
 import {
@@ -51,6 +52,8 @@ router.route("/update-profile")
     resizeStoreImage,
     updateProfile
   );
+
+router.route("/search").get(findStoresByName);
 
 router.route("/:id").get(IdValidator, getStoreById);
 

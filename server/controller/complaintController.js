@@ -2,6 +2,7 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import Complaint from "../model/complaintModel.js";
 import ComplaintImage from "../model/complaintImageModel.js";
+import { Op } from "sequelize";
 import { uploadManyImages } from "../middleware/imgUpload.middleware.js";
 import Sharp from "sharp";
 
@@ -83,4 +84,95 @@ export const createComplaint = asyncHandler(async (req, res, next) => {
   result.images = savedImages;
 
   res.status(201).json({ status: "success", data: { complaint: result } });
+});
+
+// Get all complaints (admin only)
+export const getAllComplaints = asyncHandler(async (req, res, next) => {
+
+  const {status, type_user, page, type} = req.query;
+
+  const where = {};
+
+  // filter by status if provided
+  if (status && String(status).trim().length > 0) {
+    where.status = status;
+  }
+
+  if(type && String(type).trim().length > 0){
+    where.type = type;
+  }
+
+  // filter by type_user: client | store | shipper | admin
+  if (type_user && String(type_user).trim().length > 0) {
+    const t = String(type_user).toLowerCase();
+    switch (t) {
+      case "client":
+        where.clientId = { [Op.not]: null };
+        break;
+      case "store":
+        where.storeId = { [Op.not]: null };
+        break;
+      case "shipper":
+        where.shipperId = { [Op.not]: null };
+        break;
+      case "admin":
+        where.adminId = { [Op.not]: null };
+        break;
+      default:
+        // ignore unknown type_user and return all
+        break;
+    }
+  }
+
+  const perPage = 10;
+  const pageNum = Math.max(parseInt(page) || 1, 1);
+  const offset = (pageNum - 1) * perPage;
+
+  console.log(where);
+
+  const { count, rows } = await Complaint.findAndCountAll({
+    where,
+    order: [["createdAt", "DESC"]],
+    limit: perPage,
+    offset,
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: count,
+    page: pageNum,
+    perPage,
+    data: rows,
+  });
+});
+
+export const getComplaintbyId = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const complaint = await Complaint.findByPk(id, {
+    include: [{ model: ComplaintImage, as: "ComplaintImages" }],
+  });
+  if (!complaint) return next(new APIError("Complaint not found", 404));
+
+  res.status(200).json({
+    status: "success",
+    data: { complaint },
+  });
+});
+
+// Reply to a complaint (admin only)
+export const replyComplaint = asyncHandler(async (req, res, next) => {
+  const { complaintId } = req.params;
+  const { answer } = req.body;
+
+  const complaint = await Complaint.findByPk(complaintId);
+  if (!complaint) return next(new APIError("Complaint not found", 404));
+
+  complaint.answer = answer || null;
+  complaint.status = "resolved";
+  complaint.resolved_at = new Date();
+  await complaint.save();
+
+  res.status(200).json({
+    status: "success",
+  });
 });

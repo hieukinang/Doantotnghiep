@@ -14,6 +14,7 @@ import { getAll } from "../utils/refactorControllers.utils.js";
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
+import Fuse from "fuse.js";
 
 import { Op } from "sequelize";
 
@@ -230,6 +231,57 @@ export const updateStoreStatus = asyncHandler(async (req, res, next) => {
 
 export const getAllProcessingStores = getAll(Store, {
     status: STORE_STATUS.PROCESSING
+});
+
+export const findStoresByName = asyncHandler(async (req, res, next) => {
+  const { name, page = 1 } = req.query;
+
+  // fetch all stores
+  const stores = await Store.findAll();
+
+  // If name is not provided or empty => return all stores (paginated)
+  if (!name || String(name).trim().length === 0) {
+    const perPage = 1;
+    const pageNum = Math.max(parseInt(page) || 1, 1);
+    const start = (pageNum - 1) * perPage;
+    const paged = stores.slice(start, start + perPage);
+
+    return res.status(200).json({
+      status: "success",
+      results: stores.length,
+      page: pageNum,
+      data: paged.map((s) => s.toJSON()),
+    });
+  }
+
+  // If name provided => perform Fuse fuzzy search
+  const fuse = new Fuse(stores, {
+    keys: ["name"],
+    includeScore: true,
+    threshold: 0.5,
+  });
+
+  const rawResults = fuse.search(name);
+  // compute similarity (1 - score) and sort by similarity desc
+  const scored = rawResults.map((r) => ({
+    store: r.item,
+    score: typeof r.score === "number" ? r.score : 1,
+    similarity: 1 - (typeof r.score === "number" ? r.score : 1),
+  }));
+
+  scored.sort((a, b) => b.similarity - a.similarity);
+
+  const perPage = 1;
+  const pageNum = Math.max(parseInt(page) || 1, 1);
+  const start = (pageNum - 1) * perPage;
+  const paged = scored.slice(start, start + perPage);
+
+  res.status(200).json({
+    status: "success",
+    results: scored.length,
+    page: pageNum,
+    data: paged.map((s) => ({ store: s.store.toJSON() })),
+  });
 });
 
 export const getStoreById = asyncHandler(async (req, res, next) => {

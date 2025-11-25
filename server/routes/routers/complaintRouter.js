@@ -2,8 +2,11 @@ import express from "express";
 import { 
     createComplaint, 
     resizeComplaintImages, 
-    uploadComplaintImages 
-} from "../../controller/complaintController.js";
+    uploadComplaintImages,
+    getAllComplaints,
+    replyComplaint,
+    getComplaintbyId
+  } from "../../controller/complaintController.js";
 import asyncHandler from "../../utils/asyncHandler.utils.js";
 import APIError from "../../utils/apiError.utils.js";
 import Admin from "../../model/adminModel.js";
@@ -11,10 +14,11 @@ import Store from "../../model/storeModel.js";
 import Shipper from "../../model/shipperModel.js";
 import Client from "../../model/clientModel.js";
 import { verifyToken } from "../../utils/tokenHandler.utils.js";
+import { isAuth } from "../../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-const isAuth = () => asyncHandler(async (req, res, next) => {
+const isAuth_complaint = () => asyncHandler(async (req, res, next) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
@@ -68,12 +72,23 @@ const isAuth = () => asyncHandler(async (req, res, next) => {
     req.user = currentUser;
     req.model = UserModel;
     next();
-  });
+});
 
 // Create a complaint (client authenticated). Accept up to 5 images under field name 'images'.
-router.post("", isAuth(), 
-    uploadComplaintImages, 
-    resizeComplaintImages,
-    createComplaint);
+router.post("", isAuth_complaint(), 
+  uploadComplaintImages, 
+  resizeComplaintImages,
+  createComplaint);
+
+router.get("", isAuth(Admin),
+  getAllComplaints
+);
+
+router.post("/reply/:complaintId", isAuth(Admin),
+  replyComplaint
+);
+
+router.get("/:id", isAuth(Admin),
+  getComplaintbyId)
 
 export default router;

@@ -22,6 +22,10 @@ const Complaint = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    answer: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     status: {
       type: DataTypes.STRING(255),
       allowNull: true,

@@ -112,37 +112,11 @@ router.get('/', auth, async (req, res, next) => {
   try {
     const participant = { user_id: req.user.user_id };
     const convs = await Conversation.find({ participants: { $elemMatch: participant } })
+      .select('type name code last_message') // chỉ lấy các trường này
       .populate('last_message')
       .sort({ updatedAt: -1 });
 
-    // Lấy user_id của tất cả participants trong tất cả convs
-    const allParticipantIds = [];
-    convs.forEach(conv => {
-      conv.participants.forEach(p => {
-        if (!allParticipantIds.includes(p.user_id)) {
-          allParticipantIds.push(p.user_id);
-        }
-      });
-    });
-
-    // Lấy status của tất cả participants
-    const users = await User.find({ user_id: { $in: allParticipantIds } }, { user_id: 1, status: 1 });
-    const statusMap = {};
-    users.forEach(u => { statusMap[u.user_id] = u.status; });
-
-    // Gắn status vào từng participant
-    const result = convs.map(conv => {
-      const obj = conv.toObject();
-      obj.participants = obj.participants.map(p => ({
-        ...p,
-        status: statusMap[p.user_id] || 'offline'
-      }));
-      // Nếu là group thì bỏ requests
-      if (obj.type === 'group') delete obj.requests;
-      return obj;
-    });
-
-    res.json(result);
+    res.json(convs);
   } catch (err) {
     next(err);
   }
