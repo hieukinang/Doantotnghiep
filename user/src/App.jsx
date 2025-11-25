@@ -11,6 +11,8 @@ import PlaceOrder from "./page/customer/PlaceOrder";
 import Payment from "./page/customer/Payment";
 import Orders from "./page/customer/Orders";
 import Profile from "./page/customer/Profile";
+import UserProfile from "./page/customer/UserProfile";
+import StoreProfile from "./page/customer/StoreProfile";
 import EditProfile from "./page/customer/EditProfile";
 import FollowedShops from "./page/customer/FollowedShops";
 import ExchangeRequest from "./page/customer/ExchangeRequest";
@@ -38,6 +40,7 @@ import LoginSeller from "./page/seller/LoginSeller";
 import SellerHeader from "./component-seller-page/SellerHeader";
 import SellerSidebar from "./component-seller-page/SellerSidebar";
 import WalletSeller from "./page/seller/Wallet"
+import Chat from "./page/seller/Chat";
 
 import { ToastContainer } from "react-toastify";
 import ShopContextProvider from "./context/ShopContext";
@@ -70,8 +73,10 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/place-order" element={<PlaceOrder />} />
         <Route path="/payment" element={<Payment />} />
-        <Route path="/orders" element={<Orders />} />
+        <Route path="/my-order" element={<Orders />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/user/:userId" element={<UserProfile />} />
+        <Route path="/store/:storeId" element={<StoreProfile />} />
         <Route path="/update-profile" element={<EditProfile />} />
         <Route path="/followed-shops" element={<FollowedShops />} />
         <Route path="/exchange-request" element={<ExchangeRequest />} />
@@ -138,6 +143,7 @@ function App() {
           <Route path="/seller/sales-report" element={<SalesReport />} />
           <Route path="/seller/wallet" element={<WalletSeller />} />
           <Route path="/seller/order-detail" element={<OrderDetailSeller />} />
+          <Route path="/seller/chat" element={<Chat />} />
         </Route>
       </Routes>
       <ToastContainer

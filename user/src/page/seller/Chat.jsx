@@ -1,0 +1,382 @@
+import React, { useState, useEffect, useRef } from 'react';
+import ChatService from '../../services/chatService';
+import { 
+  Chat as ChatIcon, 
+  Send as SendIcon,
+  Delete as DeleteIcon,
+  Refresh as RefreshIcon
+} from '@mui/icons-material';
+
+const Chat = () => {
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+
+  useEffect(() => {
+    // Tự động tạo user trong chat system nếu chưa có
+    const initAdminUser = async () => {
+      const userId = ChatService.getUserIdFromToken();
+      const username = localStorage.getItem('storeName') || 'Store';
+      
+      if (!userId) {
+        console.error('Cannot get userId from token');
+        alert('Không thể xác thực. Vui lòng đăng nhập lại.');
+        return;
+      }
+
+      try {
+        // Tạo user trong chat system (sẽ tự động handle duplicate)
+        await ChatService.createUser(userId, username);
+        // Đợi một chút để đảm bảo user đã được tạo
+        await new Promise(resolve => setTimeout(resolve, 300));
+        // Sau đó mới fetch conversations
+        fetchConversations();
+      } catch (error) {
+        // Nếu vẫn lỗi, thử fetch conversations (có thể user đã tồn tại)
+        console.warn('Could not create admin user in chat system:', error);
+        setTimeout(() => fetchConversations(), 500);
+      }
+    };
+
+    initAdminUser();
+  }, []);
+
+  useEffect(() => {
+    if (selectedConversation) {
+      fetchMessages(selectedConversation._id || selectedConversation.id);
+      // Auto refresh messages every 3 seconds
+      const interval = setInterval(() => {
+        fetchMessages(selectedConversation._id || selectedConversation.id);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [selectedConversation]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const fetchConversations = async () => {
+    setLoading(true);
+    try {
+      const data = await ChatService.getAllConversations();
+      setConversations(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Không thể tải danh sách cuộc trò chuyện';
+      
+      // Nếu lỗi là user chưa tồn tại, thử tạo lại user
+      if (errorMessage.includes('does no longer exist') || errorMessage.includes('Unauthorized')) {
+        const userId = ChatService.getUserIdFromToken();
+        const username = localStorage.getItem('storeName') || 'Store';
+        if (userId) {
+          try {
+            await ChatService.createUser(userId, username);
+            // Thử lại sau khi tạo user
+            setTimeout(() => fetchConversations(), 500);
+            return;
+          } catch (createError) {
+            console.error('Error creating admin user:', createError);
+          }
+        }
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (conversationId) => {
+    try {
+      const data = await ChatService.getMessages(conversationId);
+      setMessages(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const handleSelectConversation = (conversation) => {
+    setSelectedConversation(conversation);
+    setMessages([]);
+  };
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || sending || !selectedConversation) return;
+
+    setSending(true);
+    try {
+      const conversationId = selectedConversation._id || selectedConversation.id;
+      await ChatService.sendMessage(conversationId, newMessage.trim());
+      setNewMessage('');
+      // Refresh messages
+      setTimeout(() => fetchMessages(conversationId), 500);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Không thể gửi tin nhắn');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleDeleteConversation = async (conversationId, e) => {
+    e.stopPropagation();
+    if (!window.confirm('Bạn có chắc chắn muốn xóa cuộc trò chuyện này?')) {
+      return;
+    }
+
+    try {
+      await ChatService.deleteConversation(conversationId);
+      // Refresh conversations
+      fetchConversations();
+      // Clear selected if deleted
+      if (selectedConversation && (selectedConversation._id === conversationId || selectedConversation.id === conversationId)) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      alert('Không thể xóa cuộc trò chuyện');
+    }
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getConversationTitle = (conversation) => {
+    if (conversation.type === 'group') {
+      return conversation.name || 'Nhóm chat';
+    }
+    
+    // Direct conversation - lấy tên của participant khác
+    const currentUserId = ChatService.getUserIdFromToken();
+    const otherParticipant = conversation.participants?.find(
+      p => (typeof p.user_id === 'string' ? p.user_id : p.user_id?.user_id) !== currentUserId
+    );
+    
+    if (otherParticipant) {
+      const userId = typeof otherParticipant.user_id === 'string' 
+        ? otherParticipant.user_id 
+        : otherParticipant.user_id?.user_id;
+      
+      // Kiểm tra nếu là SYSTEM
+      if (userId === 'SYSTEM' || userId?.includes('SYSTEM')) {
+        return 'Hệ thống';
+      }
+      
+      return otherParticipant.username || userId || 'Người dùng';
+    }
+    
+    return 'Cuộc trò chuyện';
+  };
+
+  const getLastMessagePreview = (conversation) => {
+    if (conversation.last_message) {
+      if (typeof conversation.last_message === 'object' && conversation.last_message.content) {
+        const content = conversation.last_message.content;
+        return content.length > 50 ? content.substring(0, 50) + '...' : content;
+      }
+    }
+    return 'Chưa có tin nhắn';
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-gray-50">
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar - Danh sách conversations */}
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
+            <button
+              onClick={fetchConversations}
+              className="p-2 hover:bg-gray-100 rounded transition"
+              title="Làm mới"
+            >
+              <RefreshIcon style={{ fontSize: 20 }} />
+            </button>
+          </div>
+
+          {/* Conversations List */}
+          <div className="flex-1 overflow-y-auto">
+            {loading ? (
+              <div className="p-4 text-center text-gray-500">Đang tải...</div>
+            ) : conversations.length === 0 ? (
+              <div className="p-4 text-center text-gray-500">Chưa có cuộc trò chuyện nào</div>
+            ) : (
+              conversations.map((conv) => {
+                const isSelected = selectedConversation && 
+                  (selectedConversation._id === conv._id || selectedConversation.id === conv.id);
+                
+                return (
+                  <div
+                    key={conv._id || conv.id}
+                    onClick={() => handleSelectConversation(conv)}
+                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition ${
+                      isSelected ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <ChatIcon style={{ fontSize: 20, color: '#116AD1' }} />
+                          <h3 className="font-semibold text-gray-800 truncate">
+                            {getConversationTitle(conv)}
+                          </h3>
+                          {conv.type === 'group' && (
+                            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">
+                              Nhóm
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1 truncate">
+                          {getLastMessagePreview(conv)}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {formatTime(conv.updatedAt || conv.updated_at)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteConversation(conv._id || conv.id, e)}
+                        className="p-1 hover:bg-red-100 rounded text-red-600 transition ml-2"
+                        title="Xóa cuộc trò chuyện"
+                      >
+                        <DeleteIcon style={{ fontSize: 18 }} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Main Content - Messages */}
+        <div className="flex-1 flex flex-col bg-white">
+          {selectedConversation ? (
+            <>
+              {/* Header */}
+              <div className="p-4 border-b border-gray-200 bg-[#116AD1] text-white">
+                <h2 className="text-lg font-semibold">
+                  {getConversationTitle(selectedConversation)}
+                </h2>
+                <p className="text-sm opacity-90">
+                  {selectedConversation.type === 'group' 
+                    ? `${selectedConversation.participants?.length || 0} thành viên`
+                    : 'Cuộc trò chuyện trực tiếp'}
+                </p>
+              </div>
+
+              {/* Messages */}
+              <div
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
+              >
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    Chưa có tin nhắn nào
+                  </div>
+                ) : (
+                  messages.map((message) => {
+                    const senderId = typeof message.sender_id === 'object' 
+                      ? message.sender_id?.user_id 
+                      : message.sender_id;
+                    const isSystem = senderId === 'SYSTEM' || senderId?.includes('SYSTEM');
+                    const isAdmin = senderId?.includes('ADMIN');
+                    
+                    return (
+                      <div
+                        key={message._id || message.id}
+                        className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                            isAdmin
+                              ? 'bg-[#116AD1] text-white'
+                              : isSystem
+                              ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                              : 'bg-white text-gray-800 border border-gray-200'
+                          }`}
+                        >
+                          <div className="text-xs font-semibold mb-1 opacity-80">
+                            {isAdmin ? 'Admin' : isSystem ? 'Hệ thống' : senderId || 'Người dùng'}
+                          </div>
+                          <div className="text-sm">{message.content}</div>
+                          {message.attachments && message.attachments.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {message.attachments.map((url, idx) => (
+                                <img
+                                  key={idx}
+                                  src={url}
+                                  alt={`Attachment ${idx + 1}`}
+                                  className="max-w-full h-auto rounded"
+                                />
+                              ))}
+                            </div>
+                          )}
+                          <div className="text-xs mt-1 opacity-70">
+                            {formatTime(message.sent_at || message.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input */}
+              <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 bg-white">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Nhập tin nhắn..."
+                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                    disabled={sending}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newMessage.trim() || sending}
+                    className="bg-[#116AD1] text-white px-4 py-2 rounded-lg hover:bg-[#0d5ba8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <SendIcon style={{ fontSize: 20 }} />
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <ChatIcon style={{ fontSize: 64, color: '#ccc', marginBottom: 16 }} />
+                <p>Chọn một cuộc trò chuyện để xem tin nhắn</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Chat;

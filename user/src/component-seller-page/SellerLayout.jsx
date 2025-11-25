@@ -1,6 +1,7 @@
 import React from 'react'
 import logo from '../assets/home/logo.svg'
 import { NavLink } from 'react-router-dom'
+import SystemChatBox from '../component-home-page/SystemChatBox'
 
 const navItems = [
   { label: 'Đơn hàng', href: '/seller/orders' },
@@ -55,11 +56,13 @@ const SellerLayout = ({ title = 'Bảng điều khiển', children }) => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="max-w-7xl mx-auto">
+          <div className="mx-[100px]">
             {children}
           </div>
         </main>
       </div>
+      {/* System chatbox cho store */}
+      <SystemChatBox />
     </div>
   )
 }

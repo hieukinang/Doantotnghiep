@@ -12,6 +12,7 @@ import {
   People as UserIcon,
   Settings as SettingsIcon,
   Menu as MenuIcon,
+  Chat as ChatIcon,
   Wallet,
 } from "@mui/icons-material";
 
@@ -28,6 +29,7 @@ const navItems = [
   { label: "Tài chính", icon: FinanceIcon, href: "/seller/finance" },
   { label: "Hồ sơ cửa hàng", icon: StoreIcon, href: "/seller/edit-profile" },
   { label: "Quản lý người dùng", icon: UserIcon, href: "/seller/edit-user" },
+  {label: "Chat", icon: ChatIcon, href: "/seller/chat"}
 ];
 
 const SellerSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {

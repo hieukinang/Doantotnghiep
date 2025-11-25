@@ -5,6 +5,7 @@ import Footer from "../../component-home-page/Footer";
 import Banner from "../../component-home-page/Banner";
 import Categories from "../../component-home-page/Category";
 import DealsToday from "../../component-home-page/DealsToday";
+import SystemChatBox from "../../component-home-page/SystemChatBox";
 // import Suggestions from "../../component-home-page/Suggestions";
 
 
@@ -27,6 +28,8 @@ const Home = () => {
         {/* <Suggestions products={products} /> */}
       </main>
       <Footer />
+      {/* Chat với hệ thống - Floating button */}
+      <SystemChatBox />
     </div>
   );
 };
