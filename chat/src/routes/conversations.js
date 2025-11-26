@@ -112,11 +112,45 @@ router.get('/', auth, async (req, res, next) => {
   try {
     const participant = { user_id: req.user.user_id };
     const convs = await Conversation.find({ participants: { $elemMatch: participant } })
-      .select('_id type name code last_message') // chỉ lấy các trường này
+      .select('_id type name code last_message participants')
       .populate('last_message')
       .sort({ updatedAt: -1 });
 
-    res.json(convs);
+    // Lấy tất cả user_id của participants trong các conversation
+    const allUserIds = [];
+    convs.forEach(conv => {
+      conv.participants.forEach(p => {
+        if (!allUserIds.includes(p.user_id)) {
+          allUserIds.push(p.user_id);
+        }
+      });
+    });
+
+    // Lấy thông tin user (user_id, username, status, role)
+    const users = await User.find({ user_id: { $in: allUserIds } })
+      .select('user_id username status role');
+    const userMap = {};
+    users.forEach(u => {
+      userMap[u.user_id] = {
+        user_id: u.user_id,
+        username: u.username,
+        status: u.status,
+        role: u.role
+      };
+    });
+
+    // Gắn thông tin user vào từng participant
+    const result = convs.map(conv => {
+      const obj = conv.toObject();
+      obj.participants = obj.participants.map(p => ({
+        ...userMap[p.user_id],
+        // Nếu muốn giữ nguyên role theo conversation (ưu tiên role trong participants)
+        role: p.role
+      }));
+      return obj;
+    });
+
+    res.json(result);
   } catch (err) {
     next(err);
   }
