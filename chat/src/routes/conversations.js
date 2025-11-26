@@ -112,7 +112,7 @@ router.get('/', auth, async (req, res, next) => {
   try {
     const participant = { user_id: req.user.user_id };
     const convs = await Conversation.find({ participants: { $elemMatch: participant } })
-      .select('type name code last_message') // chỉ lấy các trường này
+      .select('_id type name code last_message') // chỉ lấy các trường này
       .populate('last_message')
       .sort({ updatedAt: -1 });
 

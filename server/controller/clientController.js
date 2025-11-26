@@ -7,6 +7,7 @@ import { CLIENT_STATUS } from "../constants/index.js";
 
 import { Op } from "sequelize";
 import { uploadSingleImage } from "../middleware/imgUpload.middleware.js";
+import Sharp from "sharp";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer) - upload image
@@ -22,7 +23,7 @@ export const resizeClientImage = asyncHandler(async (req, res, next) => {
     filename = `Client-${req.user.id}.jpeg`;
   }
 
-  await sharp(req.file.buffer)
+  await Sharp(req.file.buffer)
     .resize(400, 400)
     .toFormat("jpeg")
     .jpeg({ quality: 80 })
