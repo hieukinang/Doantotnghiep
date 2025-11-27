@@ -10,7 +10,7 @@ import { sequelize } from "../config/db.js";
 // @access Protected(Client)
 export const followStore = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
-  const storeId = parseInt(req.params.storeId, 10);
+  const storeId = req.params.storeId
 
   if (!storeId) return next(new APIError("storeId is required", 400));
 
@@ -41,7 +41,7 @@ export const followStore = asyncHandler(async (req, res, next) => {
 // @access Protected(Client)
 export const unfollowStore = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
-  const storeId = parseInt(req.params.storeId, 10);
+  const storeId = req.params.storeId;
 
   if (!clientId) return next(new APIError("Authentication required", 401));
   if (!storeId) return next(new APIError("storeId is required", 400));
@@ -71,7 +71,7 @@ export const unfollowStore = asyncHandler(async (req, res, next) => {
 // @route GET /api/stores/:storeId/followers
 // @access Public
 export const getAllfollowedClientByStore = asyncHandler(async (req, res, next) => {
-  const storeId = parseInt(req.params.storeId, 10);
+  const storeId = req.params.storeId;
   if (!storeId) return next(new APIError("storeId is required", 400));
 
   const follows = await Follow.findAll({
