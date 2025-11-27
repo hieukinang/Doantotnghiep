@@ -79,6 +79,7 @@ class AdminChatService {
       const res = await axios.get(`${this.baseURL}/conversations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log(res)
       return res.data;
     } catch (error) {
       console.error('Error getting conversations:', error);

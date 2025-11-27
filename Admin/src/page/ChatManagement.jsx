@@ -244,7 +244,7 @@ const ChatManagement = () => {
           ? otherParticipant.user_id
           : otherParticipant.user_id?.user_id;
       
-      const username = otherParticipant.name; // Lấy username
+      const username = otherParticipant.username; // Lấy username
 
       // Kiểm tra nếu là SYSTEM
       if (userId === "ADMIN" || userId?.includes("ADMIN")) {
