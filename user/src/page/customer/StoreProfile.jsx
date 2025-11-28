@@ -25,7 +25,7 @@ const StoreProfile = () => {
 
       try {
         const res = await axios.get(`${backendURL}/stores/${storeId}`);
-        const storeData = res.data?.data?.doc || res.data?.data;
+        const storeData = res.data?.data ;
         if (res.data?.status === "success" && storeData) {
           setStore({
             id: storeData.id || `STORE${storeData.id}`,
@@ -38,8 +38,12 @@ const StoreProfile = () => {
           });
 
           // Kiểm tra xem user đã follow shop chưa
-          if (storeData.followers && clientUser) {
-            setIsFollowing(storeData.followers.includes(clientUser.id));
+          if (clientUser?.id) {
+            const config = { headers: { Authorization: `Bearer ${clientToken}` } };
+            const followRes = await axios.get(`${backendURL}/follows//client/followed-stores`, config);
+            const followedStores = followRes.data?.data?.stores || [];
+            const isFollowed = followedStores.some(s => s.id === storeData.id);
+            setIsFollowing(isFollowed);
           }
         } else {
           setError("Không tìm thấy thông tin cửa hàng");
