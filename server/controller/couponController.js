@@ -53,7 +53,7 @@ export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
 
 export const getCouponByCode = asyncHandler(async (req, res, next) => {
   try {
-    const { code } = req.body;
+    const { code } = req.query;
     const coupon = await Coupon.findOne({ where: { code } });
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
@@ -61,7 +61,7 @@ export const getCouponByCode = asyncHandler(async (req, res, next) => {
     res.status(200).json({ data: coupon });
   } catch (error) {
     next(error);
-  } 
+  }
 });
 
 export const getAllStoreCoupon = asyncHandler(async (req, res, next) => {

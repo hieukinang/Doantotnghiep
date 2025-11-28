@@ -16,6 +16,10 @@ const ShopContextProvider = ({ children }) => {
   const [clientUsername, setClientUsername] = useState(
     localStorage.getItem("clientUsername")
   );
+  const [clientUser, setClientUser] = useState(() => {
+    const saved = localStorage.getItem("clientUser");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [isLoggedIn, setIsLoggedIn] = useState(!!clientToken);
 
   const [supercategories, setSupercategories] = useState([]);
@@ -101,7 +105,7 @@ const ShopContextProvider = ({ children }) => {
     }
   };
   const addToCart = async (productId, quantity = 1) => {
-    console.log(clientToken)
+    console.log(clientToken);
     if (!clientToken) {
       toast.warning("⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!");
       return;
@@ -159,13 +163,15 @@ const ShopContextProvider = ({ children }) => {
       if (res.data?.token) {
         console.log("✅ Đăng nhập thành công:", res.data);
         const clientToken = res.data.token;
-        const username =
-          res.data?.data?.user?.username ||
-          res.data?.data?.user?.email ||
-          "Client";
+        const userData = res.data?.data?.user;
+        const username = userData?.username || userData?.email || "Client";
 
         localStorage.setItem("clientToken", clientToken);
         localStorage.setItem("clientUsername", username);
+        if (userData) {
+          localStorage.setItem("clientUser", JSON.stringify(userData));
+          setClientUser(userData);
+        }
 
         setClientToken(clientToken);
         setClientUsername(username);
@@ -202,8 +208,10 @@ const ShopContextProvider = ({ children }) => {
     } finally {
       localStorage.removeItem("clientToken");
       localStorage.removeItem("clientUsername");
+      localStorage.removeItem("clientUser");
       setClientToken(null);
       setClientUsername(null);
+      setClientUser(null);
       setIsLoggedIn(false);
       toast.info("Đã đăng xuất");
       navigate("/login");
@@ -369,6 +377,8 @@ const ShopContextProvider = ({ children }) => {
     backendURL,
     clientToken,
     clientUsername,
+    clientUser,
+    setClientUser,
     sellerToken,
     isLoggedIn,
     supercategories,

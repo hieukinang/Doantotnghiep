@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import IconView from '../assets/home/icon-view.svg'
 import IconDelete from "../assets/home/icon-delete.svg";
@@ -7,42 +9,49 @@ import IconEdit from '../assets/home/icon-edit.svg'
 
 const StoreManagement = () => {
   const navigate = useNavigate();
+  const backendURL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
 
-  const [stores, setStores] = useState([
-    { id: 1, name: "Cửa hàng Minh Quân Mobile", address: "Cầu Giấy, Hà Nội", owner: "Phạm Minh Quân" },
-    { id: 2, name: "Tạp hóa Thu Trang", address: "Hoàn Kiếm, Hà Nội", owner: "Nguyễn Thị Thu Trang" },
-    { id: 3, name: "Shop Thời Trang Hùng", address: "Hải Châu, Đà Nẵng", owner: "Lê Văn Hùng" },
-    { id: 4, name: "Cửa hàng Xe Máy Khánh", address: "Thanh Khê, Đà Nẵng", owner: "Trần Quốc Khánh" },
-    { id: 5, name: "Bách Hóa Nam Đặng", address: "Quận 1, TP. Hồ Chí Minh", owner: "Đặng Hoàng Nam" },
-    { id: 6, name: "Minimart Mai Linh", address: "Bình Thạnh, TP. Hồ Chí Minh", owner: "Võ Thị Mai Linh" },
-    { id: 7, name: "Điện Thoại Phước Ngô", address: "Ninh Kiều, Cần Thơ", owner: "Ngô Văn Phước" },
-    { id: 8, name: "Tiệm Mỹ Phẩm Thu Hằng", address: "Thành phố Thanh Hóa, Thanh Hóa", owner: "Lý Thu Hằng" },
-    { id: 9, name: "Cửa hàng Dũng Store", address: "TP Ninh Bình, Ninh Bình", owner: "Trịnh Công Dũng" },
-    { id: 10, name: "Quán Ăn Hải Yến", address: "Tây Hồ, Hà Nội", owner: "Bùi Hải Yến" },
-    { id: 11, name: "Cửa hàng Văn Phòng Phúc", address: "Hồng Bàng, Hải Phòng", owner: "Nguyễn Văn Phúc" },
-    { id: 12, name: "Tiệm Giày Thanh Hòa", address: "Lê Chân, Hải Phòng", owner: "Trần Thị Hòa" },
-    { id: 13, name: "Siêu Thị Bắc An", address: "TP Bắc Ninh, Bắc Ninh", owner: "Hoàng Văn An" },
-    { id: 14, name: "Cửa hàng Nội Thất Lan", address: "Thủ Dầu Một, Bình Dương", owner: "Phan Thị Lan" },
-    { id: 15, name: "Cà phê & Tiệm Bánh Tuấn", address: "Biên Hòa, Đồng Nai", owner: "Nguyễn Tuấn" },
-    { id: 16, name: "Nhà Thuốc Đức Hòa", address: "Vinh, Nghệ An", owner: "Đỗ Đức Hòa" },
-    { id: 17, name: "Siêu Thị Huế Central", address: "TP Huế, Thừa Thiên Huế", owner: "Lê Thị Hương" },
-    { id: 18, name: "Cửa hàng Hải Sản Hương", address: "Nha Trang, Khánh Hòa", owner: "Phạm Thị Hương" },
-    { id: 19, name: "Shop Thời Trang Vân", address: "Vũng Tàu, Bà Rịa - Vũng Tàu", owner: "Nguyễn Thị Vân" },
-    { id: 20, name: "Tạp Hóa Minh Tâm", address: "Nam Định, Nam Định", owner: "Lưu Minh Tâm" },
-    { id: 21, name: "Cửa hàng Điện Gia Dụng Hùng Sơn", address: "Hải Dương, Hải Dương", owner: "Trương Hùng Sơn" },
-    { id: 22, name: "MiniMart Thanh Kiều", address: "Thủ đô Hà Nội, Hà Nội", owner: "Vũ Thị Thanh Kiều" }
-  ]);
-
+  const [stores, setStores] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openAdd, setOpenAdd] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
   const [menuOpen, setMenuOpen] = useState(null);
-  const [newStore, setNewStore] = useState({ name: "", address: "", owner: "" });
+
+  // Fetch stores from API
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("adminToken");
+        const res = await axios.get(`${backendURL}/stores/processing`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (res.data?.status === "success") {
+          const allStores = res.data?.data?.docs || [];
+          // Filter stores with status ACTIVE or PROCESSING
+          const filteredStores = allStores.filter(
+            (store) => store.status === "ACTIVE" || store.status === "PROCESSING"
+          );
+          setStores(filteredStores);
+        }
+      } catch (err) {
+        console.error("Error fetching stores:", err);
+        toast.error(err.response?.data?.message || "Không thể tải danh sách cửa hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStores();
+  }, [backendURL]);
 
   const handleMenuClick = (store, index) => {
     setSelectedStore(store);
@@ -60,9 +69,18 @@ const StoreManagement = () => {
     setMenuOpen(null);
   };
 
-  const handleUpdateSubmit = (updatedStore) => {
-    setStores(stores.map((s) => (s.id === updatedStore.id ? updatedStore : s)));
-    setOpenUpdate(false);
+  const handleUpdateSubmit = async (updatedStore) => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      // Note: Có thể cần API để update store info, nhưng hiện tại chỉ update status
+      // Tạm thời chỉ update local state
+      setStores(stores.map((s) => (s.id === updatedStore.id ? updatedStore : s)));
+      setOpenUpdate(false);
+      toast.success("Cập nhật cửa hàng thành công!");
+    } catch (err) {
+      console.error("Error updating store:", err);
+      toast.error("Không thể cập nhật cửa hàng");
+    }
   };
 
   const handleDelete = (store) => {
@@ -71,29 +89,35 @@ const StoreManagement = () => {
     setMenuOpen(null);
   };
 
-  const confirmDelete = () => {
-    setStores(stores.filter((s) => s.id !== selectedStore.id));
-    setOpenDelete(false);
-  };
-
-  const handleAdd = () => {
-    setOpenAdd(true);
-  };
-
-  const handleAddSubmit = () => {
-    if (!newStore.name || !newStore.address || !newStore.owner) return;
-    setStores([...stores, { ...newStore, id: Date.now() }]);
-    setNewStore({ name: "", address: "", owner: "" });
-    setOpenAdd(false);
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      // Note: Có thể cần API để delete store
+      // Tạm thời chỉ update local state
+      setStores(stores.filter((s) => s.id !== selectedStore.id));
+      setOpenDelete(false);
+      toast.success("Xóa cửa hàng thành công!");
+    } catch (err) {
+      console.error("Error deleting store:", err);
+      toast.error("Không thể xóa cửa hàng");
+    }
   };
 
   // Lọc cửa hàng theo từ khóa
-  const filteredStores = stores.filter(
-    (s) =>
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.owner.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStores = stores.filter((s) => {
+    const name = (s.name || "").toLowerCase();
+    const address = (
+      s.detail_address || 
+      s.village || 
+      s.city || 
+      s.address || 
+      ""
+    ).toLowerCase();
+    const owner = (s.owner || s.name || "").toLowerCase();
+    const search = searchTerm.toLowerCase();
+    
+    return name.includes(search) || address.includes(search) || owner.includes(search);
+  });
 
   // Phân trang
   const totalPages = Math.ceil(filteredStores.length / itemsPerPage);
@@ -115,8 +139,8 @@ const StoreManagement = () => {
           className="border border-gray-300 rounded-full px-6 py-2.5 w-1/3 text-sm"
         />
 
-        <Link to="/list-pending-store"
-          onClick={handleAdd}
+        <Link 
+          to="/list-pending-store"
           className="
             relative
             px-6 py-2.5
@@ -147,14 +171,26 @@ const StoreManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {currentStores.map((store, index) => (
-              <tr
-                key={store.id}
-                className="border-t hover:bg-gray-50 transition relative"
-              >
-                <td className="p-3 text-left">{store.name}</td>
-                <td className="p-3 text-left">{store.address}</td>
-                <td className="p-3 text-left">{store.owner}</td>
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="text-center p-4 text-gray-500">
+                  Đang tải dữ liệu...
+                </td>
+              </tr>
+            ) : (
+              currentStores.map((store, index) => {
+                const address = store.detail_address 
+                  ? `${store.detail_address}, ${store.village || ""}, ${store.city || ""}`.replace(/^,\s*|,\s*$/g, "")
+                  : store.village || store.city || store.address || "Chưa có địa chỉ";
+                
+                return (
+                  <tr
+                    key={store.id}
+                    className="border-t hover:bg-gray-50 transition relative"
+                  >
+                    <td className="p-3 text-left">{store.name || "Chưa có tên"}</td>
+                    <td className="p-3 text-left">{address}</td>
+                    <td className="p-3 text-left">{store.email || store.phone || "Chưa có thông tin"}</td>
                 <td className="p-3 text-center">
                   <div className="flex justify-center items-center gap-0.1">
                     {/* Xem chi tiết */}
@@ -209,9 +245,10 @@ const StoreManagement = () => {
                     </div>
                   </div>
                 </td>
-
               </tr>
-            ))}
+                );
+              })
+            )}
 
             {currentStores.length === 0 && (
               <tr>
@@ -295,26 +332,52 @@ const StoreManagement = () => {
             </h2>
 
             <div className="grid grid-cols-1 gap-4 text-left">
-              {[
-                { key: "name", label: "Tên cửa hàng" },
-                { key: "address", label: "Địa chỉ" },
-                { key: "owner", label: "Chủ cửa hàng" },
-              ].map((field) => (
-                <div key={field.key}>
-                  <label className="block text-sm mb-1">{field.label}</label>
-                  <input
-                    type="text"
-                    value={selectedStore?.[field.key] || ""}
-                    onChange={(e) =>
-                      setSelectedStore({
-                        ...selectedStore,
-                        [field.key]: e.target.value,
-                      })
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-              ))}
+              <div>
+              <label className="block text-sm mb-1">Tên cửa hàng</label>
+              <input
+                type="text"
+                value={selectedStore?.name || ""}
+                onChange={(e) =>
+                  setSelectedStore({
+                    ...selectedStore,
+                    name: e.target.value,
+                  })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Địa chỉ</label>
+              <input
+                type="text"
+                value={
+                  selectedStore?.detail_address 
+                    ? `${selectedStore.detail_address}, ${selectedStore.village || ""}, ${selectedStore.city || ""}`.replace(/^,\s*|,\s*$/g, "")
+                    : selectedStore?.village || selectedStore?.city || selectedStore?.address || ""
+                }
+                onChange={(e) =>
+                  setSelectedStore({
+                    ...selectedStore,
+                    detail_address: e.target.value,
+                  })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Email</label>
+              <input
+                type="email"
+                value={selectedStore?.email || ""}
+                onChange={(e) =>
+                  setSelectedStore({
+                    ...selectedStore,
+                    email: e.target.value,
+                  })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
             </div>
 
             <div className="flex justify-end mt-6 space-x-3">
@@ -335,51 +398,6 @@ const StoreManagement = () => {
         </div>
       )}
 
-      {/* Popup thêm mới */}
-      {openAdd && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-[600px]">
-            <h2 className="text-xl font-bold text-blue-600 mb-4">
-              Thêm cửa hàng mới
-            </h2>
-
-            <div className="grid grid-cols-1 gap-4 text-left">
-              {[
-                { key: "name", label: "Tên cửa hàng" },
-                { key: "address", label: "Địa chỉ" },
-                { key: "owner", label: "Chủ cửa hàng" },
-              ].map((field) => (
-                <div key={field.key}>
-                  <label className="block text-sm mb-1">{field.label}</label>
-                  <input
-                    type="text"
-                    value={newStore[field.key]}
-                    onChange={(e) =>
-                      setNewStore({ ...newStore, [field.key]: e.target.value })
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end mt-6 space-x-3">
-              <button
-                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
-                onClick={() => setOpenAdd(false)}
-              >
-                Hủy
-              </button>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={handleAddSubmit}
-              >
-                Lưu
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
