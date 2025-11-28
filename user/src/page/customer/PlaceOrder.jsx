@@ -5,7 +5,8 @@ import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-
+  const backendURL =
+    import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
 const API_BASE_URL = "http://127.0.0.1:5000/api";
 const format = (v) => (v ? v.toLocaleString("vi-VN") : "0");
 
@@ -80,6 +81,7 @@ const PlaceOrder = () => {
   const [formData, setFormData] = useState({
     name: "", phone: "", city: "", ward: "", address: "", isDefault: false,
   });
+  const [paymentMethod, setPaymentMethod] = useState("COD"); // COD hoặc WALLET
 
   useEffect(() => {
     const saved = localStorage.getItem("defaultAddress");
@@ -128,7 +130,7 @@ const PlaceOrder = () => {
     setCouponList([]);
 
     try {
-      const res = await axios.get(`${API_BASE_URL}/coupons/from-store/${storeId}`);
+      const res = await axios.get(`${backendURL}/coupons/from-store/${storeId}`);
       const validCoupons = res.data?.data?.coupons?.filter(c => c.discount > 0 && c.quantity > 0) || [];
       setCouponList(validCoupons);
     } catch (err) {
@@ -147,8 +149,9 @@ const PlaceOrder = () => {
     setCouponList([]);
 
     try {
-      const res = await axios.get(`${API_BASE_URL}/coupons/from-system`);
-      const validCoupons = res.data.data.docs || [];
+      const res1 = await axios.get(`${backendURL}/coupons/from-system`);
+      const res2 = await axios.get(`${backendURL}/shipping-codes/`);
+      const validCoupons = res1.data.data.docs || [];
       setCouponList(validCoupons);
       console.log(validCoupons);
     } catch (err) {
@@ -330,6 +333,11 @@ const PlaceOrder = () => {
       ordersByStore[storeId].items.push(item);
     });
 
+    // Chọn endpoint dựa trên phương thức thanh toán
+    const checkoutEndpoint = paymentMethod === "WALLET"
+      ? `${backendURL}/orders/checkout-wallet`
+      : `${backendURL}/orders/checkout-cash`;
+
     try {
       // Tạo order cho từng store
       const orderPromises = Object.entries(ordersByStore).map(async ([storeId, storeData]) => {
@@ -352,16 +360,16 @@ const PlaceOrder = () => {
             product_variantIds: storeData.product_variantIds,
             storeId: storeId,
             coupon_ids: couponIds,
-            shipping_code_id: null, // Có thể thêm logic cho shipping code sau
+            shipping_code_id: null,
             quantities: storeData.quantities
           },
           shipping_address: shippingAddressString
         };
 
-        console.log("📦 Order payload:", JSON.stringify(orderPayload, null, 2));
+        console.log(`📦 Order payload (${paymentMethod}):`, JSON.stringify(orderPayload, null, 2));
 
         const res = await axios.post(
-          `${backendURL}/orders/checkout-cash`,
+          checkoutEndpoint,
           orderPayload,
           { headers: { Authorization: `Bearer ${clientToken}` } }
         );
@@ -375,7 +383,8 @@ const PlaceOrder = () => {
       const allSuccess = results.every(res => res.status === "success");
 
       if (allSuccess) {
-        toast.success(`Đã đặt ${results.length} đơn hàng thành công!`);
+        const methodText = paymentMethod === "WALLET" ? "thanh toán qua Ví KOHI" : "COD";
+        toast.success(`Đã đặt ${results.length} đơn hàng thành công (${methodText})!`);
         await fetchMyCart();
         localStorage.removeItem("checkedItems");
         localStorage.removeItem("quantities");
@@ -657,12 +666,24 @@ const PlaceOrder = () => {
                 💳 Phương thức thanh toán
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <label className="flex items-center gap-2 border rounded px-3 py-2 cursor-pointer hover:border-[#116AD1]">
-                  <input name="pm" type="radio" defaultChecked className="accent-[#116AD1]" />
+                <label className={`flex items-center gap-2 border rounded px-3 py-2 cursor-pointer hover:border-[#116AD1] ${paymentMethod === "COD" ? "border-[#116AD1] bg-blue-50" : ""}`}>
+                  <input
+                    name="pm"
+                    type="radio"
+                    checked={paymentMethod === "COD"}
+                    onChange={() => setPaymentMethod("COD")}
+                    className="accent-[#116AD1]"
+                  />
                   COD - Thanh toán khi nhận
                 </label>
-                <label className="flex items-center gap-2 border rounded px-3 py-2 cursor-pointer hover:border-[#116AD1]">
-                  <input name="pm" type="radio" className="accent-[#116AD1]" />
+                <label className={`flex items-center gap-2 border rounded px-3 py-2 cursor-pointer hover:border-[#116AD1] ${paymentMethod === "WALLET" ? "border-[#116AD1] bg-blue-50" : ""}`}>
+                  <input
+                    name="pm"
+                    type="radio"
+                    checked={paymentMethod === "WALLET"}
+                    onChange={() => setPaymentMethod("WALLET")}
+                    className="accent-[#116AD1]"
+                  />
                   Ví KOHI
                 </label>
               </div>
