@@ -25,6 +25,7 @@ import ForgotPassword from "./page/customer/ForgotPassword";
 import Wallet from "./page/customer/Wallet"
 import PaymentSuccess from "./page/customer/paymentsuccess";
 import SearchResults from "./page/customer/SearchResults";
+import CreateComplaint from "./page/customer/createComplaint"
 
 import ListProduct from "./page/seller/ListProduct";
 import AddProduct from "./page/seller/AddProduct";
@@ -90,6 +91,7 @@ function App() {
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/wallet/success" element={<PaymentSuccess />} />
         <Route path="/search" element={<SearchResults />} />
+        <Route path="/create-complaint" element={<CreateComplaint />} />
 
         {/* ---------- SELLER ROUTES ---------- */}
         {/* Nếu đã đăng nhập, chặn truy cập lại trang login */}
