@@ -8,10 +8,10 @@ import Client from "../model/clientModel.js";
 import { sequelize } from "../config/db.js";
 import { Op } from "sequelize";
 import asyncHandler from "../utils/asyncHandler.utils.js";
-import {generateQRCodeJPG} from "../utils/barcode.utils.js";
+import { generateQRCodeJPG } from "../utils/barcode.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import { ORDER_STATUS } from "../constants/index.js";
-import {PAYMENT_METHODS} from "../constants/index.js";
+import { PAYMENT_METHODS } from "../constants/index.js";
 import dotenv from "dotenv";
 import Shipper from "../model/shipperModel.js";
 import Store from "../model/storeModel.js";
@@ -63,11 +63,15 @@ export const getSingleOrder = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const order = await Order.findByPk(id, {
     include: [
-      { model: OrderItem, as: "OrderItems", include: [
-        { model: ProductVariant, as: "OrderItemProductVariant", include: [
-          { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] }
-        ] }
-      ] }
+      {
+        model: OrderItem, as: "OrderItems", include: [
+          {
+            model: ProductVariant, as: "OrderItemProductVariant", include: [
+              { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] }
+            ]
+          }
+        ]
+      }
     ]
   });
   if (!order) return next(new APIError("Order not found", 404));
@@ -153,7 +157,7 @@ export const confirmOrderByStore = asyncHandler(async (req, res, next) => {
 
   const order = await Order.findOne({ where: { id, storeId } });
   if (!order) return next(new APIError("Order not found", 404));
-  if(order.status !== ORDER_STATUS.PENDING){
+  if (order.status !== ORDER_STATUS.PENDING) {
     return next(new APIError("Only pending orders can be confirmed", 400));
   }
 
@@ -661,7 +665,8 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
 export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const { id } = req.params;
-  
+  const { cancel_reason } = req.body;
+
   // Tìm đơn hàng của client, kèm các OrderItem và ProductVariant
   const order = await Order.findOne({
     where: { id, clientId },
@@ -719,6 +724,7 @@ export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
     }
 
     order.status = ORDER_STATUS.CANCELLED;
+    order.cancel_reason = cancel_reason;
     await order.save({ transaction: t });
 
     await t.commit();
@@ -832,7 +838,7 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
 
 export const clientConfirmedOrderIsDeliveried = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
-  const { id } = req.params;  
+  const { id } = req.params;
   const order = await Order.findOne({ where: { id, clientId } });
   if (!order) return next(new APIError("Order not found", 404));
   if (order.status !== ORDER_STATUS.DELIVERED) {

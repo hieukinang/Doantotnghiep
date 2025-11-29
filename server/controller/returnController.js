@@ -6,7 +6,6 @@ import path from "path";
 import fs from "fs";
 import { sequelize } from "../config/db.js";
 import Return from "../model/returnModel.js";
-import ReturnItem from "../model/returnItemModel.js";
 import ReturnImage from "../model/returnImageModel.js";
 import Order from "../model/orderModel.js";
 import OrderItem from "../model/orderItemModel.js";
@@ -89,78 +88,33 @@ export const returnOrderByClient = asyncHandler(async (req, res, next) => {
     return next(new APIError("Order is not eligible for return", 400));
   }
 
-  // Parse inputs
-  let { order_item_ids, quantities, reason } = req.body;
+  const { reason } = req.body;
 
-  try {
-    if (typeof order_item_ids === "string") order_item_ids = JSON.parse(order_item_ids);
-    if (typeof quantities === "string") quantities = JSON.parse(quantities);
-  } catch (err) {
-    return next(new APIError("Invalid order_item_ids or quantities format", 400));
+  // compute refund: prefer order.total_price if set, otherwise sum items
+  let refundAmount = Number(order.total_price || 0) + order.shipping_fee;
+  if (!refundAmount || refundAmount <= 0) {
+    refundAmount = 0;
+    for (const item of order.OrderItems) {
+      const unitPrice = Number(item.price || 0);
+      refundAmount += unitPrice * Number(item.quantity || 0);
+    }
   }
 
-  if (!Array.isArray(order_item_ids) || !Array.isArray(quantities)) {
-    return next(new APIError("order_item_ids and quantities must be arrays", 400));
-  }
-
-  if (order_item_ids.length !== quantities.length || order_item_ids.length === 0) {
-    return next(new APIError("order_item_ids and quantities must have same non-zero length", 400));
-  }
-
-  // Validate each order item belongs to this order and quantities
   const t = await sequelize.transaction();
   try {
-    let refundAmount = 0;
-
-    // create Return record
+    // create Return record for the whole order
     const returnDoc = await Return.create({
       orderId: order.id,
       reason: reason || null,
-      refund_amount: 0,
+      refund_amount: refundAmount,
     }, { transaction: t });
 
-    for (let i = 0; i < order_item_ids.length; i++) {
-      const itemId = Number(order_item_ids[i]);
-      const qty = Number(quantities[i]);
-      if (!itemId || !qty || qty <= 0) {
-        await t.rollback();
-        return next(new APIError(`Invalid item id or quantity at index ${i}` , 400));
-      }
-
-      const orderItem = await OrderItem.findByPk(itemId, { transaction: t });
-      if (!orderItem) {
-        await t.rollback();
-        return next(new APIError(`OrderItem ${itemId} not found`, 404));
-      }
-      if (orderItem.orderId !== order.id) {
-        await t.rollback();
-        return next(new APIError(`OrderItem ${itemId} does not belong to this order`, 400));
-      }
-      if (qty > orderItem.quantity) {
-        await t.rollback();
-        return next(new APIError(`Return quantity for item ${itemId} exceeds purchased quantity`, 400));
-      }
-
-      // compute refund (price * qty)
-      const unitPrice = Number(orderItem.price || 0);
-      refundAmount += unitPrice * qty;
-
-      // create return item
-      await ReturnItem.create({
-        return_id: returnDoc.id,
-        order_item_id: orderItem.id,
-        quantity: qty,
-      }, { transaction: t });
-
-      // update order item quantity (reduce by returned qty)
-      orderItem.quantity = orderItem.quantity - qty;
-      await orderItem.save({ transaction: t });
-
-      // restock product variant if applicable
-      if (orderItem.product_variantId) {
-        const variant = await ProductVariant.findByPk(orderItem.product_variantId, { transaction: t });
+    // restock all product variants from the order
+    for (const item of order.OrderItems) {
+      if (item.product_variantId) {
+        const variant = await ProductVariant.findByPk(item.product_variantId, { transaction: t });
         if (variant) {
-          await variant.increment("stock_quantity", { by: qty, transaction: t });
+          await variant.increment("stock_quantity", { by: item.quantity || 0, transaction: t });
         }
       }
     }
@@ -175,26 +129,9 @@ export const returnOrderByClient = asyncHandler(async (req, res, next) => {
       }
     }
 
-    // update refund amount in return record
-    returnDoc.refund_amount = Number(refundAmount.toFixed(2));
-    await returnDoc.save({ transaction: t });
-
-    // credit client wallet and create transaction
-    const client = req.user;
-    if (refundAmount > 0) {
-      client.wallet = Number(client.wallet || 0) + Number(refundAmount);
-      await client.save({ transaction: t });
-
-      await Transaction.create({
-        user_id: client.id,
-        amount: Number(refundAmount.toFixed(2)),
-        new_balance: client.wallet,
-        payment_method: "refund",
-        type: TRANSACTION_TYPE.REFUND,
-        status: "SUCCESS",
-        description: `Refund for return ${returnDoc.id} (order ${order.id})`,
-      }, { transaction: t });
-    }
+    // NOTE: refund_amount, wallet credit and transaction creation are handled
+    // when the store confirms the return (confirmReturnOrder). Do not
+    // perform refund here to allow store verification first.
 
     // mark order as RETURNED
     order.status = ORDER_STATUS.RETURNED;
@@ -202,11 +139,10 @@ export const returnOrderByClient = asyncHandler(async (req, res, next) => {
 
     await t.commit();
 
-    // reload return with associations (images and items) for response
+    // reload return with associations (images) for response
     const createdReturn = await Return.findByPk(returnDoc.id, {
       include: [
         { model: ReturnImage, as: "ReturnImages" },
-        { model: ReturnItem, as: "ReturnItems" },
       ],
     });
 
@@ -214,7 +150,6 @@ export const returnOrderByClient = asyncHandler(async (req, res, next) => {
       status: "success",
       data: {
         return: createdReturn,
-        refundAmount,
       },
     });
   } catch (err) {

@@ -51,6 +51,10 @@ const Order = sequelize.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    cancel_reason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     paid_at: {
       type: DataTypes.DATEONLY,
       allowNull: true,
