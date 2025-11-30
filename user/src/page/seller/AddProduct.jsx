@@ -240,8 +240,7 @@ const AddProduct = () => {
         );
       }
 
-      setMessage("Đã tạo tất cả biến thể thành công!");
-      setTimeout(() => setMessage(""), 3000);
+      toast.success("Đã tạo tất cả biến thể thành công!", { autoClose: 2000 });
       setShowVariantModal(false);
       setProduct({ name: "", description: "", origin: "", categoryId: "" });
       setMainImage(null);

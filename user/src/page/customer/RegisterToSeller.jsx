@@ -27,22 +27,150 @@ const RegisterToSeller = () => {
     description: "",
   });
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files) {
-      setFormData({ ...formData, [name]: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
+  const [errors, setErrors] = useState({});
+
+  // Validation functions
+  const validateField = (name, value, file = null) => {
+    switch (name) {
+      case "cccd":
+        if (!value.trim()) return "Căn cước công dân không được để trống";
+        if (!/^[0-9]{12}$/.test(value)) return "CCCD phải là số và có 12 chữ số";
+        return "";
+      case "cccd_front":
+        if (!file) return "Vui lòng chọn ảnh mặt trước CCCD";
+        return "";
+      case "avatar":
+        if (!file) return "Vui lòng chọn ảnh đại diện";
+        return "";
+      case "store_name":
+        if (!value.trim()) return "Tên cửa hàng không được để trống";
+        if (value.length < 3) return "Tên cửa hàng phải có ít nhất 3 ký tự";
+        return "";
+      case "phone":
+        if (!value.trim()) return "Số điện thoại không được để trống";
+        if (!/^[0-9]{10}$/.test(value)) return "Số điện thoại phải là số và có 10 chữ số";
+        return "";
+      case "email":
+        if (!value.trim()) return "Email không được để trống";
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) return "Email không hợp lệ";
+        return "";
+      case "password":
+        if (!value) return "Mật khẩu không được để trống";
+        if (value.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
+        return "";
+      case "confirm_password":
+        if (!value) return "Xác nhận mật khẩu không được để trống";
+        if (formData.password !== value) return "Mật khẩu xác nhận không khớp";
+        return "";
+      case "bank_name":
+        if (!value.trim()) return "Tên ngân hàng không được để trống";
+        return "";
+      case "bank_account_number":
+        if (!value.trim()) return "Số tài khoản không được để trống";
+        return "";
+      case "bank_account_holder_name":
+        if (!value.trim()) return "Tên chủ tài khoản không được để trống";
+        return "";
+      case "city":
+        if (!value.trim()) return "Thành phố không được để trống";
+        return "";
+      case "village":
+        if (!value.trim()) return "Xã/Phường không được để trống";
+        return "";
+      case "detail_address":
+        if (!value.trim()) return "Địa chỉ chi tiết không được để trống";
+        return "";
+      default:
+        return "";
     }
   };
 
-  const [registerSuccess, setRegisterSuccess] = useState(false);
-  const [registerError, setRegisterError] = useState("");
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    
+    if (files) {
+      const file = files[0];
+      setFormData({ ...formData, [name]: file });
+      
+      // Validate file
+      const error = validateField(name, "", file);
+      setErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+      
+      if (error) {
+        toast.error(error);
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
+      
+      // Real-time validation for text fields
+      const error = validateField(name, value);
+      setErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+      
+      // Re-validate confirm_password if password changes
+      if (name === "password" && formData.confirm_password) {
+        const confirmError = validateField("confirm_password", formData.confirm_password);
+        setErrors((prev) => ({
+          ...prev,
+          confirm_password: confirmError,
+        }));
+      }
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value, files } = e.target;
+    const error = validateField(name, value, files?.[0] || null);
+    
+    if (error) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+      toast.error(error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setRegisterSuccess(false);
-    setRegisterError("");
+    
+    // Validate all fields
+    const newErrors = {
+      cccd: validateField("cccd", formData.cccd),
+      cccd_front: validateField("cccd_front", "", formData.cccd_front),
+      avatar: validateField("avatar", "", formData.avatar),
+      store_name: validateField("store_name", formData.store_name),
+      phone: validateField("phone", formData.phone),
+      email: validateField("email", formData.email),
+      password: validateField("password", formData.password),
+      confirm_password: validateField("confirm_password", formData.confirm_password),
+      bank_name: validateField("bank_name", formData.bank_name),
+      bank_account_number: validateField("bank_account_number", formData.bank_account_number),
+      bank_account_holder_name: validateField("bank_account_holder_name", formData.bank_account_holder_name),
+      city: validateField("city", formData.city),
+      village: validateField("village", formData.village),
+      detail_address: validateField("detail_address", formData.detail_address),
+    };
+
+    setErrors(newErrors);
+
+    // Check if there are any errors
+    const hasErrors = Object.values(newErrors).some((error) => error !== "");
+    if (hasErrors) {
+      // Show first error
+      const firstError = Object.values(newErrors).find((error) => error !== "");
+      if (firstError) {
+        toast.error(firstError);
+      }
+      return;
+    }
+
     const form = new FormData();
     form.append("citizen_id", formData.cccd);
     form.append("id_image", formData.cccd_front);
@@ -57,17 +185,26 @@ const RegisterToSeller = () => {
     form.append("city", formData.city);
     form.append("village", formData.village);
     form.append("detail_address", formData.detail_address);
-    form.append("description", formData.description);
+    form.append("description", formData.description || "");
     form.append("image", formData.avatar);
 
     try {
       const url = `${import.meta.env.VITE_BACKEND_URL}/stores/register`;
-      await axios.post(url, form, {
+      const res = await axios.post(url, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setRegisterSuccess(true);
+
+      if (res.data?.status === "success") {
+        toast.success("Đăng ký thành công!");
+        setTimeout(() => {
+          navigate("/seller/login");
+        }, 1500);
+      } else {
+        toast.error(res.data?.message || "Đăng ký thất bại!");
+      }
     } catch (err) {
-      setRegisterError(err?.response?.data?.message || "Đăng ký thất bại!");
+      const errorMessage = err?.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại!";
+      toast.error(errorMessage);
       console.log(err?.response?.data);
     }
   };
@@ -92,145 +229,210 @@ const RegisterToSeller = () => {
         {/* Đã sửa max-w-4xl thành max-w-5xl để form rộng hơn */}
         <div className="w-full max-w-5xl bg-white shadow-lg rounded-lg p-8">
 
-          {registerSuccess ? (
-            <div className="text-center py-8">
-              <div className="text-green-600 text-2xl font-semibold mb-4">
-                Đăng ký thành công!
-              </div>
-              <Link
-                to="/seller/login"
-                className="text-blue-600 underline text-lg"
-              >
-                Quay về trang đăng nhập
-              </Link>
-            </div>
-          ) : (
-            <>
-              {registerError && (
-                <div className="col-span-2 text-center text-red-600 font-semibold mb-4">
-                  {registerError}
-                </div>
-              )}
-              {/* Đã sửa gap-4 thành gap-3 để giảm khoảng cách giữa các ô nhập */}
-              <form className="grid grid-cols-2 gap-3" onSubmit={handleSubmit}>
+          {/* Đã sửa gap-4 thành gap-3 để giảm khoảng cách giữa các ô nhập */}
+          <form className="grid grid-cols-2 gap-3" onSubmit={handleSubmit}>
 
                 {/* Đã thêm size="small" cho tất cả các TextField để giảm chiều cao */}
-                <TextField
-                  label="Căn cước công dân"
-                  name="cccd"
-                  value={formData.cccd}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Ảnh mặt trước căn cước công dân"
-                  name="cccd_front"
-                  type="file"
-                  InputLabelProps={{ shrink: true }}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Ảnh đại diện"
-                  name="avatar"
-                  type="file"
-                  InputLabelProps={{ shrink: true }}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Tên cửa hàng"
-                  name="store_name"
-                  value={formData.store_name}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Số điện thoại"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Mật khẩu"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Xác nhận mật khẩu"
-                  name="confirm_password"
-                  type="password"
-                  value={formData.confirm_password}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Ngân hàng"
-                  name="bank_name"
-                  value={formData.bank_name}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Số tài khoản"
-                  name="bank_account_number"
-                  value={formData.bank_account_number}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Chủ tài khoản"
-                  name="bank_account_holder_name"
-                  value={formData.bank_account_holder_name}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Thành phố"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Xã/Phường"
-                  name="village"
-                  value={formData.village}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
-                <TextField
-                  label="Địa chỉ chi tiết"
-                  name="detail_address"
-                  value={formData.detail_address}
-                  onChange={handleChange}
-                  required
-                  size="small"
-                />
+                <div>
+                  <TextField
+                    label="Căn cước công dân"
+                    name="cccd"
+                    value={formData.cccd}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.cccd}
+                    helperText={errors.cccd}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Ảnh mặt trước căn cước công dân"
+                    name="cccd_front"
+                    type="file"
+                    InputLabelProps={{ shrink: true }}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.cccd_front}
+                    helperText={errors.cccd_front}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Ảnh đại diện"
+                    name="avatar"
+                    type="file"
+                    InputLabelProps={{ shrink: true }}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.avatar}
+                    helperText={errors.avatar}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Tên cửa hàng"
+                    name="store_name"
+                    value={formData.store_name}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.store_name}
+                    helperText={errors.store_name}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Số điện thoại"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.phone}
+                    helperText={errors.phone}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Mật khẩu"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.password}
+                    helperText={errors.password}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Xác nhận mật khẩu"
+                    name="confirm_password"
+                    type="password"
+                    value={formData.confirm_password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.confirm_password}
+                    helperText={errors.confirm_password}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Ngân hàng"
+                    name="bank_name"
+                    value={formData.bank_name}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.bank_name}
+                    helperText={errors.bank_name}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Số tài khoản"
+                    name="bank_account_number"
+                    value={formData.bank_account_number}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.bank_account_number}
+                    helperText={errors.bank_account_number}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Chủ tài khoản"
+                    name="bank_account_holder_name"
+                    value={formData.bank_account_holder_name}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.bank_account_holder_name}
+                    helperText={errors.bank_account_holder_name}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Thành phố"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.city}
+                    helperText={errors.city}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Xã/Phường"
+                    name="village"
+                    value={formData.village}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.village}
+                    helperText={errors.village}
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Địa chỉ chi tiết"
+                    name="detail_address"
+                    value={formData.detail_address}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    size="small"
+                    error={!!errors.detail_address}
+                    helperText={errors.detail_address}
+                    fullWidth
+                  />
+                </div>
                 <TextField
                   label="Mô tả cửa hàng"
                   className="col-span-2"
@@ -287,8 +489,6 @@ const RegisterToSeller = () => {
                   </Button>
                 </div>
               </form>
-            </>
-          )}
         </div>
       </div>
       <Footer />
