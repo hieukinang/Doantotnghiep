@@ -21,26 +21,53 @@ const PlaceOrder = () => {
   const [appliedCartCoupon, setAppliedCartCoupon] = useState(JSON.parse(localStorage.getItem("appliedCartCoupon") || "null"));
   const [appliedShippingCode, setAppliedShippingCode] = useState(JSON.parse(localStorage.getItem("appliedShippingCode") || "null"));
 
-  // Chuẩn bị orderItems
-  const orderItems = cartItems?.filter(item => checkedItemsFromCart.includes(item.id))
-    .map(it => {
-      const variant = it.CartItemProductVariant;
-      const product = variant?.ProductVariantProduct || { name: "Sản phẩm không rõ tên" };
-      const storeId = variant?.storeId ?? product.storeId ?? null;
+  const buyNowItems = JSON.parse(localStorage.getItem("buyNowItems") || "[]");
+  const isBuyNowMode = buyNowItems.length > 0;
 
-      return {
-        id: it.id,
-        name: product.name,
-        image: product?.main_image,
-        price: variant?.price || 0,
-        shippingFee: variant?.shipping_fee || 30000,
-        qty: quantities[it.id] || it.quantity || 1,
-        variantOptions: variant?.options,
-        product_variantId: it.product_variantId,
-        storeId,
-        storeName: variant?.storeName || it.storeName || null,
-      };
-    }) || [];
+  // Chuẩn bị orderItems
+  let orderItems = [];
+  
+  if (isBuyNowMode) {
+    // Nếu là chế độ "Mua ngay", sử dụng buyNowItems
+    orderItems = buyNowItems.map(item => ({
+      id: item.id,
+      productId: item.productId, // Lưu productId để quay lại
+      name: item.name,
+      image: item.image ? (item.image.startsWith("http") 
+        ? item.image 
+        : item.image.startsWith("/")
+        ? `${backendURL.replace('/api', '')}${item.image}`
+        : `${backendURL.replace('/api', '')}/products/${item.image}`) : null,
+      price: item.price || 0,
+      shippingFee: item.shippingFee || 30000,
+      qty: quantities[item.id] || item.qty || 1,
+      variantOptions: item.variantOptions || [],
+      product_variantId: item.product_variantId,
+      storeId: item.storeId,
+      storeName: item.storeName || "Cửa hàng",
+    }));
+  } else {
+    // Nếu là từ Cart, sử dụng cartItems như cũ
+    orderItems = cartItems?.filter(item => checkedItemsFromCart.includes(item.id))
+      .map(it => {
+        const variant = it.CartItemProductVariant;
+        const product = variant?.ProductVariantProduct || { name: "Sản phẩm không rõ tên" };
+        const storeId = variant?.storeId ?? product.storeId ?? null;
+
+        return {
+          id: it.id,
+          name: product.name,
+          image: product?.main_image,
+          price: variant?.price || 0,
+          shippingFee: variant?.shipping_fee || 30000,
+          qty: quantities[it.id] || it.quantity || 1,
+          variantOptions: variant?.options,
+          product_variantId: it.product_variantId,
+          storeId,
+          storeName: variant?.storeName || it.storeName || null,
+        };
+      }) || [];
+  }
 
   useEffect(() => {
     if (!clientToken) {
