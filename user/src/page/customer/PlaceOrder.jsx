@@ -150,7 +150,6 @@ const PlaceOrder = () => {
 
     try {
       const res1 = await axios.get(`${backendURL}/coupons/from-system`);
-      const res2 = await axios.get(`${backendURL}/shipping-codes/`);
       const validCoupons = res1.data.data.docs || [];
       setCouponList(validCoupons);
       console.log(validCoupons);

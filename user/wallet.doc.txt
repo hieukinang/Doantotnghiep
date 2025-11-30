@@ -1,0 +1,9 @@
+//stripe
+
+stripe login
+
+stripe listen --forward-to localhost:5000/api/webhook
+
+
+//momo
+ngrok http 5000

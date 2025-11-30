@@ -109,7 +109,8 @@ app.use(
 //_________ROUTES_________//
 // 1) App Routes
 app.use(routes);
-// 2) 404 Urls
+
+// 3) 404 Urls
 app.all("*", (req, res, next) => {
   next(new APIError(`Can't find ${req.originalUrl} on this server!`, 404));
 });

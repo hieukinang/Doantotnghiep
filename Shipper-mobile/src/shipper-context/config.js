@@ -6,7 +6,9 @@ const config = {
   // backendUrl: 'http://172.16.12.117:5000/api',//tina4
   backendUrl: 'http://192.168.1.7:5000/api', //gianghuyen5g
 
-
+  // port:'10.0.2.2',
+  // port:'172.16.12.117',// tina4
+  port:'192.168.1.7',// gianghuyen5g
   appName: 'KOHI MALL',
   appVersion: '1.0.0',
 

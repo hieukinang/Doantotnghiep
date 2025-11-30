@@ -1,7 +1,14 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { ShopContext } from "../../context/ShopContext";
 import { toast } from "react-toastify";
+
+// Format thời gian sang GMT+7
+const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+};
 
 export default function Wallet() {
     const { backendURL } = useContext(ShopContext);
@@ -17,15 +24,16 @@ export default function Wallet() {
     const [wallet, setWallet] = useState(0);
     const [tab, setTab] = useState("deposit");
 
-    const clientToken = localStorage.getItem("clientToken");
+    const sellerToken = localStorage.getItem("sellerToken");
 
     // ================= LẤY SỐ DƯ =================
     const fetchWallet = async () => {
         try {
             const res = await axios.get(
                 `${backendURL}/transactions/get-wallet`,
-                { headers: { Authorization: `Bearer ${clientToken}` } }
+                { headers: { Authorization: `Bearer ${sellerToken}` } }
             );
+            console.log(res.data);
             setWallet(res.data.wallet);
         } catch (err) {
             console.error("Lỗi lấy ví:", err);
@@ -37,7 +45,7 @@ export default function Wallet() {
         try {
             const res = await axios.get(`${backendURL}/transactions/`, {
                 params: { startDate, endDate, page },
-                headers: { Authorization: `Bearer ${clientToken}` },
+                headers: { Authorization: `Bearer ${sellerToken}` },
             });
 
             setHistory(res.data.data);
@@ -69,19 +77,22 @@ export default function Wallet() {
                 const res = await axios.post(
                     `${backendURL}/transactions/checkout-session/stripe`,
                     { amount: Number(amount) },
-                    { headers: { Authorization: `Bearer ${clientToken}` } }
+                    { headers: { Authorization: `Bearer ${sellerToken}` } }
                 );
                 url = res.data.session.url;
             } else {
                 const res = await axios.post(
                     `${backendURL}/transactions/checkout-session/momo`,
                     { amount: Number(amount) },
-                    { headers: { Authorization: `Bearer ${clientToken}` } }
+                    { headers: { Authorization: `Bearer ${sellerToken}` } }
                 );
                 url = res.data.shortLink;
             }
 
             if (!url) return toast.error("Không lấy được URL!");
+
+            // Lưu nguồn để redirect về đúng trang sau khi thanh toán
+            localStorage.setItem("paymentSource", "seller");
 
             window.location.href = url;
         } catch (err) {
@@ -208,8 +219,8 @@ export default function Wallet() {
                     {history.map((item, i) => (
                         <div key={i} className="p-3 border rounded-lg flex justify-between">
                             <div>
-                                <div className="font-medium">{item.type}</div>
-                                <div className="text-gray-500 text-xs">{item.date}</div>
+                                <div className="font-medium">{item.description}</div>
+                                <div className="text-gray-500 text-xs">{formatDateTime(item.updatedAt)}</div>
                             </div>
 
                             <div

@@ -1,7 +1,17 @@
-import React from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 
 export default function PaymentSuccess() {
+    // Dùng useRef để lưu giá trị và chỉ đọc 1 lần (tránh Strict Mode render 2 lần)
+    const sourceRef = useRef(null);
+    
+    if (sourceRef.current === null) {
+        sourceRef.current = localStorage.getItem("paymentSource") || "customer";
+        localStorage.removeItem("paymentSource");
+    }
+    
+    const redirectPath = sourceRef.current === "seller" ? "/seller/wallet" : "/wallet";
+
     return (
         <div className="min-h-screen bg-gray-100 flex justify-center items-center px-4">
             <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
@@ -16,7 +26,7 @@ export default function PaymentSuccess() {
                 </p>
 
                 <Link
-                    to="/wallet"
+                    to={redirectPath}
                     className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow transition"
                 >
                     Về ví của tôi
