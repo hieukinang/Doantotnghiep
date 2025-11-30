@@ -763,6 +763,18 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
         const storeWalletAdd = Number((totalPrice * 0.8).toFixed(2));
         await store.increment("total_sales", { by: Math.round(totalPrice), transaction: t });
         await store.increment("wallet", { by: storeWalletAdd, transaction: t });
+        await store.reload({ transaction: t });
+
+        // record transaction for store income from sale
+        await Transaction.create({
+          user_id: store.id,
+          amount: Number(storeWalletAdd),
+          new_balance: store.wallet,
+          payment_method: order.payment_method || "sale",
+          type: TRANSACTION_TYPE.TOP_UP,
+          status: "SUCCESS",
+          description: `Sale income for order ${order.id}`,
+        }, { transaction: t });
       }
     }
 
