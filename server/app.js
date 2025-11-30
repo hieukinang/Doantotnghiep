@@ -109,10 +109,54 @@ app.use(
 //_________ROUTES_________//
 // 1) App Routes
 app.use(routes);
-
-// 3) 404 Urls
+// 2) 404 Urls
 app.all("*", (req, res, next) => {
   next(new APIError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// 2) Wallet Success Page (cho mobile app redirect)
+app.get("/wallet/success", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Thanh toán thành công</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          margin: 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+          background: white;
+          padding: 40px;
+          border-radius: 20px;
+          text-align: center;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+          max-width: 350px;
+        }
+        .icon { font-size: 60px; margin-bottom: 20px; }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 20px; }
+        .note { font-size: 14px; color: #999; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="icon">✅</div>
+        <h1>Thanh toán thành công!</h1>
+        <p>Giao dịch đã được xử lý. Số dư ví của bạn sẽ được cập nhật.</p>
+        <p class="note">Bạn có thể đóng trang này và quay lại ứng dụng.</p>
+      </div>
+    </body>
+    </html>
+  `);
 });
 
 //_________GLOBAL_ERROR_MIDDLEWARE_________//

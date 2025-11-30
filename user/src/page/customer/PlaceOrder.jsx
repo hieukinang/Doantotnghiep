@@ -19,6 +19,7 @@ const PlaceOrder = () => {
   const [quantities, setQuantities] = useState(JSON.parse(localStorage.getItem("quantities") || "{}"));
   const [appliedStoreCoupons, setAppliedStoreCoupons] = useState(JSON.parse(localStorage.getItem("appliedStoreCoupons") || "{}"));
   const [appliedCartCoupon, setAppliedCartCoupon] = useState(JSON.parse(localStorage.getItem("appliedCartCoupon") || "null"));
+  const [appliedShippingCode, setAppliedShippingCode] = useState(JSON.parse(localStorage.getItem("appliedShippingCode") || "null"));
 
   // Chuẩn bị orderItems
   const orderItems = cartItems?.filter(item => checkedItemsFromCart.includes(item.id))
@@ -118,8 +119,10 @@ const PlaceOrder = () => {
   const [showSystemCouponModal, setShowSystemCouponModal] = useState(false);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
   const [couponList, setCouponList] = useState([]);
+  const [shippingCodeList, setShippingCodeList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStoreId, setSelectedStoreId] = useState(null);
+  const [systemCouponTab, setSystemCouponTab] = useState("coupon"); // "coupon" | "shipping"
 
   // Mở modal Store Coupon
   const handleOpenStoreCouponModal = async (storeId) => {
@@ -147,15 +150,27 @@ const PlaceOrder = () => {
     setLoadingCoupons(true);
     setSearchTerm("");
     setCouponList([]);
+    setShippingCodeList([]);
+    setSystemCouponTab("coupon");
 
     try {
-      const res1 = await axios.get(`${backendURL}/coupons/from-system`);
-      const validCoupons = res1.data.data.docs || [];
+      // Lấy cả 2 loại coupon song song
+      const [res1, res2] = await Promise.all([
+        axios.get(`${backendURL}/coupons/from-system`),
+        axios.get(`${backendURL}/shipping-codes/client`, {
+          headers: { Authorization: `Bearer ${clientToken}` }
+        })
+      ]);
+      
+      const validCoupons = res1.data?.data?.docs || [];
+      const validShippingCodes = res2.data?.data?.codes || [];
+      
       setCouponList(validCoupons);
-      console.log(validCoupons);
+      setShippingCodeList(validShippingCodes);
     } catch (err) {
       console.error("❌ Lỗi khi lấy mã giảm giá hệ thống:", err);
       setCouponList([]);
+      setShippingCodeList([]);
     } finally {
       setLoadingCoupons(false);
     }
@@ -240,6 +255,28 @@ const PlaceOrder = () => {
     toast.success("Đã loại bỏ mã giảm giá!");
   };
 
+  // Áp dụng shipping code
+  const applyShippingCode = (code) => {
+    const shippingCodeData = {
+      code: code.code,
+      shippingCodeId: code.id,
+      discountValue: Number(code.discount || 0)
+    };
+
+    setAppliedShippingCode(shippingCodeData);
+    localStorage.setItem("appliedShippingCode", JSON.stringify(shippingCodeData));
+
+    toast.success("Áp dụng mã giảm phí ship thành công!");
+    setShowSystemCouponModal(false);
+  };
+
+  // Xóa shipping code
+  const removeShippingCode = () => {
+    setAppliedShippingCode(null);
+    localStorage.removeItem("appliedShippingCode");
+    toast.success("Đã loại bỏ mã giảm phí ship!");
+  };
+
   // ------------------- LOGIC TÍNH TOÁN -------------------
   // 1. Tạm tính
   const productSubtotal = orderItems.reduce((s, i) => s + i.price * i.qty, 0);
@@ -273,7 +310,11 @@ const PlaceOrder = () => {
     }
   });
 
-  const totalShippingFee = Array.from(storeShippingMap.values()).reduce((sum, fee) => sum + fee, 0);
+  let totalShippingFee = Array.from(storeShippingMap.values()).reduce((sum, fee) => sum + fee, 0);
+  
+  // Giảm phí ship từ shipping code
+  const shippingDiscount = appliedShippingCode?.discountValue || 0;
+  totalShippingFee = Math.max(0, totalShippingFee - shippingDiscount);
 
   // 4. Tổng thanh toán cuối cùng
   const totalPayment = productSubtotal - totalDiscountValue + totalShippingFee;
@@ -400,7 +441,6 @@ const PlaceOrder = () => {
     }
   };
 
-  // ------------------- RETURN JSX -------------------
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -626,7 +666,7 @@ const PlaceOrder = () => {
                 {/* Mã giảm giá hệ thống */}
                 <div className="border rounded-lg p-4 bg-gray-50">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium text-gray-700">Mã toàn hệ thống</span>
+                    <span className="font-medium text-gray-700">Mã giảm giá</span>
                     <button
                       onClick={handleOpenSystemCouponModal}
                       className="text-sm text-blue-600 hover:text-blue-700 font-medium underline"
@@ -636,24 +676,54 @@ const PlaceOrder = () => {
                   </div>
 
                   {appliedCartCoupon ? (
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center bg-white border border-green-200 rounded px-3 py-2">
-                        <span className="text-sm font-semibold text-green-700">
-                          {appliedCartCoupon.code}
-                        </span>
-                        <span className="text-sm text-red-600 font-medium mr-2">
-                          -{format(appliedCartCoupon.discountValue)}₫
-                        </span>
-                        <button
-                          onClick={removeCartCoupon}
-                          className="text-red-500 hover:text-red-700 text-sm font-bold"
-                        >
-                          ✕
-                        </button>
-                      </div>
+                    <div className="flex justify-between items-center bg-white border border-green-200 rounded px-3 py-2">
+                      <span className="text-sm font-semibold text-green-700">
+                        {appliedCartCoupon.code}
+                      </span>
+                      <span className="text-sm text-red-600 font-medium mr-2">
+                        -{format(appliedCartCoupon.discountValue)}₫
+                      </span>
+                      <button
+                        onClick={removeCartCoupon}
+                        className="text-red-500 hover:text-red-700 text-sm font-bold"
+                      >
+                        ✕
+                      </button>
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-500">Chưa áp dụng.</div>
+                    <div className="text-sm text-gray-500">Chưa áp dụng mã giảm giá.</div>
+                  )}
+                </div>
+
+                {/* Mã giảm phí ship */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-gray-700">Mã giảm phí ship</span>
+                    <button
+                      onClick={handleOpenSystemCouponModal}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium underline"
+                    >
+                      Chọn mã
+                    </button>
+                  </div>
+
+                  {appliedShippingCode ? (
+                    <div className="flex justify-between items-center bg-white border border-green-200 rounded px-3 py-2">
+                      <span className="text-sm font-semibold text-green-700">
+                        {appliedShippingCode.code}
+                      </span>
+                      <span className="text-sm text-red-600 font-medium mr-2">
+                        -{format(appliedShippingCode.discountValue)}₫
+                      </span>
+                      <button
+                        onClick={removeShippingCode}
+                        className="text-red-500 hover:text-red-700 text-sm font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">Chưa áp dụng mã giảm phí ship.</div>
                   )}
                 </div>
               </div>
@@ -704,8 +774,18 @@ const PlaceOrder = () => {
             {/* Phí vận chuyển */}
             <div className="flex justify-between text-sm py-1">
               <span>Phí vận chuyển</span>
-              <span className="font-medium">{format(totalShippingFee)}₫</span>
+              <span className="font-medium">{format(totalShippingFee + shippingDiscount)}₫</span>
             </div>
+
+            {/* Giảm phí ship */}
+            {shippingDiscount > 0 && (
+              <div className="flex justify-between text-sm py-1">
+                <span className="text-green-500">Giảm phí ship</span>
+                <span className="font-medium text-green-500">
+                  -{format(shippingDiscount)}₫
+                </span>
+              </div>
+            )}
 
             {/* Giảm giá */}
             {totalDiscountValue > 0 && (
@@ -833,9 +913,33 @@ const PlaceOrder = () => {
               </button>
             </div>
 
+            {/* Tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setSystemCouponTab("coupon")}
+                className={`flex-1 py-2 rounded-lg font-medium text-sm ${
+                  systemCouponTab === "coupon"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                🏷️ Mã giảm giá
+              </button>
+              <button
+                onClick={() => setSystemCouponTab("shipping")}
+                className={`flex-1 py-2 rounded-lg font-medium text-sm ${
+                  systemCouponTab === "shipping"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                🚚 Mã giảm phí ship
+              </button>
+            </div>
+
             <input
               type="text"
-              placeholder="Tìm kiếm mã giảm giá..."
+              placeholder="Tìm kiếm mã..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -845,47 +949,79 @@ const PlaceOrder = () => {
               <p className="text-center text-gray-500 py-8">Đang tải...</p>
             ) : (
               <div className="overflow-y-auto flex-1 space-y-3">
-
-
-                {couponList
-                  .filter((c) => c.code.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .map((coupon) => (
-                    <div
-                      key={coupon.id}
-                      onClick={() => applyCouponCart(coupon)}
-                      className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all mb-2"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-800">
-                            {coupon.code}
-                          </p>
-                          <p className="text-sm text-red-600 font-medium">
-                            Giảm: {format(coupon.discount)}₫
-                          </p>
-                          <div className="flex gap-3 mt-1 text-xs text-gray-500">
-                            <span>Còn: {coupon.quantity}</span>
-                            <span>•</span>
-                            <span>
-                              HSD: {new Date(coupon.expire).toLocaleDateString("vi-VN")}
+                {/* Tab Mã giảm giá */}
+                {systemCouponTab === "coupon" && (
+                  <>
+                    {couponList
+                      .filter((c) => c.code?.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((coupon) => (
+                        <div
+                          key={coupon.id}
+                          onClick={() => applyCouponCart(coupon)}
+                          className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-800">{coupon.code}</p>
+                              <p className="text-sm text-red-600 font-medium">
+                                Giảm: {format(coupon.discount)}₫
+                              </p>
+                              <div className="flex gap-3 mt-1 text-xs text-gray-500">
+                                <span>Còn: {coupon.quantity}</span>
+                                <span>•</span>
+                                <span>HSD: {new Date(coupon.expire).toLocaleDateString("vi-VN")}</span>
+                              </div>
+                            </div>
+                            <span className="text-blue-600 font-medium text-sm whitespace-nowrap ml-3">
+                              Áp dụng →
                             </span>
                           </div>
                         </div>
-                        <span className="text-blue-600 font-medium text-sm whitespace-nowrap ml-3">
-                          Áp dụng →
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                      ))}
+                    {couponList.filter((c) => c.code?.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                      <p className="text-center text-gray-500 text-sm py-8">
+                        {searchTerm ? "Không tìm thấy mã phù hợp." : "Không có mã giảm giá nào."}
+                      </p>
+                    )}
+                  </>
+                )}
 
-
-                {couponList.filter((c) =>
-                  c.code.toLowerCase().includes(searchTerm.toLowerCase())
-                ).length === 0 && (
-                    <p className="text-center text-gray-500 text-sm py-8">
-                      {searchTerm ? "Không tìm thấy mã phù hợp." : "Không có mã nào."}
-                    </p>
-                  )}
+                {/* Tab Mã giảm phí ship */}
+                {systemCouponTab === "shipping" && (
+                  <>
+                    {shippingCodeList
+                      .filter((c) => c.code?.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((code) => (
+                        <div
+                          key={code.id}
+                          onClick={() => applyShippingCode(code)}
+                          className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-green-50 hover:border-green-300 transition-all"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-800">{code.code}</p>
+                              <p className="text-sm text-green-600 font-medium">
+                                Giảm phí ship: {format(code.discount)}₫
+                              </p>
+                              <div className="flex gap-3 mt-1 text-xs text-gray-500">
+                                <span>Còn: {code.quantity}</span>
+                                <span>•</span>
+                                <span>HSD: {new Date(code.expire).toLocaleDateString("vi-VN")}</span>
+                              </div>
+                            </div>
+                            <span className="text-green-600 font-medium text-sm whitespace-nowrap ml-3">
+                              Áp dụng →
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    {shippingCodeList.filter((c) => c.code?.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                      <p className="text-center text-gray-500 text-sm py-8">
+                        {searchTerm ? "Không tìm thấy mã phù hợp." : "Không có mã giảm phí ship nào."}
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
