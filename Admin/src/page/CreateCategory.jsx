@@ -12,7 +12,7 @@ const CreateCategory = () => {
 
   const [attributes, setAttributes] = useState([""]);
   const [message, setMessage] = useState("");
-  const [mode, setMode] = useState("category"); // 'category' or 'super'
+  const [mode, setMode] = useState("super"); // 'category' or 'super'
   const [superCategories, setSuperCategories] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
 
