@@ -51,6 +51,10 @@ const Product = sequelize.define(
     discount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+      validate: {
+        min: 0,
+        max: 100,
+      },
     },
     min_price: {
       type: DataTypes.FLOAT,

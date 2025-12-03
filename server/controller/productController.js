@@ -76,7 +76,8 @@ export const createProduct = asyncHandler(async (req, res, next) => {
     description: req.body.description,
     main_image: req.body.main_image,
     categoryId: req.body.categoryId,
-    storeId: req.user.id
+    storeId: req.user.id,
+    discount: req.body.discount || 0,
   });
 
   // 2. Nếu có slide_images (tên file đã được resizeProductImages gán vào req.body.slide_images)
