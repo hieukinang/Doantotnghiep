@@ -48,8 +48,8 @@ const SearchResults = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <main className="pt-32 px-5 flex-1">
-        <div className="max-w-7xl mx-auto">
+      <main className="mx-[100px] pt-32 px-5 flex-1">
+        <div className="mx-auto">
           {/* Tiêu đề */}
           <h1 className="text-2xl font-bold mb-6">
             Kết quả tìm kiếm cho: <span className="text-[#116AD1]">"{query}"</span>

@@ -60,8 +60,8 @@ const Profile = () => {
         fetchShipper();
     }, []);
 
-    //thay bằng ip máy
-    const fixedImage = shipper.profile_image.replace("localhost", "172.16.12.117");
+    // Thay localhost bằng IP máy - chỉ tính khi shipper đã có dữ liệu
+    const fixedImage = shipper?.profile_image?.replace("localhost", `${config.port}`) || null;
 
     return (
         <View style={{ flex: 1 }}>

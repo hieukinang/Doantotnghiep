@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, Dimensions,
     ActivityIndicator, ScrollView, Modal, TextInput, Linking
@@ -13,6 +13,13 @@ import * as WebBrowser from "expo-web-browser";
 
 const HEADER_HEIGHT = 80;
 
+// Format thời gian sang GMT+7
+const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+};
+
 const Wallet = () => {
     const navigation = useNavigation();
     const { token } = useAuth();
@@ -21,7 +28,6 @@ const Wallet = () => {
     const [showSidebar, setShowSidebar] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [balance, setBalance] = useState(0);
-    const [activeFilter, setActiveFilter] = useState("today");
     const [history, setHistory] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -47,6 +53,12 @@ const Wallet = () => {
         setShowSidebar(false);
         setShowPopup(false);
         setShowTopupModal(false);
+    };
+
+    // Reload toàn bộ
+    const handleReload = () => {
+        fetchWallet();
+        fetchHistory();
     };
 
     const fetchWallet = async () => {
@@ -81,6 +93,13 @@ const Wallet = () => {
             fetchHistory();
         }
     }, [token]);
+
+    // Fetch lại khi đổi trang
+    useEffect(() => {
+        if (token && page) {
+            fetchHistory();
+        }
+    }, [page]);
 
     const handleTopup = async () => {
         if (!amount || isNaN(amount) || Number(amount) <= 0) {
@@ -142,8 +161,12 @@ const Wallet = () => {
 
             {/* SỐ DƯ */}
             <View style={styles.balanceCard}>
+                <TouchableOpacity style={styles.reloadBtn} onPress={handleReload}>
+                    <Text style={styles.reloadText}>🔄 Làm mới</Text>
+                </TouchableOpacity>
                 <Text style={styles.balanceLabel}>Số dư ví</Text>
                 <Text style={styles.balanceAmount}>{balance.toLocaleString()} đ</Text>
+                
             </View>
 
             {/* Nút Nạp / Rút */}
@@ -154,6 +177,36 @@ const Wallet = () => {
                 <TouchableOpacity style={styles.actionBtn}>
                     <Text style={styles.actionText}>Rút tiền</Text>
                 </TouchableOpacity>
+            </View>
+
+            {/* LỊCH SỬ GIAO DỊCH */}
+            <View style={styles.historySection}>
+                <Text style={styles.historyTitle}>Lịch sử giao dịch</Text>
+                
+                {loading ? (
+                    <ActivityIndicator size="large" color="#116AD1" style={{ marginTop: 20 }} />
+                ) : (
+                    <ScrollView style={styles.historyList} showsVerticalScrollIndicator={false}>
+                        {history.length === 0 ? (
+                            <Text style={styles.emptyText}>Chưa có giao dịch nào</Text>
+                        ) : (
+                            history.map((item, index) => (
+                                <View key={index} style={styles.historyItem}>
+                                    <View style={styles.historyLeft}>
+                                        <Text style={styles.historyType}>{item.description}</Text>
+                                        <Text style={styles.historyDate}>{formatDateTime(item.updatedAt)}</Text>
+                                    </View>
+                                    <Text style={[
+                                        styles.historyAmount,
+                                        { color: item.amount > 0 ? '#22c55e' : '#ef4444' }
+                                    ]}>
+                                        {item.amount > 0 ? '+' : ''}{item.amount?.toLocaleString()} đ
+                                    </Text>
+                                </View>
+                            ))
+                        )}
+                    </ScrollView>
+                )}
             </View>
 
             {/* MODAL NẠP TIỀN */}
@@ -263,6 +316,19 @@ const styles = StyleSheet.create({
     },
     balanceLabel: { fontSize: 18, color: '#333', marginBottom: 8 },
     balanceAmount: { fontSize: 28, fontWeight: 'bold', color: '#116AD1' },
+    reloadBtn: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 15,
+    },
+    reloadText: {
+        fontSize: 12,
+        color: '#116AD1',
+    },
 
     actionRow: {
         flexDirection: 'row',
@@ -325,6 +391,82 @@ const styles = StyleSheet.create({
         right: 0,
         backgroundColor: 'rgba(0,0,0,0.4)',
         zIndex: 15,
+    },
+
+    // Lịch sử giao dịch
+    historySection: {
+        flex: 1,
+        marginTop: 20,
+        marginHorizontal: 20,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 15,
+        elevation: 3,
+    },
+    historyTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 15,
+    },
+    historyList: {
+        flex: 1,
+    },
+    emptyText: {
+        textAlign: 'center',
+        color: '#999',
+        marginTop: 20,
+    },
+    historyItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    historyLeft: {
+        flex: 1,
+    },
+    historyType: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+    },
+    historyDate: {
+        fontSize: 12,
+        color: '#999',
+        marginTop: 2,
+    },
+    historyAmount: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    pagination: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 15,
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+    },
+    pageBtn: {
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        backgroundColor: '#116AD1',
+        borderRadius: 6,
+    },
+    pageBtnDisabled: {
+        backgroundColor: '#ccc',
+    },
+    pageBtnText: {
+        color: '#fff',
+        fontSize: 12,
+    },
+    pageInfo: {
+        fontSize: 12,
+        color: '#666',
     },
 });
 

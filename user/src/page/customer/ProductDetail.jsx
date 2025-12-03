@@ -178,6 +178,86 @@ const ProductDetail = () => {
     }
   };
 
+  const handleBuyNow = () => {
+    const token = localStorage.getItem("clientToken");
+    if (!token || token === "null" || token === "undefined" || token.trim() === "") {
+      alert("Vui lòng đăng nhập để mua hàng!");
+      navigate("/login");
+      return;
+    }
+
+    if (!selectedVariantId) {
+      alert("Vui lòng chọn đầy đủ thuộc tính!");
+      return;
+    }
+
+    // Lấy thông tin variant đã chọn
+    const selectedVariant = product?.ProductVariants?.find(v => v.id === selectedVariantId);
+    if (!selectedVariant) {
+      alert("Không tìm thấy thông tin sản phẩm!");
+      return;
+    }
+
+    // Lấy storeId
+    const storeId = product?.storeId || 
+                   product?.ProductStore?.id ||
+                   selectedVariant?.storeId ||
+                   selectedVariant?.ProductVariantProduct?.storeId ||
+                   storeInfo?.id;
+
+    // Tạo variant options từ selectedOptions
+    const variantOptions = [];
+    if (selectedVariant?.ProductVariantOptions) {
+      selectedVariant.ProductVariantOptions.forEach(opt => {
+        if (opt.value !== null) {
+          const attrName = attributeMap[opt.attributeId] || `Thuộc tính ${opt.attributeId}`;
+          variantOptions.push({
+            name: attrName,
+            value: opt.value
+          });
+        }
+      });
+    }
+
+    // Lấy hình ảnh sản phẩm
+    let productImage = product.main_image || (product.ProductImages && product.ProductImages[0]?.image_url) || null;
+    // Xử lý URL hình ảnh
+    if (productImage && !productImage.startsWith("http")) {
+      if (productImage.startsWith("/")) {
+        productImage = `${backendURL.replace('/api', '')}${productImage}`;
+      } else {
+        productImage = `${backendURL.replace('/api', '')}/products/${productImage}`;
+      }
+    }
+
+    // Tạo buy now item
+    const buyNowItem = {
+      id: `buy-now-${Date.now()}`, // ID tạm thời
+      productId: product.id, // Lưu productId để quay lại
+      name: product.name,
+      image: productImage,
+      price: selectedVariantPrice,
+      shippingFee: selectedVariant?.shipping_fee || 30000,
+      qty: quantity,
+      variantOptions: variantOptions,
+      product_variantId: selectedVariantId,
+      storeId: storeId,
+      storeName: storeInfo?.name || "Cửa hàng",
+    };
+
+    // Lưu vào localStorage
+    localStorage.setItem("buyNowItems", JSON.stringify([buyNowItem]));
+    localStorage.setItem("checkedItems", JSON.stringify([buyNowItem.id]));
+    localStorage.setItem("quantities", JSON.stringify({ [buyNowItem.id]: quantity }));
+    
+    // Clear các coupon cũ (nếu có)
+    localStorage.removeItem("appliedStoreCoupons");
+    localStorage.removeItem("appliedCartCoupon");
+
+    // Navigate to place-order
+    navigate("/place-order");
+  };
+
   if (!product?.id) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
@@ -285,12 +365,12 @@ const ProductDetail = () => {
               >
                 Thêm vào giỏ hàng
               </button>
-              <Link
-                to="/place-order"
+              <button
+                onClick={handleBuyNow}
                 className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]"
               >
                 Mua ngay
-              </Link>
+              </button>
             </div>
 
             <div className="mt-6">
