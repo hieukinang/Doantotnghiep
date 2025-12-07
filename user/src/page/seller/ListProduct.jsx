@@ -147,30 +147,59 @@ const ListProduct = () => {
                     {product.rating_average || 0} ⭐ 
                   </td>
                   <td className="p-3 text-center">{product.review_numbers || 0} </td>
-                  <td className="p-3 text-center flex justify-center gap-1">
-                    {/* Xem chi tiết */}
-                    <button
-                      onClick={() => handleDetail(product.id)}
-                      className="p-2 rounded-full hover:bg-gray-200"
-                    >
-                      <img src={IconView} alt="Xem" className="w-5 h-5" />
-                    </button>
+                  <td className="p-3 text-center">
+                    <div className="flex justify-center items-center gap-0.1">
+                      {/* Xem chi tiết */}
+                      <div className="relative group">
+                        <button
+                          onClick={() => handleDetail(product.id)}
+                          className="p-2 rounded-full hover:bg-gray-200 "
+                        >
+                          <img src={IconView} alt="Xem chi tiết" className="w5 h-5" />
+                        </button>
+                        <span
+                          className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                          bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                          group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                        >
+                          Xem chi tiết
+                        </span>
+                      </div>
 
-                    {/* Cập nhật */}
-                    <button
-                      onClick={() => handleUpdate(product)}
-                      className="p-2 rounded-full hover:bg-gray-200"
-                    >
-                      <img src={IconEdit} alt="Sửa" className="w-5 h-5" />
-                    </button>
+                      {/* Cập nhật */}
+                      <div className="relative group">
+                        <button
+                          onClick={() => handleUpdate(product)}
+                          className="p-2 rounded-full hover:bg-gray-200"
+                        >
+                          <img src={IconEdit} alt="Cập nhật" className="w-5 h-5" />
+                        </button>
+                        <span
+                          className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                          bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                          group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                        >
+                          Cập nhật
+                        </span>
+                      </div>
 
-                    {/* Xóa */}
-                    <button
-                      onClick={() => handleDelete(product)}
-                      className="p-2 rounded-full hover:bg-gray-200"
-                    >
-                      <img src={IconDelete} alt="Xóa" className="w-5 h-5" />
-                    </button>
+                      {/* Xóa */}
+                      <div className="relative group">
+                        <button
+                          onClick={() => handleDelete(product)}
+                          className="p-2 rounded-full hover:bg-gray-200"
+                        >
+                          <img src={IconDelete} alt="Xóa" className="w-5 h-5" />
+                        </button>
+                        <span
+                          className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
+                          bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 
+                          group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                        >
+                          Xóa
+                        </span>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))

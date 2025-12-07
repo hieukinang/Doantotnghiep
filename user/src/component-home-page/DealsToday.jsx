@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 
@@ -9,56 +9,59 @@ const DealsToday = () => {
   const { getAllProducts, allProducts } = useContext(ShopContext);
   const [randomProducts, setRandomProducts] = useState([]);
 
-  // 🔹 Gọi API lấy tất cả sản phẩm khi load
+  // 🔥 dùng useRef để tránh random lại mỗi lần load trang
+  const hasRandomized = useRef(false);
+
   useEffect(() => {
     getAllProducts();
   }, []);
 
-  // 🔹 Khi có dữ liệu, random chọn 14 sản phẩm
-  useEffect(() => {
-    if (allProducts && allProducts.length > 0) {
-      const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
-      setRandomProducts(shuffled.slice(0, 14));
-    }
-  }, [allProducts]);
+  // useEffect(() => {
+  //   if (!hasRandomized.current && allProducts?.length > 0) {
+  //     const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
+  //     setRandomProducts(shuffled.slice(0, 14));
+
+  //     // đánh dấu: đã random rồi → không random lại nữa
+  //     hasRandomized.current = true;
+  //   }
+  // }, [allProducts]);
 
   return (
     <div className="mx-[100px] mt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Deal nổi bật hôm nay</h2>
-        <Link to="/products" className="text-[#116AD1] text-sm">
+        <Link to="/products" className="text-[#116AD1] text-sm hover:underline">
           Xem tất cả
         </Link>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
-        {randomProducts.map((p) => (
+      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+        {allProducts.map((p) => (
           <Link
             key={p.id || p._id}
             to={`/product/${p.id || p._id}`}
-            className="bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition"
+            className="bg-white rounded-xl overflow-hidden shadow hover:shadow-xl hover:-translate-y-1 border border-gray-200 transition-all duration-300"
           >
-            {/* Hình ảnh sản phẩm */}
-            <div className="aspect-[1/1] bg-gray-100 flex items-center justify-center">
+            <div className="aspect-[1/1] bg-gray-100 flex items-center justify-center overflow-hidden">
               <img
                 src={
                   p.main_image ||
-                  (p.images && p.images.length > 0 ? p.images[0] : "") ||
+                  (p.images?.length ? p.images[0] : "") ||
                   "/no-image.png"
                 }
                 alt={p.name}
-                className="w-full h-full object-cover"
-                loading="lazy"
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
               />
             </div>
 
-            {/* Thông tin sản phẩm */}
             <div className="p-2">
-              <div className="line-clamp-2 text-sm font-medium">{p.name}</div>
+              <div className="line-clamp-2 text-sm font-medium text-gray-800">
+                {p.name}
+              </div>
 
               {p.min_price ? (
                 <>
-                  <div className="mt-1 text-sm text-gray-500 line-through">
+                  <div className="mt-1 text-xs text-gray-500 line-through">
                     {formatPrice(p.min_price * 1.1)}₫
                   </div>
                   <div className="mt-1 text-[#116AD1] font-semibold">
@@ -70,7 +73,7 @@ const DealsToday = () => {
               )}
 
               <div className="mt-1 text-xs text-gray-500">
-                Đã bán {p.sold ? p.sold.toLocaleString("vi-VN") : "0"}
+                Đã bán {p.sold?.toLocaleString("vi-VN") || "0"}
               </div>
             </div>
           </Link>
