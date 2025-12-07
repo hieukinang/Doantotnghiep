@@ -10,7 +10,7 @@ const Categories = () => {
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   // 👉 Lấy dữ liệu từ context
-  const { supercategories, getAllSuperCategories } = useContext(ShopContext);
+  const { categories, getAllCategories } = useContext(ShopContext);
 
   const updateScrollButtons = () => {
     if (!containerRef.current) return;
@@ -30,7 +30,7 @@ const Categories = () => {
   };
 
   useEffect(() => {
-    getAllSuperCategories(); // 🔄 Gọi API khi load lần đầu
+    getAllCategories(); // 🔄 Gọi API khi load lần đầu
     updateScrollButtons();
 
     const el = containerRef.current;
@@ -67,8 +67,8 @@ const Categories = () => {
         {/* Container chính */}
         <div ref={containerRef} className="overflow-hidden scroll-smooth">
           <div className="grid grid-rows-2 grid-flow-col gap-4">
-            {supercategories && supercategories.length > 0 ? (
-              supercategories.map((c) => (
+            {categories && categories.length > 0 ? (
+              categories.map((c) => (
                 <Link
                   key={c._id || c.id}
                   to={`/category/${c._id || c.id}`}

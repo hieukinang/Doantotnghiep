@@ -5,6 +5,9 @@ import Footer from "../../component-home-page/Footer";
 import Banner from "../../component-home-page/Banner";
 import Categories from "../../component-home-page/Category";
 import DealsToday from "../../component-home-page/DealsToday";
+import TopSold from "../../component-home-page/TopSold";
+import TopDiscount from "../../component-home-page/TopDiscount";
+import RanDom from "../../component-home-page/RandomProduct";
 import SystemChatBox from "../../component-home-page/SystemChatBox";
 // import Suggestions from "../../component-home-page/Suggestions";
 
@@ -23,6 +26,12 @@ const Home = () => {
 
         {/* Deal nổi bật */}
         <DealsToday />
+
+        <TopSold />
+
+        <TopDiscount />
+
+        <RanDom />
 
         {/* Gợi ý hôm nay */}
         {/* <Suggestions products={products} /> */}

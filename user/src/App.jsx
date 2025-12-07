@@ -17,6 +17,7 @@ import EditProfile from "./page/customer/EditProfile";
 import FollowedShops from "./page/customer/FollowedShops";
 import ExchangeRequest from "./page/customer/ExchangeRequest";
 import Contact from "./page/customer/Contact";
+import CategoryPage from "./page/customer/CategoryPage";
 import About from "./page/customer/About";
 import OrderDetail from "./page/customer/OrderDetail";
 import PrivacyPolicy from "./page/customer/PrivacyPolicy";
@@ -72,6 +73,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/register-to-seller" element={<RegisterToSeller />} />
         <Route path="/product/:productId" element={<ProductDetail />} />
+        <Route path="/category/:id" element={<CategoryPage />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/place-order" element={<PlaceOrder />} />
         <Route path="/payment" element={<Payment />} />
