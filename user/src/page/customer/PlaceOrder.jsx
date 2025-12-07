@@ -686,7 +686,7 @@ const PlaceOrder = () => {
             {/* ===================== MÃ GIẢM GIÁ ===================== */}
             <div className="bg-white rounded-lg p-5 shadow">
               <div className="font-semibold text-lg border-b pb-2 mb-4">
-                🏷️ Mã giảm giá
+                🏷️ Mã giảm giá hệ thống
               </div>
 
               <div className="space-y-4">
@@ -723,7 +723,7 @@ const PlaceOrder = () => {
                 </div>
 
                 {/* Mã giảm phí ship */}
-                <div className="border rounded-lg p-4 bg-gray-50">
+                {/* <div className="border rounded-lg p-4 bg-gray-50">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-medium text-gray-700">Mã giảm phí ship</span>
                     <button
@@ -752,7 +752,7 @@ const PlaceOrder = () => {
                   ) : (
                     <div className="text-sm text-gray-500">Chưa áp dụng mã giảm phí ship.</div>
                   )}
-                </div>
+                </div> */}
               </div>
             </div>
 

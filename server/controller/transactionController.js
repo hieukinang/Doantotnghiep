@@ -340,7 +340,7 @@ export const getTransactionHistory = asyncHandler(async (req, res, next) => {
 
   // Lấy query param
   const { startDate, endDate, page = 1 } = req.query;
-  const pageSize = 10;
+  const pageSize = 5;
   const offset = (page - 1) * pageSize;
 
   // Validate ngày

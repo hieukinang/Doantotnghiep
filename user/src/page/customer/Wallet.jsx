@@ -33,7 +33,7 @@ export default function Wallet() {
     const clientToken = localStorage.getItem("clientToken");
 
     // Kiểm tra thông tin ngân hàng
-    const hasBankInfo = clientUser?.bank_name && clientUser?.bank_account_number && clientUser?.bank_account_name;
+    const hasBankInfo = clientUser?.bank_name && clientUser?.bank_account_number && clientUser?.bank_account_holder_name;
 
     // Lấy số dư ví
     const fetchWallet = async () => {
@@ -58,7 +58,6 @@ export default function Wallet() {
 
             setHistory(res.data.data);
             setTotalPages(res.data.pagination.totalPages);
-            setPage(res.data.pagination.currentPage);
         } catch (err) {
             console.error(err);
         }
@@ -70,7 +69,7 @@ export default function Wallet() {
     }, []);
 
     useEffect(() => {
-        if (startDate && endDate) fetchHistory();
+        fetchHistory();
     }, [startDate, endDate, page]);
 
     // Nạp tiền
@@ -156,11 +155,11 @@ export default function Wallet() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <Header />
-            <main className="pt-32 px-5 flex-1">
-                <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            <main className="pt-32 px-5 pb-10 flex-1">
+                <div className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8" style={{ height: '570px' }}>
 
                     {/* ===== CỘT THAO TÁC ===== */}
-                    <section className="bg-white p-6 rounded-xl shadow min-h-[500px] flex flex-col">
+                    <section className="bg-white p-6 rounded-xl shadow flex flex-col overflow-hidden">
 
                         {/* TAB */}
                         <div className="flex gap-4 mb-4 border-b pb-2">
@@ -195,6 +194,7 @@ export default function Wallet() {
                                     onChange={(e) => setAmount(e.target.value)}
                                     placeholder="Nhập số tiền"
                                     className="border border-blue-300 rounded-lg px-3 py-2 w-full"
+                                    autoComplete="off"
                                 />
                             </div>
 
@@ -238,7 +238,7 @@ export default function Wallet() {
                                                 Vui lòng cập nhật thông tin ngân hàng trước khi rút tiền.
                                             </p>
                                             <Link
-                                                to="/edit-profile"
+                                                to="/update-profile"
                                                 className="inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm font-medium"
                                             >
                                                 Cập nhật ngay
@@ -252,17 +252,21 @@ export default function Wallet() {
                                                 <p className="text-sm text-gray-500 mb-1">Tài khoản nhận tiền</p>
                                                 <p className="font-medium">{clientUser.bank_name}</p>
                                                 <p className="text-sm">{clientUser.bank_account_number}</p>
-                                                <p className="text-sm text-gray-600">{clientUser.bank_account_name}</p>
+                                                <p className="text-sm text-gray-600">{clientUser.bank_account_holder_name}</p>
                                             </div>
 
                                             <p className="font-medium mb-2">Xác nhận rút tiền</p>
                                             <div className="relative">
                                                 <input
-                                                    type={showPassword ? "text" : "password"}
+                                                    type="text"
                                                     value={password}
                                                     onChange={(e) => setPassword(e.target.value)}
                                                     placeholder="Nhập mật khẩu tài khoản"
                                                     className="border border-blue-300 rounded-lg px-3 py-2 w-full pr-10"
+                                                    autoComplete="off"
+                                                    style={{
+                                                        WebkitTextSecurity: showPassword ? 'none' : 'disc',
+                                                    }}
                                                 />
                                                 <button
                                                     type="button"
@@ -293,7 +297,7 @@ export default function Wallet() {
                     </section>
 
                     {/* ===== CỘT LỊCH SỬ ===== */}
-                    <section className="bg-white p-6 rounded-xl shadow min-h-[500px] flex flex-col">
+                    <section className="bg-white p-6 rounded-xl shadow flex flex-col overflow-hidden">
                         <div className="flex items-center justify-between mb-5">
                             <div className="font-semibold text-xl">Lịch sử giao dịch</div>
 
@@ -316,47 +320,70 @@ export default function Wallet() {
 
                         {/* danh sách */}
                         <div className="space-y-3 overflow-y-auto flex-1 pr-1">
-                            {history.map((item, i) => (
-                                <div key={i} className="p-3 border rounded-lg flex justify-between">
-                                    <div>
-                                        <div className="font-medium">{item.description}</div>
-                                        <div className="text-gray-500 text-xs">{formatDateTime(item.updatedAt)}</div>
-                                    </div>
+                            {history.map((item, i) => {
+                                const isDebit = item.type === "WITHDRAW" || item.type === "PAY_ORDER";
+                                return (
+                                    <div key={i} className="p-3 border rounded-lg flex justify-between">
+                                        <div>
+                                            <div className="font-medium">{item.description}</div>
+                                            <div className="text-gray-500 text-xs">{formatDateTime(item.updatedAt)}</div>
+                                        </div>
 
-                                    <div
-                                        className={
-                                            item.amount > 0
-                                                ? "text-green-600 font-semibold"
-                                                : "text-red-600 font-semibold"
-                                        }
-                                    >
-                                        {item.amount > 0 ? "+ " : "- "}
-                                        ₫{Math.abs(item.amount).toLocaleString()}
+                                        <div
+                                            className={
+                                                isDebit
+                                                    ? "text-red-600 font-semibold"
+                                                    : "text-green-600 font-semibold"
+                                            }
+                                        >
+                                            {isDebit ? "- " : "+ "}
+                                            ₫{Math.abs(item.amount).toLocaleString()}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* phân trang */}
-                        <div className="mt-4 flex items-center justify-between">
-                            <button
-                                disabled={page <= 1}
-                                onClick={() => setPage(page - 1)}
-                                className="px-3 py-1 border rounded disabled:opacity-50"
-                            >
-                                Trước
-                            </button>
+                        {totalPages > 1 && (
+                            <div className="mt-4 flex items-center justify-center gap-2">
+                                <button
+                                    disabled={page <= 1}
+                                    onClick={() => setPage(page - 1)}
+                                    className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    ‹
+                                </button>
 
-                            <div>Trang {page} / {totalPages}</div>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                                    .map((p, index, arr) => (
+                                        <span key={p} className="flex items-center">
+                                            {index > 0 && arr[index - 1] !== p - 1 && (
+                                                <span className="px-1 text-gray-400">...</span>
+                                            )}
+                                            <button
+                                                onClick={() => setPage(p)}
+                                                className={`w-8 h-8 rounded text-sm ${
+                                                    page === p
+                                                        ? "bg-blue-600 text-white"
+                                                        : "border hover:bg-gray-100"
+                                                }`}
+                                            >
+                                                {p}
+                                            </button>
+                                        </span>
+                                    ))}
 
-                            <button
-                                disabled={page >= totalPages}
-                                onClick={() => setPage(page + 1)}
-                                className="px-3 py-1 border rounded disabled:opacity-50"
-                            >
-                                Sau
-                            </button>
-                        </div>
+                                <button
+                                    disabled={page >= totalPages}
+                                    onClick={() => setPage(page + 1)}
+                                    className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    ›
+                                </button>
+                            </div>
+                        )}
                     </section>
                 </div>
             </main>

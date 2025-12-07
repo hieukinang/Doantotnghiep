@@ -272,7 +272,7 @@ const Register = () => {
       const backendErrors = err.response?.data?.errors;
       if (backendErrors?.length > 0) {
         const field = backendErrors[0].param; // email / phone
-        const msg = backendErrors[0].msg;
+        let msg = backendErrors[0].msg;
         if (msg.toLowerCase().includes("exist") && field === "email" ) {
           msg = "Email đã tồn tại";
         } else if (msg.toLowerCase().includes("exist") && field === "phone") {

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -135,7 +135,6 @@ const MapScreen = () => {
 
         const res = await axios.get(`${config.backendUrl}/orders/shipper`, {
           headers: { Authorization: `Bearer ${token}` },
-          params: { status: "IN_TRANSIT" },
         });
 
         if (res.data.status === "success") {
@@ -194,43 +193,61 @@ const MapScreen = () => {
 
         <ScrollView showsVerticalScrollIndicator={false}>
           {orders.length === 0 ? (
-            <Text style={{ textAlign: 'center', marginTop: 20 }}>Không có đơn hàng</Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>📦</Text>
+              <Text style={styles.emptyTitle}>Chưa có đơn hàng</Text>
+              <Text style={styles.emptySubtitle}>Bạn chưa nhận đơn hàng nào để giao</Text>
+              <TouchableOpacity
+                style={styles.takeOrderButton}
+                onPress={() => navigation.navigate('TakeanOrder')}
+              >
+                <Text style={styles.takeOrderButtonText}>🚀 Nhận đơn hàng ngay</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             orders.map((order) => (
-              <View key={order.id} style={styles.boxContainer}>
-                <TouchableOpacity onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}>
-                  <Text style={styles.boxText}>Mã đơn: #{order.id}</Text>
-                  <Text style={styles.boxText}>Địa chỉ: {order.shipping_address}</Text>
-                  <Text style={styles.boxText}>Tổng: {order.total_price.toLocaleString('vi-VN')}₫</Text>
-
-                  {order.OrderItems.map((item) => (
-                    <View key={item.id} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 6 }}>
-                      <Image source={{ uri: item.image }} style={{ width: 50, height: 50, borderRadius: 4, marginRight: 8 }} />
-                      <View>
-                        <Text>{item.title}</Text>
-                        <Text>Số lượng: {item.quantity}</Text>
-                      </View>
-                    </View>
-                  ))}
-
-                  <View style={styles.boxRow}>
-                    <TouchableOpacity
-                      style={styles.buttonPrimary}
-                      onPress={() => confirmDelivery(order.id)}
-                    >
-                      <Text style={styles.buttonText}>Xác nhận giao hàng</Text>
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                      style={styles.buttonCancel}
-                      onPress={() => confirmCancel(order.id)}
-                    >
-                      <Text style={styles.buttonCancelText}>Hủy</Text>
-                    </TouchableOpacity>
+              <TouchableOpacity 
+                key={order.id} 
+                style={styles.orderCard}
+                onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}
+              >
+                <View style={styles.orderHeader}>
+                  <Text style={styles.orderId}>#{order.id}</Text>
+                  <View style={styles.statusBadge}>
+                    <Text style={styles.statusText}>Đang giao</Text>
                   </View>
-                </TouchableOpacity>
-              </View>
+                </View>
+                
+                {/* Thông tin người nhận */}
+                <View style={styles.receiverInfo}>
+                  <Text style={styles.receiverName}>👤 {order.receiver_name || 'Khách hàng'}</Text>
+                  {order.receiver_phone && (
+                    <Text style={styles.receiverPhone}>📞 {order.receiver_phone}</Text>
+                  )}
+                </View>
+                
+                <Text style={styles.orderText}>📍 {order.shipping_address}</Text>
+                <Text style={styles.orderPrice}>💰 {order.total_price?.toLocaleString('vi-VN')}₫</Text>
+                {order.OrderItems && order.OrderItems.length > 0 && (
+                  <Text style={styles.orderItems}>📦 {order.OrderItems.length} sản phẩm</Text>
+                )}
+
+                <View style={styles.boxRow}>
+                  <TouchableOpacity
+                    style={styles.buttonPrimary}
+                    onPress={() => confirmDelivery(order.id)}
+                  >
+                    <Text style={styles.buttonText}>Xác nhận giao hàng</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.buttonCancel}
+                    onPress={() => confirmCancel(order.id)}
+                  >
+                    <Text style={styles.buttonCancelText}>Hủy</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>
@@ -297,14 +314,111 @@ const styles = StyleSheet.create({
   },
   dragHandleContainer: { alignItems: 'center', paddingVertical: 6 },
   dragHandle: { width: 50, height: 5, borderRadius: 3, backgroundColor: '#ccc' },
-  boxContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginVertical: 10, backgroundColor: '#fff' },
-  boxText: { fontSize: 14, marginBottom: 4 },
+  orderCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  orderId: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#116AD1',
+  },
+  statusBadge: {
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    color: '#116AD1',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  receiverInfo: {
+    backgroundColor: '#f8f9fa',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  receiverName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  receiverPhone: {
+    fontSize: 13,
+    color: '#666',
+  },
+  orderText: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 4,
+  },
+  orderPrice: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  orderItems: {
+    fontSize: 13,
+    color: '#888',
+  },
   boxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
   buttonPrimary: { flex: 1, backgroundColor: '#116AD1', paddingVertical: 12, borderRadius: 6, alignItems: 'center', marginRight: 8 },
   buttonText: { color: 'white', fontWeight: 'bold' },
   buttonCancel: { backgroundColor: '#FDEDED', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 6, alignItems: 'center' },
   buttonCancelText: { color: '#D32F2F', fontWeight: 'bold' },
   overlay: { position: 'absolute', top: HEADER_HEIGHT, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 15 },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  takeOrderButton: {
+    backgroundColor: '#116AD1',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 25,
+    shadowColor: '#116AD1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  takeOrderButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
 
 export default MapScreen;

@@ -308,7 +308,12 @@ const Orders = () => {
                         Đã nhận
                       </button>
                     )}
-
+                    <button
+                      onClick={() => handleComplaint(o)}
+                      className="text-sm px-3 py-1 border rounded text-blue-600 hover:bg-blue-50"
+                    >
+                      Khiếu nại
+                    </button>
                     <button
                       onClick={() => handleViewDetail(o)}
                       className="text-sm px-3 py-1 border rounded text-blue-600 hover:bg-blue-50"

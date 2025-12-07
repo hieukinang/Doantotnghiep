@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Image } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import config from '../shipper-context/config';
 import { useAuth } from '../shipper-context/auth-context';
@@ -13,7 +14,30 @@ export default function TakeanOrder() {
     const [permission, requestPermission] = useCameraPermissions();
     const [showSidebar, setShowSidebar] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
+    const [acceptedOrders, setAcceptedOrders] = useState([]);
     const { token } = useAuth();
+
+    // Lấy danh sách đơn đã nhận
+    const fetchAcceptedOrders = async () => {
+        try {
+            if (!token) return;
+            const res = await axios.get(`${config.backendUrl}/orders/shipper`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.data.status === "success") {
+                setAcceptedOrders(res.data.data.orders || []);
+            }
+        } catch (error) {
+            console.log("Lỗi lấy đơn đã nhận:", error?.response?.data || error.message);
+        }
+    };
+
+    // Fetch khi màn hình được focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchAcceptedOrders();
+        }, [token])
+    );
 
     const toggleSidebar = () => {
         setShowSidebar(!showSidebar);
@@ -47,8 +71,11 @@ export default function TakeanOrder() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            if (res.status = 'success') {
+            if (res.data.status === 'success') {
                 Alert.alert("Nhận đơn thành công");
+                setOrderCode('');
+                // Reload danh sách đơn đã nhận
+                fetchAcceptedOrders();
             }
             console.log("Kết quả trả về:", res.data);
 
@@ -167,18 +194,44 @@ export default function TakeanOrder() {
                 </View>
 
 
-                <TouchableOpacity style={[styles.acceptBtn, { marginTop: 20 }]} onPress={handleTakeOrder}>
+                <TouchableOpacity style={[styles.acceptBtn, { marginTop: 20, marginHorizontal: 16 }]} onPress={handleTakeOrder}>
                     <Text style={styles.acceptBtnText}>Nhận đơn</Text>
                 </TouchableOpacity>
-                {/* Danh sách đơn hàng đã hoàn thành */}
-                <ScrollView style={styles.historyList} contentContainerStyle={{ paddingBottom: 20 }}>
-                    {/* {completedOrders.map((order, index) => (
-                        <View key={index} style={styles.orderCard}>
-                            <Text style={styles.orderId}>Mã đơn: {order.id}</Text>
-                            <Text style={styles.orderText}>Địa chỉ: {order.address}</Text>
-                            <Text style={styles.orderDate}>Ngày hoàn thành: {order.date}</Text>
+
+                {/* Danh sách đơn hàng đã nhận */}
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Đơn hàng đã nhận ({acceptedOrders.length})</Text>
+                </View>
+                <ScrollView style={styles.historyList} contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }}>
+                    {acceptedOrders.length === 0 ? (
+                        <View style={styles.emptyState}>
+                            <Text style={styles.emptyIcon}>📋</Text>
+                            <Text style={styles.emptyText}>Chưa có đơn hàng nào</Text>
                         </View>
-                    ))} */}
+                    ) : (
+                        acceptedOrders.map((order) => (
+                            <View key={order.id} style={styles.orderCard}>
+                                <View style={styles.orderHeader}>
+                                    <Text style={styles.orderId}>#{order.id}</Text>
+                                    <View style={styles.statusBadge}>
+                                        <Text style={styles.statusText}>Đang giao</Text>
+                                    </View>
+                                </View>
+                                {/* Thông tin người nhận */}
+                                <View style={styles.receiverInfo}>
+                                    <Text style={styles.receiverName}>👤 {order.receiver_name || 'Khách hàng'}</Text>
+                                    {order.receiver_phone && (
+                                        <Text style={styles.receiverPhone}>📞 {order.receiver_phone}</Text>
+                                    )}
+                                </View>
+                                <Text style={styles.orderText}>📍 {order.shipping_address}</Text>
+                                <Text style={styles.orderPrice}>💰 {order.total_price?.toLocaleString('vi-VN')}₫</Text>
+                                {order.OrderItems && order.OrderItems.length > 0 && (
+                                    <Text style={styles.orderItems}>📦 {order.OrderItems.length} sản phẩm</Text>
+                                )}
+                            </View>
+                        ))
+                    )}
                 </ScrollView>
 
                 {/* Overlay khi sidebar hoặc popup mở */}
@@ -270,5 +323,91 @@ const styles = StyleSheet.create({
     qrBtnText: { color: '#fff', fontWeight: 'bold' },
     acceptBtn: { backgroundColor: '#116AD1', padding: 16, borderRadius: 8, alignItems: 'center' },
     acceptBtnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    cancelScan: { position: 'absolute', bottom: 50, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 12, borderRadius: 8 }
+    cancelScan: { position: 'absolute', bottom: 50, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 12, borderRadius: 8 },
+    sectionHeader: {
+        paddingHorizontal: 16,
+        paddingTop: 20,
+        paddingBottom: 10,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    historyList: {
+        flex: 1,
+    },
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+    emptyIcon: {
+        fontSize: 40,
+        marginBottom: 10,
+    },
+    emptyText: {
+        color: '#888',
+        fontSize: 14,
+    },
+    orderCard: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 14,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+    },
+    orderHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    orderId: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#116AD1',
+    },
+    statusBadge: {
+        backgroundColor: '#E3F2FD',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    statusText: {
+        color: '#116AD1',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    orderText: {
+        fontSize: 14,
+        color: '#555',
+        marginBottom: 4,
+    },
+    orderPrice: {
+        fontSize: 14,
+        color: '#333',
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    orderItems: {
+        fontSize: 13,
+        color: '#888',
+    },
+    receiverInfo: {
+        backgroundColor: '#f8f9fa',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    receiverName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 4,
+    },
+    receiverPhone: {
+        fontSize: 13,
+        color: '#666',
+    },
 });
