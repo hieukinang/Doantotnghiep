@@ -10,7 +10,7 @@ import {
   shipperReceiveOrder,
   cancelOrderByClient,
   shipperDeliverOrder,
-  clientConfirmedOrderIsDeliveried,
+  clientConfirmedOrder,
   getAllOrdersByShipper,
   createWalletOrder,
 } from "../../controller/orderController.js";
@@ -53,7 +53,7 @@ router.route("/client/:id").get(isAuth(Client), checkClientStatus, OrderIdValida
 
 router.route("/client/:id/cancel-order").post(isAuth(Client), checkClientStatus, OrderIdValidator, cancelOrderByClient);
 
-router.route("/client/:id/confirmed-order-is-deliveried").post(isAuth(Client), checkClientStatus, OrderIdValidator, clientConfirmedOrderIsDeliveried);
+router.route("/client/:id/confirmed-order").post(isAuth(Client), checkClientStatus, OrderIdValidator, clientConfirmedOrder);
 
 router.route("/client/:id/return-order")
   .post(

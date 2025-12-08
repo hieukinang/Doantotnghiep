@@ -161,10 +161,48 @@ export const confirmOrderByStore = asyncHandler(async (req, res, next) => {
     return next(new APIError("Only pending orders can be confirmed", 400));
   }
 
-  order.status = ORDER_STATUS.CONFIRMED;
-  await order.save();
-
-  res.status(200).json({ status: "success", data: { order } });
+  // Cập nhật tồn kho cho từng variant
+  const t = await sequelize.transaction();
+  try {
+    // Lấy các OrderItem và ProductVariant liên quan
+    const orderWithItems = await Order.findOne({
+      where: { id, storeId },
+      include: [
+        {
+          model: OrderItem,
+          as: "OrderItems",
+          include: [
+            { model: ProductVariant, as: "OrderItemProductVariant" }
+          ]
+        }
+      ],
+      transaction: t,
+      lock: t.LOCK.UPDATE
+    });
+    if (!orderWithItems) {
+      await t.rollback();
+      return next(new APIError("Order not found", 404));
+    }
+    // Trừ tồn kho cho từng variant
+    for (const item of orderWithItems.OrderItems) {
+      const variant = item.OrderItemProductVariant;
+      if (variant && typeof item.quantity === "number") {
+        if (variant.stock_quantity != null && variant.stock_quantity >= item.quantity) {
+          await variant.decrement("stock_quantity", { by: item.quantity, transaction: t });
+        } else {
+          await t.rollback();
+          return next(new APIError(`Không đủ tồn kho cho biến thể ${variant.id}.`, 400));
+        }
+      }
+    }
+    orderWithItems.status = ORDER_STATUS.CONFIRMED;
+    await orderWithItems.save({ transaction: t });
+    await t.commit();
+    res.status(200).json({ status: "success", data: { order: orderWithItems } });
+  } catch (err) {
+    await t.rollback();
+    return next(err);
+  }
 });
 
 // @desc    GET Confirm Orders by id
@@ -217,14 +255,14 @@ export const shipperReceiveOrder = asyncHandler(async (req, res, next) => {
   const shipperId = req.user && req.user.id;
   const { id } = req.params;
   const order = await Order.findByPk(id);
-  if (!order) return next(new APIError("Order not found", 404));
+  if (!order) return next(new APIError("Không tìm thấy đơn hàng", 404));
   if (order.status !== ORDER_STATUS.CONFIRMED) {
-    return next(new APIError("Order not found", 404));
+    return next(new APIError("Không tìm thấy đơn hàng đã xác nhận", 404));
   }
 
   // Lấy shipper từ DB để kiểm tra wallet
   const shipper = await Shipper.findByPk(shipperId);
-  if (!shipper) return next(new APIError("Shipper not found", 404));
+  if (!shipper) return next(new APIError("Không tìm thấy shipper", 404));
   if (shipper.wallet < 50000) {
     return next(new APIError("Số tiền trong ví của bạn phải lớn hơn 50,000 để nhận đơn hàng", 400));
   }
@@ -244,14 +282,14 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
   let { products, shipping_address } = req.body;
 
   if (!products) {
-    return next(new APIError("products is required", 400));
+    return next(new APIError("Thiếu thông tin sản phẩm.", 400));
   }
 
   if (typeof products === "string") {
     try {
       products = JSON.parse(products);
     } catch (err) {
-      return next(new APIError("Invalid products payload", 400));
+      return next(new APIError("Dữ liệu sản phẩm không hợp lệ.", 400));
     }
   }
 
@@ -263,26 +301,26 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
   const quantities = products.quantities || products.quantities || [];
 
   if (!Array.isArray(variantIds) || variantIds.length === 0) {
-    return next(new APIError("product_variantIds must be a non-empty array", 400));
+    return next(new APIError("Danh sách sản phẩm phải là mảng và không được rỗng.", 400));
   }
   if (!storeId) {
-    return next(new APIError("storeId is required", 400));
+    return next(new APIError("Thiếu thông tin cửa hàng.", 400));
   }
   // If quantities provided, must be an array with same length as variantIds and all positive integers
   if (quantities && quantities.length > 0) {
     if (!Array.isArray(quantities) || quantities.length !== variantIds.length) {
-      return next(new APIError("quantities must be an array with same length as product_variantIds", 400));
+      return next(new APIError("Số lượng phải là mảng và có cùng độ dài với danh sách sản phẩm.", 400));
     }
     for (const q of quantities) {
       const qi = parseInt(q, 10);
-      if (!qi || qi <= 0) return next(new APIError("each quantity must be a positive integer", 400));
+      if (!qi || qi <= 0) return next(new APIError("Mỗi số lượng sản phẩm phải là số nguyên dương.", 400));
     }
   }
   if (!Array.isArray(couponIds)) {
-    return next(new APIError("coupon_ids must be an array", 400));
+    return next(new APIError("Danh sách mã giảm giá phải là mảng.", 400));
   }
   if (couponIds.length > 2) {
-    return next(new APIError("You can provide at most 2 coupons", 400));
+    return next(new APIError("Chỉ được sử dụng tối đa 2 mã giảm giá cho mỗi đơn hàng.", 400));
   }
 
   // Fetch variants and ensure they belong to the provided store
@@ -292,16 +330,16 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     const variant = await ProductVariant.findByPk(vId, {
       include: [{ model: Product, as: "ProductVariantProduct" }],
     });
-    if (!variant) return next(new APIError(`No product variant match with id: ${vId}`, 404));
+    if (!variant) return next(new APIError(`Không tìm thấy biến thể sản phẩm với id: ${vId}`, 404));
     const product = variant.ProductVariantProduct;
-    if (!product) return next(new APIError(`Product for variant ${vId} not found`, 404));
+    if (!product) return next(new APIError(`Không tìm thấy sản phẩm cho biến thể ${vId}.`, 404));
     if (product.storeId !== storeId) {
-      return next(new APIError(`Variant ${vId} does not belong to store ${storeId}`, 400));
+      return next(new APIError(`Biến thể ${vId} không thuộc cửa hàng ${storeId}.`, 400));
     }
     const qty = quantities && quantities.length > 0 ? parseInt(quantities[idx], 10) : 1;
-    if (!qty || qty <= 0) return next(new APIError(`Invalid quantity for variant ${vId}`, 400));
+    if (!qty || qty <= 0) return next(new APIError(`Số lượng không hợp lệ cho biến thể ${vId}.`, 400));
     if (variant.stock_quantity != null && variant.stock_quantity < qty) {
-      return next(new APIError(`Not enough stock for variant ${vId}`, 400));
+      return next(new APIError(`Không đủ tồn kho cho biến thể ${vId}.`, 400));
     }
     items.push({ variant, product, quantity: qty });
   }
@@ -324,7 +362,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
       }
       // restriction: admin coupon has storeId == null; store coupon must match storeId
       if (coupon.storeId !== null && coupon.storeId !== storeId) {
-        return next(new APIError(`Coupon ${cid} does not apply to store ${storeId}`, 400));
+        return next(new APIError(`Mã giảm giá ${cid} không áp dụng cho cửa hàng ${storeId}.`, 400));
       }
       coupons.push(coupon);
     }
@@ -333,7 +371,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
       const hasAdminCoupon = coupons.some(c => c.storeId === null);
       const hasStoreCoupon = coupons.some(c => c.storeId === storeId);
       if (!hasAdminCoupon || !hasStoreCoupon) {
-        return next(new APIError("If providing two coupons, one must be system-level and one must belong to the store", 400));
+        return next(new APIError("Nếu sử dụng 2 mã giảm giá, phải có 1 mã hệ thống và 1 mã của cửa hàng.", 400));
       }
     }
   }
@@ -344,15 +382,15 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
   let shippingCodeDoc = null;
   if (shipping_code_id) {
     shippingCodeDoc = await ShippingCode.findByPk(shipping_code_id);
-    if (!shippingCodeDoc) return next(new APIError(`Shipping code not found`, 404));
+    if (!shippingCodeDoc) return next(new APIError(`Không tìm thấy mã giảm giá vận chuyển.`, 404));
     if (shippingCodeDoc.quantity != null && shippingCodeDoc.quantity <= 0) {
-      return next(new APIError(`Shipping code is no longer available`, 400));
+      return next(new APIError(`Mã giảm giá vận chuyển đã hết lượt sử dụng.`, 400));
     }
     if (shippingCodeDoc.expire) {
       const exp = new Date(shippingCodeDoc.expire);
       const today = new Date();
       if (exp < new Date(today.toDateString())) {
-        return next(new APIError(`Shipping code has expired`, 400));
+        return next(new APIError(`Mã giảm giá vận chuyển đã hết hạn.`, 400));
       }
     }
     shippingDiscount = Number(shippingCodeDoc.discount || 0);
@@ -370,7 +408,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
 
   const t = await sequelize.transaction();
   try {
-    // Create order
+    // Tạo đơn hàng
     const order = await Order.create(
       {
         payment_method: PAYMENT_METHODS.CASH,
@@ -384,7 +422,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
       { transaction: t }
     );
 
-    // Create order items and update stocks/sold
+    // Tạo order items
     const orderItemsPayload = [];
     for (const it of items) {
       const unitPrice = parseFloat(it.variant.price || 0);
@@ -396,47 +434,45 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
         image: it.product ? it.product.main_image : null,
         product_variantId: it.variant.id,
       });
-
-      if (it.variant.stock_quantity != null) {
-        await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
-      }
-      // if (it.product) {
-      //   await it.product.increment("sold", { by: it.quantity, transaction: t });
+      // Bỏ logic trừ tồn kho
+      // if (it.variant.stock_quantity != null) {
+      //   await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
       // }
     }
     await OrderItem.bulkCreate(orderItemsPayload, { transaction: t });
 
-    // Decrement coupon quantities (each used once per order if provided)
+    // Trừ số lượng mã giảm giá (mỗi mã dùng 1 lần)
     for (const c of coupons) {
       await c.decrement("quantity", { by: 1, transaction: t });
     }
-    // Decrement shipping code quantity if used
+    // Trừ số lượng mã vận chuyển nếu có
     if (shippingCodeDoc) {
       await shippingCodeDoc.decrement("quantity", { by: 1, transaction: t });
     }
 
-    // // Update store total_sales (e.g., 90% share as before)
-    // const store = await Store.findByPk(storeId, { transaction: t });
-    // if (store) {
-    //   const storeShare = Math.round(total_price);
-    //   await store.increment("total_sales", { by: storeShare, transaction: t });
-    // }
-
     await t.commit();
 
-    // Generate QR code for the order
-    const qrCodeFileName = `order-${order.id}-qr.jpg`;
-    await generateQRCodeJPG(`${order.id}`, process.env.FILES_UPLOADS_PATH + "/orders", qrCodeFileName);
-    order.qr_code = qrCodeFileName;
-    await order.save();
+      // Lưu coupons và shipping_code vào order
+      if (coupons && coupons.length > 0) {
+        order.coupons = coupons.map(c => c.id);
+      }
+      if (shippingCodeDoc) {
+        order.shipping_code = shippingCodeDoc.id;
+      }
 
-    const created = await Order.findByPk(order.id, {
-      include: [
-        { model: OrderItem, as: "OrderItems" },
-      ],
-    });
+      // Sinh mã QR cho đơn hàng
+      const qrCodeFileName = `order-${order.id}-qr.jpg`;
+      await generateQRCodeJPG(`${order.id}`, process.env.FILES_UPLOADS_PATH + "/orders", qrCodeFileName);
+      order.qr_code = qrCodeFileName;
+      await order.save();
 
-    res.status(201).json({ status: "success", data: created });
+      const created = await Order.findByPk(order.id, {
+        include: [
+          { model: OrderItem, as: "OrderItems" },
+        ],
+      });
+
+      res.status(201).json({ status: "success", data: created });
   } catch (err) {
     await t.rollback();
     return next(err);
@@ -591,6 +627,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
         order_date: new Date(),
         shipping_address: shipping_address || null,
         shipping_fee,
+        paid_at: new Date(),
         clientId,
         storeId,
       },
@@ -681,22 +718,24 @@ export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
     ]
   });
 
-  if (!order) return next(new APIError("Không tìm thấy đơn hàng", 404));
+  if (!order) return next(new APIError("Không tìm thấy đơn hàng của bạn.", 404));
   if (
     order.status !== ORDER_STATUS.PENDING &&
     order.status !== ORDER_STATUS.CONFIRMED
   ) {
-    return next(new APIError("Bạn không thể hủy đơn hàng này", 400));
+    return next(new APIError("Chỉ có thể hủy đơn hàng khi đang chờ xác nhận hoặc đã xác nhận.", 400));
   }
 
   // Thực hiện cập nhật trong 1 transaction để atomic
   const t = await sequelize.transaction();
   try {
-    // Cập nhật lại số lượng tồn kho cho từng ProductVariant trong OrderItem
-    for (const item of order.OrderItems) {
-      const variant = item.OrderItemProductVariant;
-      if (variant && typeof item.quantity === "number") {
-        await variant.increment("stock_quantity", { by: item.quantity, transaction: t });
+    // Nếu đơn hàng đang CONFIRMED thì hoàn lại tồn kho cho từng ProductVariant
+    if (order.status === ORDER_STATUS.CONFIRMED) {
+      for (const item of order.OrderItems) {
+        const variant = item.OrderItemProductVariant;
+        if (variant && typeof item.quantity === "number") {
+          await variant.increment("stock_quantity", { by: item.quantity, transaction: t });
+        }
       }
     }
 
@@ -705,7 +744,7 @@ export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
       const client = await Client.findByPk(order.clientId, { transaction: t, lock: t.LOCK.UPDATE });
       if (!client) {
         await t.rollback();
-        return next(new APIError("Client not found for refund", 404));
+        return next(new APIError("Không tìm thấy khách hàng để hoàn tiền.", 404));
       }
 
       const refundAmount = Number(order.total_price || 0) + Number(order.shipping_fee || 0);
@@ -719,10 +758,26 @@ export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
         payment_method: "wallet",
         type: TRANSACTION_TYPE.REFUND,
         status: "SUCCESS",
-        description: `Refund for cancelled order ${order.id}`,
+        description: `Hoàn tiền cho đơn hàng đã hủy #${order.id}`,
       }, { transaction: t });
     }
 
+      // Hoàn lại coupon nếu có
+      if (order.coupons && Array.isArray(order.coupons) && order.coupons.length > 0) {
+        for (const couponId of order.coupons) {
+          const coupon = await Coupon.findByPk(couponId, { transaction: t, lock: t.LOCK.UPDATE });
+          if (coupon) {
+            await coupon.increment("quantity", { by: 1, transaction: t });
+          }
+        }
+      }
+      // Hoàn lại shipping code nếu có
+      if (order.shipping_code) {
+        const shippingCode = await ShippingCode.findByPk(order.shipping_code, { transaction: t, lock: t.LOCK.UPDATE });
+        if (shippingCode) {
+          await shippingCode.increment("quantity", { by: 1, transaction: t });
+        }
+      }
     order.status = ORDER_STATUS.CANCELLED;
     order.cancel_reason = cancel_reason;
     await order.save({ transaction: t });
@@ -741,15 +796,15 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   const order = await Order.findByPk(id);
-  if (!order) return next(new APIError("Order not found", 404));
+  if (!order) return next(new APIError("Không tìm thấy đơn hàng.", 404));
 
-  // Only allow delivery when order is currently IN_TRANSIT
+  // Chỉ cho phép giao khi đơn hàng đang ở trạng thái ĐANG VẬN CHUYỂN
   if (order.status !== ORDER_STATUS.IN_TRANSIT) {
-    return next(new APIError("Only orders in transit can be marked as delivered", 400));
+    return next(new APIError("Chỉ có thể xác nhận giao cho đơn hàng đang vận chuyển.", 400));
   }
 
   if (!order.shipperId || order.shipperId !== shipperId) {
-    return next(new APIError("You are not assigned to this order", 403));
+    return next(new APIError("Bạn không phải là người được phân công giao đơn hàng này.", 403));
   }
 
   // Start DB transaction for atomic updates
@@ -773,7 +828,7 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
           payment_method: order.payment_method || "sale",
           type: TRANSACTION_TYPE.TOP_UP,
           status: "SUCCESS",
-          description: `Sale income for order ${order.id}`,
+          description: `Doanh thu cửa hàng từ đơn hàng ${order.id}`,
         }, { transaction: t });
       }
     }
@@ -782,35 +837,30 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
     const shipper = await Shipper.findByPk(shipperId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!shipper) {
       await t.rollback();
-      return next(new APIError("Shipper not found", 404));
+      return next(new APIError("Không tìm thấy shipper.", 404));
     }
 
-    const shippingFee = 21000;
+    const shippingFee = 13000;
     const orderTotal = Number(order.total_price || 0);
 
-    // Behavior:
-    // - If payment was via wallet: credit shipper with shipping fee only.
-    // - If payment was via cash: deduct the order total from shipper wallet.
-    if (order.payment_method === "wallet") {
-      await shipper.increment("wallet", { by: shippingFee, transaction: t });
-      await shipper.reload({ transaction: t });
+    // Luôn cộng shippingFee vào ví shipper, không quan tâm payment_method
+    await shipper.increment("wallet", { by: shippingFee, transaction: t });
+    await shipper.reload({ transaction: t });
+    await Transaction.create({
+      user_id: shipperId,
+      amount: shippingFee,
+      new_balance: shipper.wallet,
+      payment_method: "system_shipping_fee",
+      type: TRANSACTION_TYPE.TOP_UP,
+      status: "SUCCESS",
+      description: `Phí vận chuyển cho đơn hàng ${order.id}`,
+    }, { transaction: t });
 
-      // record top-up for shipping fee
-      await Transaction.create({
-        user_id: shipperId,
-        amount: shippingFee,
-        new_balance: shipper.wallet,
-        payment_method: "system_shipping_fee",
-        type: TRANSACTION_TYPE.TOP_UP,
-        status: "SUCCESS",
-        description: `Shipping fee for order ${order.id}`,
-      }, { transaction: t });
-    } else if (order.payment_method === "cash") {
-      // deduct order total from shipper wallet
+    // Nếu thanh toán bằng tiền mặt thì trừ tiền đơn hàng khỏi ví shipper
+    if (order.payment_method === "cash") {
+      order.paid_at = new Date();
       await shipper.decrement("wallet", { by: orderTotal, transaction: t });
       await shipper.reload({ transaction: t });
-
-      // record deduction for order payment
       await Transaction.create({
         user_id: shipperId,
         amount: -orderTotal,
@@ -818,20 +868,7 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
         payment_method: "cash",
         type: TRANSACTION_TYPE.PAY_ORDER,
         status: "SUCCESS",
-        description: `Order amount deducted for order ${order.id}`,
-      }, { transaction: t });
-    } else {
-      // fallback: still credit shipping fee
-      await shipper.increment("wallet", { by: shippingFee, transaction: t });
-      await shipper.reload({ transaction: t });
-      await Transaction.create({
-        user_id: shipperId,
-        amount: shippingFee,
-        new_balance: shipper.wallet,
-        payment_method: "system_shipping_fee",
-        type: TRANSACTION_TYPE.TOP_UP,
-        status: "SUCCESS",
-        description: `Shipping fee for order ${order.id}`,
+        description: `Trừ tiền đơn hàng ${order.id}`,
       }, { transaction: t });
     }
 
@@ -841,22 +878,27 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
 
     await t.commit();
 
-    res.status(200).json({ status: "success", data: { order } });
+    res.status(200).json({ status: "success", message: "Đã xác nhận giao hàng thành công.", data: { order } });
   } catch (err) {
     await t.rollback();
     return next(err);
   }
 });
 
-export const clientConfirmedOrderIsDeliveried = asyncHandler(async (req, res, next) => {
+export const clientConfirmedOrder = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const { id } = req.params;
+  const isReceived = req.query.isReceived;
   const order = await Order.findOne({ where: { id, clientId } });
-  if (!order) return next(new APIError("Order not found", 404));
+  if (!order) return next(new APIError("Không tìm thấy đơn hàng.", 404));
   if (order.status !== ORDER_STATUS.DELIVERED) {
-    return next(new APIError("Order is not in delivered status", 400));
+    return next(new APIError("Đơn hàng chưa ở trạng thái đã giao.", 400));
   }
-  order.status = ORDER_STATUS.CLIENT_CONFIRMED;
+  if (String(isReceived) === "false") {
+    order.status = ORDER_STATUS.CLIENT_NOT_CONFIRMED;
+  } else {
+    order.status = ORDER_STATUS.CLIENT_CONFIRMED;
+  }
   await order.save();
   res.status(200).json({ status: "success", data: order });
 });

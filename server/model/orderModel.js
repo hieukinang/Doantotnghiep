@@ -86,7 +86,26 @@ const Order = sequelize.define(
         model: Store,
         key: "id",
       },
-    }
+    },
+    coupons: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      get() {
+        const raw = this.getDataValue("coupons");
+        try {
+          return raw ? JSON.parse(raw) : [];
+        } catch {
+          return [];
+        }
+      },
+      set(value) {
+        this.setDataValue("coupons", JSON.stringify(value || []));
+      }
+    },
+    shipping_code: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     tableName: "orders",

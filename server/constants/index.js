@@ -56,10 +56,12 @@ export const ORDER_STATUS = {
   IN_TRANSIT: "IN_TRANSIT",//đang vận chuyển
   DELIVERED: "DELIVERED",//đã vận chuyển
   CLIENT_CONFIRMED: "CLIENT_CONFIRMED",//đã nhận hàng
+  CLIENT_NOT_CONFIRMED: "CLIENT_NOT_CONFIRMED",//khách không nhận được hàng
   CANCELLED: "CANCELLED",//đã hủy
-  FAILED: "FAILED",//lỗi
+  FAILED: "FAILED",// lỗi
   RETURNED: "RETURNED",//yêu cầu trả hàng
   RETURN_CONFIRMED: "RETURN_CONFIRMED",// xác nhận trả hàng thành công
+  RETURN_NOT_CONFIRMED: "RETURN_NOT_CONFIRMED",// xác nhận trả hàng không thành công
 };
 
 export const COMPLAINT_TYPE = {

@@ -128,10 +128,6 @@ const Shipper = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
-    balance: {
-      type: DataTypes.FLOAT,
-      defaultValue: 0.0,
-    },
     is_verified_email: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -183,19 +179,19 @@ Shipper.prototype.getFullWorkArea = function () {
   return `${village}, ${city}`.trim();
 };
 
-// 4. Thêm tiền vào balance
-Shipper.prototype.addBalance = function (amount) {
-  if (amount <= 0) throw new Error("Amount must be greater than 0");
-  this.balance += amount;
-  return this.balance;
-};
+// // 4. Thêm tiền vào balance
+// Shipper.prototype.addBalance = function (amount) {
+//   if (amount <= 0) throw new Error("Amount must be greater than 0");
+//   this.balance += amount;
+//   return this.balance;
+// };
 
-// 5. Trừ tiền từ balance
-Shipper.prototype.subtractBalance = function (amount) {
-  if (amount <= 0) throw new Error("Amount must be greater than 0");
-  if (this.balance < amount) throw new Error("Insufficient balance");
-  this.balance -= amount;
-  return this.balance;
-};
+// // 5. Trừ tiền từ balance
+// Shipper.prototype.subtractBalance = function (amount) {
+//   if (amount <= 0) throw new Error("Amount must be greater than 0");
+//   if (this.balance < amount) throw new Error("Insufficient balance");
+//   this.balance -= amount;
+//   return this.balance;
+// };
 
 export default Shipper;
