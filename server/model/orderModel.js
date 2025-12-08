@@ -63,6 +63,19 @@ const Order = sequelize.define(
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
+    image_shipping: {
+      type: DataTypes.STRING(255),
+      defaultValue: "default-order.jpg",
+      get() {
+        const rawValue = this.getDataValue("image_shipping");
+        if (!rawValue) return null;
+
+        // Nếu là URL đầy đủ thì return luôn
+        if (rawValue.startsWith("http")) return rawValue;
+
+        return `${process.env.BASE_URL}/imageShippings/${rawValue}`;
+      },
+    },
     clientId: {
       type: DataTypes.STRING(255),
       allowNull: true,
@@ -71,6 +84,7 @@ const Order = sequelize.define(
         key: "id",
       },
     },
+
     shipperId: {
       type: DataTypes.STRING(255),
       allowNull: true,

@@ -1,154 +1,160 @@
 import express from 'express';
 import auth from '../middleware/auth.js';
 import Conversation from '../models/conversation.model.js';
+import Message from '../models/message.model.js';
 import APIError from '../utils/apiError.js';
 import parseCompositeUserId from '../utils/parseRole.js';
 import User from '../models/user.model.js';
+import { getIO, joinUserToRoom, emitToUser } from '../socket.js';
 
 const router = express.Router();
 
-// create direct conversation (or reuse existing)
+/* ============================================================
+   CREATE DIRECT CHAT (OR REUSE) + OPTIONAL FIRST MESSAGE
+============================================================ */
 router.post('/direct', auth, async (req, res, next) => {
   let { userId } = req.query;
+  const { message } = req.body; // Tin nhắn đầu tiên (optional)
+
   if (!userId) return next(new APIError("userId not found", 404));
-  console.log(parseCompositeUserId(userId));
-  console.log(req.user);
 
-  // Parse userId string to object { user_id, role }
-  let participant2;
-  if (typeof userId === 'string') {
-    participant2 = parseCompositeUserId(userId);
-    if (!participant2) return next(new APIError("Invalid userId format", 400));
-  } else if (typeof userId === 'object' && userId.user_id && userId.role) {
-    participant2 = userId;
-  } else {
-    return next(new APIError("userId invalid", 400));
-  }
-  participant2.user_id = userId;
+  // Parse userId composite → { user_id, role }
+  const p2 = parseCompositeUserId(userId);
+  if (!p2) return next(new APIError("Invalid userId format", 400));
+
+  const participant1 = {
+    user_id: String(req.user.user_id),
+    role: String(req.user.role)
+  };
+
+  const participant2 = {
+    user_id: String(userId),
+    role: String(p2.role)
+  };
 
   try {
-    const participant1 = { user_id: String(req.user.user_id), role: String(req.user.role) };
-    // try find existing conversation between two users
-    const existing = await Conversation.findOne({
-      type: 'direct',
-      $and: [
-        { participants: { $elemMatch: participant1 } },
-        { participants: { $elemMatch: participant2 } }
+    // find existing direct conversation between 2 users
+    let existing = await Conversation.findOne({
+      participants: {
+        $all: [
+          { $elemMatch: participant1 },
+          { $elemMatch: participant2 }
+        ]
+      }
+    });
+
+    let conv;
+    let isNew = false;
+
+    if (existing) {
+      conv = existing;
+    } else {
+      conv = await Conversation.create({
+        participants: [participant1, participant2]
+      });
+      isNew = true;
+    }
+
+    const roomId = conv._id.toString();
+
+    // Nếu là conversation mới, auto-join cả 2 users
+    if (isNew) {
+      joinUserToRoom(participant1.user_id, roomId);
+      joinUserToRoom(participant2.user_id, roomId);
+    }
+
+    // Lấy thông tin user để gửi kèm
+    const [user1Info, user2Info] = await Promise.all([
+      User.findOne({ user_id: participant1.user_id }).select('user_id username status'),
+      User.findOne({ user_id: participant2.user_id }).select('user_id username status')
+    ]);
+
+    const convWithUsers = {
+      ...conv.toObject(),
+      participants: [
+        { ...participant1, username: user1Info?.username, status: user1Info?.status },
+        { ...participant2, username: user2Info?.username, status: user2Info?.status }
       ]
-    });
-    if (existing) return res.json(existing);
-    const conv = await Conversation.create({ type: 'direct', participants: [participant1, participant2] });
-    res.json(conv);
-  } catch (err) {
-    next(err);
-  }
-});
+    };
 
-// create group
-router.post('/group', auth, async (req, res, next) => {
-  const { name, code } = req.query;
-  if (!name) return next(new APIError("name required", 400));
-  try {
-    const participant = { user_id: req.user.user_id, role: req.user.role };
-    const conv = await Conversation.create({ type: 'group', name, code, participants: [participant], admins: [participant] });
-    res.json(conv);
-  } catch (err) {
-    next(err);
-  }
-});
+    // Nếu có message, tạo tin nhắn đầu tiên
+    let firstMessage = null;
+    if (message && message.trim()) {
+      firstMessage = await Message.create({
+        conversation_id: conv._id,
+        sender: {
+          user_id: req.user.user_id,
+          username: req.user.username,
+          role: req.user.role
+        },
+        content: message.trim()
+      });
 
-// request join group
-router.post('/:id/request', auth, async (req, res, next) => {
-  try {
-    const conv = await Conversation.findById(req.params.id);
-    if (!conv) return next(new APIError("Not found", 404));
-    const participant = { user_id: req.user.user_id, role: req.user.role };
-    if (conv.participants.some(p => p.user_id === participant.user_id && p.role === participant.role)) return next(new APIError("Already a member", 400));
-    if (conv.requests.some(r => r.user_id === participant.user_id && r.role === participant.role)) return next(new APIError("Already requested", 400));
-    conv.requests.push(participant);
-    await conv.save();
-    // TODO: notify admins via socket
-    res.json({ ok: true });
-  } catch (err) {
-    next(err);
-  }
-});
+      // Cập nhật last_message của conversation
+      conv.last_message = firstMessage._id;
+      await conv.save();
+      convWithUsers.last_message = firstMessage;
 
-// admin accept request
-router.post('/:id/approve', auth, async (req, res, next) => {
-  let { userId } = req.body; // userId should be { user_id, role }
-  if (!userId) return next(new APIError("userId with user_id and role required", 400));
-  // Nếu userId là chuỗi, parse thành object
-  userId = await User.findOne({ user_id: userId });
-  try {
-    const conv = await Conversation.findById(req.params.id);
-    if (!conv) return next(new APIError("Not found", 404));
-    const admin = { user_id: req.user.user_id, role: req.user.role };
-    if (!conv.admins.some(a => a.user_id === admin.user_id && a.role === admin.role)) {
-      return next(new APIError("Not admin", 403));
+      // Emit new_message cho room
+      try {
+        const io = getIO();
+        io.to(roomId).emit('new_message', firstMessage);
+      } catch (e) {
+        console.error('Socket emit error:', e);
+      }
     }
-    // Kiểm tra userId có nằm trong requests không
-    console.log(userId);
-    if (!conv.requests.some(r => r.user_id === userId.user_id && r.role === userId.role)) {
-      return next(new APIError("User is not in requests", 400));
+
+    // Thông báo cho User B về conversation mới (chỉ khi tạo mới)
+    if (isNew) {
+      emitToUser(participant2.user_id, 'new_conversation', convWithUsers);
     }
-    // remove from requests and add to participants
-    conv.requests = conv.requests.filter(r => !(r.user_id === userId.user_id && r.role === userId.role));
-    if (!conv.participants.some(p => p.user_id === userId.user_id && p.role === userId.role)) {
-      conv.participants.push(userId);
-    }
-    await conv.save();
-    res.status(200).json({
-      status: "success",
-      data: { doc: conv },
+
+    res.json({
+      conversation: convWithUsers,
+      message: firstMessage,
+      isNew
     });
   } catch (err) {
     next(err);
   }
 });
 
-// list conversations for user
+/* ============================================================
+   LIST CONVERSATIONS
+============================================================ */
 router.get('/', auth, async (req, res, next) => {
   try {
-    const participant = { user_id: req.user.user_id };
-    const convs = await Conversation.find({ participants: { $elemMatch: participant } })
-      .select('_id type name code last_message participants')
+    const convs = await Conversation.find({
+      participants: { $elemMatch: { user_id: req.user.user_id } }
+    })
+      .select('_id last_message participants')
       .populate('last_message')
       .sort({ updatedAt: -1 });
 
-    // Lấy tất cả user_id của participants trong các conversation
-    const allUserIds = [];
-    convs.forEach(conv => {
-      conv.participants.forEach(p => {
-        if (!allUserIds.includes(p.user_id)) {
-          allUserIds.push(p.user_id);
-        }
-      });
-    });
+    // collect all user_ids for participant info
+    const allUserIds = [
+      ...new Set(
+        convs.flatMap(c => c.participants.map(p => p.user_id))
+      )
+    ];
 
-    // Lấy thông tin user (user_id, username, status, role)
     const users = await User.find({ user_id: { $in: allUserIds } })
       .select('user_id username status role');
+
     const userMap = {};
     users.forEach(u => {
-      userMap[u.user_id] = {
-        user_id: u.user_id,
-        username: u.username,
-        status: u.status,
-        role: u.role
-      };
+      userMap[u.user_id] = u;
     });
 
-    // Gắn thông tin user vào từng participant
-    const result = convs.map(conv => {
-      const obj = conv.toObject();
-      obj.participants = obj.participants.map(p => ({
-        ...userMap[p.user_id],
-        // Nếu muốn giữ nguyên role theo conversation (ưu tiên role trong participants)
+    const result = convs.map(conv => ({
+      ...conv.toObject(),
+      participants: conv.participants.map(p => ({
+        user_id: p.user_id,
+        username: userMap[p.user_id]?.username,
+        status: userMap[p.user_id]?.status,
         role: p.role
-      }));
-      return obj;
-    });
+      }))
+    }));
 
     res.json(result);
   } catch (err) {
@@ -156,37 +162,47 @@ router.get('/', auth, async (req, res, next) => {
   }
 });
 
-// leave conversation (xóa user khỏi participants)
+/* ============================================================
+   LEAVE CONVERSATION
+============================================================ */
 router.delete('/:id', auth, async (req, res, next) => {
   try {
     const conv = await Conversation.findById(req.params.id);
     if (!conv) return next(new APIError("Not found", 404));
 
-    const user = { user_id: req.user.user_id, role: req.user.role };
+    const user = {
+      user_id: req.user.user_id,
+      role: req.user.role
+    };
 
-    // Check if user is participant
-    const index = conv.participants.findIndex(p => p.user_id === user.user_id && p.role === user.role);
-    if (index === -1) return next(new APIError("Not participant", 403));
+    const idx = conv.participants.findIndex(
+      p =>
+        String(p.user_id) === String(user.user_id) &&
+        p.role === user.role
+    );
 
-    // Remove user from participants
-    conv.participants.splice(index, 1);
+    if (idx === -1) return next(new APIError("Not participant", 403));
 
-    // If group and user was admin, remove from admins too
-    if (conv.type === 'group') {
-      const adminIndex = conv.admins.findIndex(a => a.user_id === user.user_id && a.role === user.role);
-      if (adminIndex !== -1) conv.admins.splice(adminIndex, 1);
-    }
+    conv.participants.splice(idx, 1);
 
-    // If no participants left, delete conversation and messages
+    // delete conversation if empty
     if (conv.participants.length === 0) {
-      await Message.deleteMany({ conversation_id: req.params.id });
-      await Conversation.findByIdAndDelete(req.params.id);
+      await Message.deleteMany({ conversation_id: conv._id });
+      await Conversation.findByIdAndDelete(conv._id);
     } else {
       await conv.save();
     }
 
-    // TODO: emit socket 'user-left' to room
-    // Ví dụ: io.to(req.params.id).emit('user-left', { userId: user.user_id, role: user.role });
+    // notify room
+    try {
+      const io = getIO();
+      io.to(req.params.id).emit('user-left', {
+        roomId: req.params.id,
+        user
+      });
+    } catch (e) {
+      console.error("Socket emit error:", e);
+    }
 
     res.json({ status: 'success' });
   } catch (err) {
@@ -194,5 +210,5 @@ router.delete('/:id', auth, async (req, res, next) => {
   }
 });
 
-
 export default router;
+

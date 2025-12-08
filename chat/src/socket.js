@@ -1,3 +1,4 @@
+// socket.js - Optimized for 1-1 chat
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { jwtSecret } from './config.js';
@@ -6,18 +7,21 @@ import Conversation from './models/conversation.model.js';
 
 let io;
 
+// Map để track user socket (1 user có thể có nhiều socket từ nhiều device)
+const userSockets = new Map(); // user_id -> Set of socket ids
+
 export function initSocket(server) {
   io = new Server(server, { cors: { origin: '*' } });
 
-  // Authentication middleware: expects token in socket.handshake.auth.token
+  // --- AUTH MIDDLEWARE ---
   io.use(async (socket, next) => {
-    const token = socket.handshake.auth && socket.handshake.auth.token;
+    const token = socket.handshake.auth?.token;
     if (!token) return next(new Error('auth error'));
     try {
       const payload = jwt.verify(token, jwtSecret);
-      // Tìm user theo user_id (string) và username (nếu cần)
       const user = await User.findOne({ user_id: payload.userId });
       if (!user) return next(new Error('auth error'));
+
       socket.user = user;
       next();
     } catch (err) {
@@ -25,90 +29,144 @@ export function initSocket(server) {
     }
   });
 
-  // Khi người dùng login
-  io.on('connection', (socket) => {
+  // --- CONNECTION EVENT ---
+  io.on('connection', async (socket) => {
     const user = socket.user;
-    console.log('socket connected', user?.username ?? user?.user_id);
-    try {
-      user.status = 'online';
-      user.last_online = new Date();
-      user.save().catch(console.error);
-    } catch (e) { console.error('presence save error', e); }
-    io.emit('presence', { userId: user.user_id, status: 'online' });
+    const userId = user.user_id;
 
-    // tham gia group chat
-    socket.on('join-room', async (payload, ack) => {
-      const { roomId } = payload || {};
-      if (!roomId) return ack && ack({ error: 'roomId required' });
+    console.log('socket connected', user?.username ?? userId);
+
+    // Track socket
+    if (!userSockets.has(userId)) {
+      userSockets.set(userId, new Set());
+    }
+    userSockets.get(userId).add(socket.id);
+
+    // Cập nhật trạng thái online
+    user.status = 'online';
+    user.last_online = new Date();
+    await user.save().catch(console.error);
+
+    // Broadcast presence
+    io.emit('presence', { userId, status: 'online' });
+
+    // Auto-join tất cả conversations của user
+    try {
+      const conversations = await Conversation.find({
+        'participants.user_id': userId
+      }).select('_id');
+
+      conversations.forEach(conv => {
+        socket.join(conv._id.toString());
+      });
+
+      console.log(`User ${userId} joined ${conversations.length} rooms`);
+    } catch (err) {
+      console.error('Auto-join rooms error:', err);
+    }
+
+    // --- JOIN ROOM (thủ công khi tạo conversation mới) ---
+    socket.on('join-room', async ({ roomId }, ack) => {
+      if (!roomId) return ack?.({ error: 'roomId required' });
+
       try {
         const conv = await Conversation.findById(roomId).select('participants');
-        if (!conv) return ack && ack({ error: 'Conversation not found' });
+        if (!conv) return ack?.({ error: 'Conversation not found' });
 
-        // Verify connected user is a participant in this conversation
-        const isParticipant = Array.isArray(conv.participants) && conv.participants.some(p => String(p.user_id) === String(user.user_id));
+        const isParticipant = conv.participants?.some(
+          p => String(p.user_id) === String(userId)
+        );
+
         if (!isParticipant) {
-          return ack && ack({ error: 'You are not a participant of this room' });
+          return ack?.({ error: 'You are not a participant' });
         }
 
-        // Join socket.io room
         socket.join(roomId);
-        // Notify the room that a user joined (other participants will receive it)
-        socket.to(roomId).emit('user-joined', { roomId, user: { user_id: user.user_id, username: user.username } });
-        // Acknowledge to the joining client
-        return ack && ack({ ok: true, roomId });
+        return ack?.({ ok: true, roomId });
       } catch (err) {
         console.error('join-room error', err);
-        return ack && ack({ error: err.message });
+        return ack?.({ error: err.message });
       }
     });
 
-    /**
-     * leave-room
-     * payload: { roomId }
-     */
-    socket.on('leave-room', (payload, ack) => {
-      const { roomId } = payload || {};
-      if (!roomId) return ack && ack({ error: 'roomId required' });
+    // --- LEAVE ROOM ---
+    socket.on('leave-room', ({ roomId }, ack) => {
+      if (!roomId) return ack?.({ error: 'roomId required' });
       socket.leave(roomId);
-      socket.to(roomId).emit('user-left', { roomId, user: { user_id: user.user_id, username: user.username } });
-      return ack && ack({ ok: true });
+      return ack?.({ ok: true });
     });
 
-    /**
-     * send_message
-     * payload: { roomId }
-     * Server persists message and emits it to the room
-     */
-    socket.on('send_message', async (payload, ack) => {
-      try {
-        const { roomId } = payload || {};
-        if (!roomId) return ack && ack({ error: 'roomId required' });
-
-        const conv = await Conversation.findById(roomId).select('participants');
-        if (!conv) return ack && ack({ error: 'Conversation not found' });
-
-        // Ensure sender is participant
-        const isParticipant = Array.isArray(conv.participants) && conv.participants.some(p => String(p.user_id) === String(user.user_id));
-        if (!isParticipant) return ack && ack({ error: 'You are not a participant of this room' });
-
-        // Broadcast the new message to everyone in the room
-        io.to(roomId).emit('message', msg);
-        return ack && ack({ ok: true, message: msg });
-      } catch (err) {
-        console.error('send_message error', err);
-        return ack && ack({ error: err.message });
-      }
+    // --- TYPING INDICATOR ---
+    socket.on('typing', ({ roomId, isTyping }) => {
+      if (!roomId) return;
+      socket.to(roomId).emit('typing', {
+        roomId,
+        userId,
+        username: user.username,
+        isTyping
+      });
     });
 
-    // Handle disconnect: mark offline and notify
-    socket.on('disconnect', (reason) => {
-      try {
+    // --- MESSAGE READ ---
+    socket.on('read', ({ roomId, messageId }) => {
+      if (!roomId) return;
+      socket.to(roomId).emit('read', {
+        roomId,
+        messageId,
+        userId,
+        readAt: new Date()
+      });
+    });
+
+    // --- DISCONNECT ---
+    socket.on('disconnect', async () => {
+      // Xóa socket khỏi tracking
+      userSockets.get(userId)?.delete(socket.id);
+
+      // Chỉ đánh offline nếu không còn socket nào
+      if (!userSockets.get(userId)?.size) {
+        userSockets.delete(userId);
+
         user.status = 'offline';
         user.last_online = new Date();
-        user.save().catch(console.error);
-      } catch (e) { console.error('disconnect save error', e); }
-      io.emit('presence', { userId: user.username, status: 'offline' });
-      console.log('socket disconnected', user?.username ?? user?.user_id, 'reason:', reason);
+        await user.save().catch(console.error);
+
+        io.emit('presence', { userId, status: 'offline' });
+      }
+
+      console.log('socket disconnected', user?.username ?? userId);
     });
   });
 }
+
+export function getIO() {
+  if (!io) throw new Error("Socket.io not initialized!");
+  return io;
+}
+
+// Helper: emit tới tất cả sockets của 1 user
+export function emitToUser(userId, event, data) {
+  const sockets = userSockets.get(userId);
+  if (sockets) {
+    sockets.forEach(socketId => {
+      io.to(socketId).emit(event, data);
+    });
+  }
+}
+
+// Helper: join tất cả sockets của 1 user vào room
+export function joinUserToRoom(userId, roomId) {
+  const sockets = userSockets.get(userId);
+  if (sockets && io) {
+    sockets.forEach(socketId => {
+      const socket = io.sockets.sockets.get(socketId);
+      if (socket) {
+        socket.join(roomId);
+      }
+    });
+    return true;
+  }
+  return false;
+}
+
+

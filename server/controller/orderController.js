@@ -17,7 +17,31 @@ import Shipper from "../model/shipperModel.js";
 import Store from "../model/storeModel.js";
 import Transaction from "../model/transactionModel.js";
 import { TRANSACTION_TYPE } from "../constants/index.js";
+import { uploadSingleImage } from "../middleware/imgUpload.middleware.js";
+import Sharp from "sharp";
 dotenv.config();
+
+export const uploadShippingImage = uploadSingleImage("image");
+
+// 2) PROCESSING(Sharp)
+export const resizeShippingImage = asyncHandler(async (req, res, next) => {
+  if (!req.file) return next();
+  // console.log(req.file);
+
+  let filename = `${req.body.username}-${req.body.job_title}.jpeg`;
+  if(req.user){
+    filename = `Order-${req.params.id}.jpeg`;
+  }
+
+  await Sharp(req.file.buffer)
+    .resize(400, 400)
+    .toFormat("jpeg")
+    .jpeg({ quality: 80 })
+    .toFile(`${process.env.FILES_UPLOADS_PATH}/imageShippings/${filename}`);
+  // put it in req.body to access it when we access updateMyProfile or updateSingleUser to save the filename into database
+  req.body.image = filename;
+  next();
+});
 
 // @ desc middleware to filter orders for the logged user
 // @access  Protected
@@ -874,6 +898,7 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
 
     // 4) Mark order as delivered
     order.status = ORDER_STATUS.DELIVERED;
+    order.image_shipping = req.body.image || null;
     await order.save({ transaction: t });
 
     await t.commit();
