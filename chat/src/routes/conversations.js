@@ -6,13 +6,16 @@ import APIError from '../utils/apiError.js';
 import parseCompositeUserId from '../utils/parseRole.js';
 import User from '../models/user.model.js';
 import { getIO, joinUserToRoom, emitToUser } from '../socket.js';
+import upload from '../utils/multer.js'; // Nếu có middleware upload dùng multer, hãy import từ file đúng
+import { uploadImage } from '../utils/cloudinary.js'; // Hàm upload ảnh lên Cloudinary
 
 const router = express.Router();
 
 /* ============================================================
    CREATE DIRECT CHAT (OR REUSE) + OPTIONAL FIRST MESSAGE
 ============================================================ */
-router.post('/direct', auth, async (req, res, next) => {
+// Thêm middleware upload.array cho phép gửi tối đa 5 ảnh
+router.post('/direct', auth, upload.array('attachments', 5), async (req, res, next) => {
   let { userId } = req.query;
   const { message } = req.body; // Tin nhắn đầu tiên (optional)
 
@@ -77,9 +80,34 @@ router.post('/direct', auth, async (req, res, next) => {
       ]
     };
 
-    // Nếu có message, tạo tin nhắn đầu tiên
+    // Xử lý attachments nếu có
+    let attachmentUrls = [];
+    if (req.files?.length) {
+      // Kiểm tra định dạng file
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      for (const file of req.files) {
+        if (!allowedTypes.includes(file.mimetype)) {
+          return next(new APIError(`File ${file.originalname} không đúng định dạng ảnh (.jpg, .jpeg, .png)`, 400));
+        }
+      }
+      // Upload song song lên Cloudinary
+      attachmentUrls = await Promise.all(
+        req.files.map(async file => {
+          try {
+            const result = await uploadImage(file.buffer, 'images', file.mimetype);
+            if (!result?.secure_url) throw new Error('No secure_url returned');
+            return result.secure_url;
+          } catch (err) {
+            console.error('Upload error:', err);
+            throw new Error(`Failed to upload file: ${file.originalname}`);
+          }
+        })
+      );
+    }
+
+    // Nếu có message hoặc attachments, tạo tin nhắn đầu tiên
     let firstMessage = null;
-    if (message && message.trim()) {
+    if ((message && message.trim()) || attachmentUrls.length) {
       firstMessage = await Message.create({
         conversation_id: conv._id,
         sender: {
@@ -87,7 +115,8 @@ router.post('/direct', auth, async (req, res, next) => {
           username: req.user.username,
           role: req.user.role
         },
-        content: message.trim()
+        content: message ? message.trim() : '',
+        attachments: attachmentUrls
       });
 
       // Cập nhật last_message của conversation

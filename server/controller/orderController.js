@@ -6,7 +6,7 @@ import Coupon from "../model/couponModel.js";
 import ShippingCode from "../model/shippingCodeModel.js";
 import Client from "../model/clientModel.js";
 import { sequelize } from "../config/db.js";
-import { Op } from "sequelize";
+import { Op, cast, col, where as seqWhere } from "sequelize";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import { generateQRCodeJPG } from "../utils/barcode.utils.js";
 import APIError from "../utils/apiError.utils.js";
@@ -47,36 +47,89 @@ export const resizeShippingImage = asyncHandler(async (req, res, next) => {
 // @access  Protected
 export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
-  const status = req.query.status;
+  const { status, order_id, startdate, enddate, orderby, page, limit } = req.query;
 
-  // Build where clause: always filter by clientId, optionally by status if provided and valid
   const where = { clientId };
-  if (status !== undefined && status !== null && String(status).trim() !== "") {
-    if (!Object.values(ORDER_STATUS).includes(status)) {
-      return next(new APIError("Invalid order status", 400));
+
+  // status filter (case-insensitive)
+  if (typeof status !== 'undefined' && status !== null && String(status).trim() !== '') {
+    const s = String(status).trim().toUpperCase();
+    if (!Object.values(ORDER_STATUS).includes(s)) {
+      return next(new APIError('Giá trị trạng thái đơn hàng không hợp lệ', 400));
     }
-    where.status = status;
+    where.status = s;
   }
 
-  const orders = await Order.findAll({
+  // order_id contains: cast id to CHAR and like
+  if (order_id && String(order_id).trim().length > 0) {
+    const pattern = `%${String(order_id).trim()}%`;
+    where[Op.and] = where[Op.and] || [];
+    where[Op.and].push(seqWhere(cast(col('id'), 'CHAR'), { [Op.like]: pattern }));
+  }
+
+  // date range filter on createdAt
+  if (startdate || enddate) {
+    let start = null;
+    let end = null;
+    if (startdate) {
+      start = new Date(startdate);
+      if (Number.isNaN(start.getTime())) return next(new APIError('Invalid startdate', 400));
+    }
+    if (enddate) {
+      end = new Date(enddate);
+      if (Number.isNaN(end.getTime())) return next(new APIError('Invalid enddate', 400));
+    }
+    if (start && end && start > end) return next(new APIError('startdate must be before or equal to enddate', 400));
+
+    if (start && end) {
+      const s = start.toISOString().slice(0, 10);
+      const e = end.toISOString().slice(0, 10);
+      where.createdAt = { [Op.between]: [s, e] };
+    } else if (start) {
+      const s = start.toISOString().slice(0, 10);
+      where.createdAt = { [Op.gte]: s };
+    } else if (end) {
+      const e = end.toISOString().slice(0, 10);
+      where.createdAt = { [Op.lte]: e };
+    }
+  }
+
+  // pagination
+  const pageNum = Math.max(parseInt(page) || 1, 1);
+  const perPage = Math.max(parseInt(limit) || 20, 1);
+  const offset = (pageNum - 1) * perPage;
+
+  // sorting
+  let order = [['createdAt', 'DESC']];
+  if (orderby && String(orderby).trim().length > 0) {
+    // support orderby=created_at (default desc)
+    const ob = String(orderby).trim().toLowerCase();
+    if (ob === 'created_at' || ob === 'createdat' || ob === 'createdat') {
+      order = [['createdAt', 'DESC']];
+    }
+  }
+
+  const { count, rows } = await Order.findAndCountAll({
     where,
     include: [
-      {
-        model: OrderItem,
-        as: "OrderItems",
-        // include: [
-        //   {
-        //     model: ProductVariant,
-        //     as: "OrderItemProductVariant",
-        //     include: [{ model: Product, as: "ProductVariantProduct" }],
-        //   },
-        // ],
-      },
+      { model: OrderItem, as: 'OrderItems' },
     ],
-    order: [["createdAt", "DESC"]],
+    order,
+    limit: perPage,
+    offset,
   });
 
-  res.status(200).json({ status: "success", results: orders.length, data: { orders } });
+  const totalPages = Math.ceil(count / perPage) || 1;
+
+  res.status(200).json({
+    status: 'success',
+    results: rows.length,
+    page: pageNum,
+    perPage,
+    totalPages,
+    totalRecords: count,
+    data: { orders: rows },
+  });
 });
 
 // @desc    GET Single Order

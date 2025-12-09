@@ -281,14 +281,90 @@ export const updateStatusShipper = asyncHandler(async (req, res, next) => {
     res.status(200).json({ status: "success", data: { doc: shipper } });
 });
 
-export const getAllShippers = getAll(Shipper);
-
 export const getSingleShipper = getOne(Shipper);
 
 export const deleteShipper = deleteOne(Shipper);
 
-export const getAllProcessingShippers = getAll(Shipper, {
-    where: { status: SHIPPER_STATUS.PROCESSING }
+export const getAllShippers = asyncHandler(async (req, res, next) => {
+    const { name, status, sortby, startdate, enddate, page, limit } = req.query;
+
+    const where = {};
+
+    // name search (fullname contains)
+    if (name && String(name).trim().length > 0) {
+        where.fullname = { [Op.like]: `%${String(name).trim()}%` };
+    }
+
+    // status filter (case-insensitive)
+    if (typeof status !== 'undefined' && status !== null && String(status).trim() !== '') {
+        const allowed = Object.values(SHIPPER_STATUS);
+        const statusUpper = String(status).trim().toUpperCase();
+        if (!allowed.includes(statusUpper)) {
+            return next(new APIError(`Giá trị status không hợp lệ. Giá trị hợp lệ: ${allowed.join(', ')}`, 400));
+        }
+        where.status = statusUpper;
+    }
+
+    // date range filter on createdAt
+    if (startdate || enddate) {
+        let start = null;
+        let end = null;
+        if (startdate) {
+            start = new Date(startdate);
+            if (Number.isNaN(start.getTime())) return next(new APIError('Invalid startdate', 400));
+        }
+        if (enddate) {
+            end = new Date(enddate);
+            if (Number.isNaN(end.getTime())) return next(new APIError('Invalid enddate', 400));
+        }
+
+        if (start && end && start > end) {
+            return next(new APIError('startdate must be before or equal to enddate', 400));
+        }
+
+        if (start && end) {
+            const s = start.toISOString().slice(0, 10);
+            const e = end.toISOString().slice(0, 10);
+            where.createdAt = { [Op.between]: [s, e] };
+        } else if (start) {
+            const s = start.toISOString().slice(0, 10);
+            where.createdAt = { [Op.gte]: s };
+        } else if (end) {
+            const e = end.toISOString().slice(0, 10);
+            where.createdAt = { [Op.lte]: e };
+        }
+    }
+
+    // pagination
+    const pageNum = Math.max(parseInt(page) || 1, 1);
+    const perPage = Math.max(parseInt(limit) || 10, 1);
+    const offset = (pageNum - 1) * perPage;
+
+    // sorting - default createdAt DESC
+    let order = [['createdAt', 'DESC']];
+    if (sortby && String(sortby).trim().length > 0) {
+        // currently only support created_at desc when sortby provided
+        order = [['createdAt', 'DESC']];
+    }
+
+    const { count, rows } = await Shipper.findAndCountAll({
+        where,
+        order,
+        limit: perPage,
+        offset,
+    });
+
+    const totalPages = Math.ceil(count / perPage) || 1;
+
+    res.status(200).json({
+        status: 'success',
+        results: rows.length,
+        page: pageNum,
+        perPage,
+        totalPages,
+        totalRecords: count,
+        data: rows,
+    });
 });
 
 export const updateProfile = asyncHandler(async (req, res, next) => {
@@ -346,4 +422,3 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({ status: "success", data: { shipper } });
 });
-
