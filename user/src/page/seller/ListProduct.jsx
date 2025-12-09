@@ -144,7 +144,7 @@ const ListProduct = () => {
                   <td className="p-3 text-leftleft">{product.name}</td>
                   <td className="p-3 text-center">{product.sold || 0} </td>
                   <td className="p-3 text-center text-yellow-500">
-                    {product.rating_average || 0} ⭐ 
+                    {product.rating_average || 5} ⭐ 
                   </td>
                   <td className="p-3 text-center">{product.review_numbers || 0} </td>
                   <td className="p-3 text-center">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ChatService from '../../services/chatService';
+import { getChatSocket } from '../../services/chatSocket';
 import { 
   Chat as ChatIcon, 
   Send as SendIcon,
@@ -14,6 +15,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
@@ -45,6 +47,76 @@ const Chat = () => {
 
     initAdminUser();
   }, []);
+
+  // Socket.io client cho trang chat của seller
+  useEffect(() => {
+    const token = ChatService.getToken?.();
+    if (!token) return;
+
+    const s = getChatSocket();
+    if (!s) return;
+
+    setSocket(s);
+
+    const handleNewConversation = (conversation) => {
+      if (!conversation) return;
+      setConversations((prev) => {
+        const id = conversation._id || conversation.id;
+        const exists = prev.some((c) => (c._id || c.id) === id);
+
+        if (exists) {
+          return prev.map((c) =>
+            (c._id || c.id) === id ? { ...c, ...conversation } : c
+          );
+        }
+
+        return [conversation, ...prev];
+      });
+    };
+
+    const handleNewMessage = (message) => {
+      if (!message || !message.conversation_id) return;
+
+      // Nếu đang mở đúng conversation thì append tin nhắn mới
+      setMessages((prev) => {
+        if (!selectedConversation) return prev;
+        const selectedId =
+          selectedConversation._id || selectedConversation.id;
+        if (String(message.conversation_id) !== String(selectedId)) {
+          return prev;
+        }
+
+        const exists = prev.some(
+          (m) => (m._id || m.id) === (message._id || message.id)
+        );
+        return exists ? prev : [...prev, message];
+      });
+
+      // Cập nhật last_message + updatedAt trong danh sách conversation
+      setConversations((prev) =>
+        prev.map((c) => {
+          const convId = String(message.conversation_id);
+          const currentId = String(c._id || c.id);
+          if (convId !== currentId) return c;
+          return {
+            ...c,
+            last_message: message,
+            updatedAt:
+              message.sent_at || message.createdAt || new Date().toISOString(),
+          };
+        })
+      );
+    };
+
+    s.on('new_conversation', handleNewConversation);
+    s.on('new_message', handleNewMessage);
+
+    return () => {
+      s.off('new_conversation', handleNewConversation);
+      s.off('new_message', handleNewMessage);
+      setSocket(null);
+    };
+  }, [selectedConversation]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -150,6 +222,27 @@ const Chat = () => {
     }
   };
 
+  const handleChatWithSystem = async () => {
+    try {
+      const systemUserId = 'ADMIN1764487807882';
+      const conversation = await ChatService.createDirectConversation(
+        systemUserId
+      );
+      if (!conversation) return;
+
+      setSelectedConversation(conversation);
+      setMessages([]);
+
+      const id = conversation._id || conversation.id;
+      if (id) {
+        await fetchMessages(id);
+      }
+    } catch (error) {
+      console.error('Error creating system conversation:', error);
+      alert('Không thể mở cuộc trò chuyện với hệ thống');
+    }
+  };
+
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -204,17 +297,27 @@ const Chat = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Danh sách conversations */}
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
-            <button
-              onClick={fetchConversations}
-              className="p-2 hover:bg-gray-100 rounded transition"
-              title="Làm mới"
-            >
-              <RefreshIcon style={{ fontSize: 20 }} />
-            </button>
-          </div>
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
+          <button
+            onClick={fetchConversations}
+            className="p-2 hover:bg-gray-100 rounded transition"
+            title="Làm mới"
+          >
+            <RefreshIcon style={{ fontSize: 20 }} />
+          </button>
+        </div>
+
+        {/* Nút chat với hệ thống */}
+        <div className="p-3 border-b border-gray-100">
+          <button
+            onClick={handleChatWithSystem}
+            className="w-full text-sm px-3 py-2 rounded-lg bg-[#116AD1] text-white hover:bg-[#0d5ba8] transition"
+          >
+            Nhắn với hệ thống
+          </button>
+        </div>
 
           {/* Conversations List */}
           <div className="flex-1 overflow-y-auto">
@@ -297,12 +400,17 @@ const Chat = () => {
                   </div>
                 ) : (
                   messages.map((message) => {
-                    const senderId = typeof message.sender_id === 'object' 
-                      ? message.sender_id?.user_id 
-                      : message.sender_id;
-                    const isSystem = senderId === 'SYSTEM' || senderId?.includes('SYSTEM');
+                    let senderId =
+                      typeof message.sender_id === 'object'
+                        ? message.sender_id?.user_id
+                        : message.sender_id;
+                    if (!senderId && message.sender?.user_id) {
+                      senderId = message.sender.user_id;
+                    }
+                    const isSystem =
+                      senderId === 'SYSTEM' || senderId?.includes('SYSTEM');
                     const isAdmin = senderId?.includes('ADMIN');
-                    
+
                     return (
                       <div
                         key={message._id || message.id}

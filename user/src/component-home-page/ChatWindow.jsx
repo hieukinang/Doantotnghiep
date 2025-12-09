@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import chatService from '../services/chatService';
+import { getChatSocket } from '../services/chatSocket';
 import { Chat as ChatIcon, Close as CloseIcon, Send as SendIcon, AttachFile as AttachIcon } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 
@@ -11,6 +12,7 @@ const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const currentUserId = chatService.getUserIdFromToken();
@@ -23,10 +25,36 @@ const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }
     scrollToBottom();
   }, [messages]);
 
+  // Socket realtime messages
+  useEffect(() => {
+    if (!clientToken || !conversationId) return;
+
+    const s = getChatSocket();
+    if (!s) return;
+
+    setSocket(s);
+
+    const handleNewMessage = (message) => {
+      if (!message?.conversation_id) return;
+      if (String(message.conversation_id) !== String(conversationId)) return;
+
+      setMessages((prev) => {
+        const exists = prev.some((m) => (m._id || m.id) === (message._id || message.id));
+        return exists ? prev : [...prev, message];
+      });
+    };
+
+    s.on('new_message', handleNewMessage);
+
+    return () => {
+      s.off('new_message', handleNewMessage);
+    };
+  }, [clientToken, conversationId]);
+
   useEffect(() => {
     if (conversationId && clientToken) {
       fetchMessages();
-      const interval = setInterval(fetchMessages, 2000);
+      const interval = setInterval(fetchMessages, 5000);
       return () => clearInterval(interval);
     }
   }, [conversationId, clientToken]);
@@ -97,11 +125,17 @@ const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }
   };
 
   const isMyMessage = (message) => {
-    if (!message.sender_id) return false;
-    const senderId =
-      typeof message.sender_id === 'object'
-        ? message.sender_id.user_id
-        : message.sender_id;
+    let senderId = null;
+
+    if (message.sender_id) {
+      senderId =
+        typeof message.sender_id === 'object'
+          ? message.sender_id.user_id
+          : message.sender_id;
+    } else if (message.sender?.user_id) {
+      senderId = message.sender.user_id;
+    }
+
     return senderId === currentUserId;
   };
 
