@@ -10,7 +10,7 @@ import {
     resizeStoreImages,
     updateStoreStatus,
     updateProfile,
-    getAllProcessingStores,
+    getAllStores,
     getStoreById,
     uploadStoreImage,
     resizeStoreImage,
@@ -39,8 +39,8 @@ router.route("/register").post(uploadStoreImages, registerValidator, resizeStore
 router.route("/login").post(upload.none(), checkStoreStatus, loginValidator, login);
 router.route("/logout").post(isAuth(Store), logout);
 
-router.route("/processing")
-  .get(isAuth(Admin), getAllProcessingStores);
+router.route("/get-all")
+  .get(isAuth(Admin), getAllStores);
 
 router.route("/update-status/:id")
   .patch(isAuth(Admin), IdValidator, checkAdminStatus, updateStoreStatus);
