@@ -292,8 +292,8 @@ const MapScreen = () => {
         // Clear markers cũ trước khi fetch lại
         setOrderMarkers([]);
 
-        // Sau khi xác nhận xong, fetch lại danh sách đơn
-        const ordersRes = await axios.get(`${config.backendUrl}/orders/shipper`, {
+        // Sau khi xác nhận xong, fetch lại danh sách đơn với status=IN_TRANSIT
+        const ordersRes = await axios.get(`${config.backendUrl}/orders/shipper?page=1&status=IN_TRANSIT`, {
           headers: { Authorization: `Bearer ${shipperToken}` },
         });
 
@@ -325,7 +325,8 @@ const MapScreen = () => {
 
         if (!token) return console.warn("Chưa có token");
 
-        const res = await axios.get(`${config.backendUrl}/orders/shipper`, {
+        // Gọi API với status=IN_TRANSIT
+        const res = await axios.get(`${config.backendUrl}/orders/shipper?page=1&status=IN_TRANSIT`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -335,19 +336,12 @@ const MapScreen = () => {
           console.warn('Không lấy được đơn hàng:', res.data.message);
         }
       } catch (err) {
-        // Xử lý lỗi axios chi tiết
         if (err.response) {
-          // Server trả về status lỗi
           console.error('Lỗi response:', {
             status: err.response.status,
             data: err.response.data,
-            headers: err.response.headers,
           });
-        } else if (err.request) {
-          // Request đã gửi nhưng không nhận được response
-          console.error('Lỗi request (không có phản hồi):', err.request);
         } else {
-          // Lỗi khác khi thiết lập request
           console.error('Lỗi khi setup request:', err.message);
         }
         console.error('Full error object:', err.toJSON ? err.toJSON() : err);

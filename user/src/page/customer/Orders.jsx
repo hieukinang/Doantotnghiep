@@ -114,9 +114,10 @@ const Orders = () => {
     }
 
     try {
+      // Truyền isReceived qua query param thay vì body
       const res = await axios.post(
-        `${backendURL}/orders/client/${orderId}/confirmed-order-is-deliveried`,
-        { isReceived },
+        `${backendURL}/orders/client/${orderId}/confirmed-order?isReceived=${isReceived}`,
+        {},
         { headers: { Authorization: `Bearer ${clientToken}` } }
       );
 

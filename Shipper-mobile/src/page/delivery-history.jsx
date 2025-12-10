@@ -48,7 +48,8 @@ const DeliveryHistory = () => {
         return;
       }
 
-      const res = await axios.get(`${config.backendUrl}/orders/shipper/history`, {
+      // Gọi API với status=DELIVERED
+      const res = await axios.get(`${config.backendUrl}/orders/shipper?page=1&status=DELIVERED`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -59,22 +60,6 @@ const DeliveryHistory = () => {
       }
     } catch (err) {
       console.error('Lỗi fetch orders:', err.message);
-      // Nếu API history không tồn tại, thử gọi API shipper với filter
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const res = await axios.get(`${config.backendUrl}/orders`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.data.status === "success") {
-          // Lọc các đơn đã hoàn thành
-          const completedOrders = (res.data.data.orders || []).filter(
-            o => ['DELIVERED', 'CLIENT_CONFIRMED', 'CANCELLED', 'FAILED', 'RETURNED'].includes(o.status)
-          );
-          setOrders(completedOrders);
-        }
-      } catch (e) {
-        console.error('Lỗi fallback:', e.message);
-      }
     } finally {
       setLoading(false);
     }
