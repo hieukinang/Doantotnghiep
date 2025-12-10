@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 
-const backendURL =
+const backendURL = 
   import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000";
 
 const formatPrice = (v) =>
@@ -13,23 +13,12 @@ const CategoryPage = () => {
   const [products, setProducts] = useState([]);
   const [categoryName, setCategoryName] = useState("");
 
-  // Lấy tên category theo ID (nếu backend của bạn trả category list đầy đủ)
-  const fetchCategoryName = async () => {
-    try {
-      const res = await axios.get(`${backendURL}/categories`);
-      const found = res.data.data?.find(
-        (c) => c._id === id || c.id === id
-      );
-      if (found) setCategoryName(found.name);
-    } catch {}
-  };
-
-  // Lấy danh sách sản phẩm theo category
-  const fetchProducts = async () => {
+  // Lấy danh sách sản phẩm theo category name
+  const fetchProducts = async (name) => {
     try {
       const res = await axios.get(
-        `${backendURL}/api/recommendations/by-category?page=1&name=${encodeURIComponent(
-          categoryName
+        `${backendURL}/recommendations/by-category?page=1&name=${encodeURIComponent(
+          name
         )}`
       );
       setProducts(res.data.data.docs || []);
@@ -39,16 +28,24 @@ const CategoryPage = () => {
   };
 
   useEffect(() => {
-    fetchCategoryName();
+    const loadData = async () => {
+      try {
+        // Gọi API lấy thông tin category theo id
+        const res = await axios.get(`${backendURL}/categories/${id}`);
+        const category = res.data.data?.docs?.[0];
+        if (category) {
+          setCategoryName(category.name);
+          fetchProducts(category.name);
+        }
+      } catch (err) {
+        console.error("Fetch category error:", err);
+      }
+    };
+    loadData();
   }, [id]);
-
-  useEffect(() => {
-    if (categoryName) fetchProducts();
-  }, [categoryName]);
 
   return (
     <div className="mx-[100px] mt-6">
-
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
         {products.map((p) => (
           <Link

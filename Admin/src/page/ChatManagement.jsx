@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import adminChatService from '../services/chatService';
+import { getAdminChatSocket } from '../services/chatSocket';
 import {
   Chat as ChatIcon,
   Send as SendIcon,
@@ -11,11 +12,12 @@ import {
 const ChatManagement = () => {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [attachments, setAttachments] = useState([]); // State mới cho attachments
+  const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
@@ -49,8 +51,78 @@ const ChatManagement = () => {
       }
     };
 
-    initAdminUser();
-  }, []);
+    initAdminUser();
+  }, []);
+
+  // Khởi tạo socket.io client cho admin
+  useEffect(() => {
+    const token = adminChatService.getToken();
+    if (!token) return;
+
+    const s = getAdminChatSocket();
+    if (!s) return;
+
+    setSocket(s);
+
+    const handleNewConversation = (conversation) => {
+      if (!conversation) return;
+      setConversations((prev) => {
+        const id = conversation._id || conversation.id;
+        const exists = prev.some((c) => (c._id || c.id) === id);
+
+        if (exists) {
+          return prev.map((c) =>
+            (c._id || c.id) === id ? { ...c, ...conversation } : c
+          );
+        }
+
+        return [conversation, ...prev];
+      });
+    };
+
+    const handleNewMessage = (message) => {
+      if (!message || !message.conversation_id) return;
+
+      // Nếu đang mở đúng conversation thì append tin nhắn mới
+      setMessages((prev) => {
+        if (!selectedConversation) return prev;
+        const selectedId =
+          selectedConversation._id || selectedConversation.id;
+        if (String(message.conversation_id) !== String(selectedId)) {
+          return prev;
+        }
+
+        const exists = prev.some(
+          (m) => (m._id || m.id) === (message._id || message.id)
+        );
+        return exists ? prev : [...prev, message];
+      });
+
+      // Cập nhật last_message + updatedAt trong danh sách conversation
+      setConversations((prev) =>
+        prev.map((c) => {
+          const convId = String(message.conversation_id);
+          const currentId = String(c._id || c.id);
+          if (convId !== currentId) return c;
+          return {
+            ...c,
+            last_message: message,
+            updatedAt:
+              message.sent_at || message.createdAt || new Date().toISOString(),
+          };
+        })
+      );
+    };
+
+    s.on('new_conversation', handleNewConversation);
+    s.on('new_message', handleNewMessage);
+
+    return () => {
+      s.off('new_conversation', handleNewConversation);
+      s.off('new_message', handleNewMessage);
+      setSocket(null);
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -383,19 +455,27 @@ const ChatManagement = () => {
                     Chưa có tin nhắn nào
                   </div>
                 ) : (
-                  messages.map((message) => {
-                    const senderId =
-                      typeof message.sender_id === "object"
-                        ? message.sender_id?.user_id
-                        : message.sender_id;
-                    
-                    const senderUsername = 
-                        typeof message.sender_id === "object" 
-                          ? message.sender_id?.username
-                          : senderId; // Fallback về ID nếu không phải object
+          messages.map((message) => {
+            let senderId =
+              typeof message.sender_id === "object"
+                ? message.sender_id?.user_id
+                : message.sender_id;
 
-                    const currentAdminId = adminChatService.getUserIdFromToken();
-                    const isAdmin = senderId === currentAdminId; // So sánh chính xác admin hiện tại
+            if (!senderId && message.sender?.user_id) {
+              senderId = message.sender.user_id;
+            }
+
+            let senderUsername =
+              typeof message.sender_id === "object"
+                ? message.sender_id?.username
+                : undefined;
+
+            if (!senderUsername && message.sender?.username) {
+              senderUsername = message.sender.username;
+            }
+
+            const currentAdminId = adminChatService.getUserIdFromToken();
+            const isAdmin = senderId === currentAdminId; // So sánh chính xác admin hiện tại
 
                     return (
                       <div

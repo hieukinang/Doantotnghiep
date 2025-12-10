@@ -12,7 +12,7 @@ import {
     resizeShipperImages,
     getSingleShipper,
     updateStatusShipper,
-    getAllProcessingShippers,
+    getAllShippers,
     updateProfile,
 } from "../../controller/shipperController.js";
 
@@ -36,8 +36,8 @@ router.route("/register").post(uploadShipperImages, registerValidator, resizeShi
 router.route("/login").post(upload.none(), loginValidator, login);
 router.route("/logout").post(isAuth(Shipper), logout);
 
-router.route("/processing")
-  .get(isAuth(Admin), getAllProcessingShippers);
+router.route("/get-all")
+  .get(isAuth(Admin), getAllShippers);
 
 router.route("/:id")
   .get(isAuth(Shipper), getSingleShipper);

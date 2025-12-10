@@ -13,6 +13,8 @@ import {
   clientConfirmedOrder,
   getAllOrdersByShipper,
   createWalletOrder,
+  uploadShippingImage,
+  resizeShippingImage,
 } from "../../controller/orderController.js";
 
 import {
@@ -77,8 +79,17 @@ router.route("/shipper").get(isAuth(Shipper), checkShipperStatus, getAllOrdersBy
 
 router.route("/shipper/:id").get(isAuth(Shipper), checkShipperStatus, shipperFindOrderById);
 
-router.route("/shipper/:id").post(isAuth(Shipper), checkShipperStatus, OrderIdValidator, shipperReceiveOrder);
+router.route("/shipper/:id").post(isAuth(Shipper), 
+  checkShipperStatus, 
+  OrderIdValidator, 
 
-router.route("/shipper/:id/deliver-order").post(isAuth(Shipper), checkShipperStatus, OrderIdValidator, shipperDeliverOrder);
+  shipperReceiveOrder);
+
+router.route("/shipper/:id/deliver-order").post(isAuth(Shipper), 
+  checkShipperStatus, 
+  OrderIdValidator, 
+  uploadShippingImage,
+  resizeShippingImage,
+  shipperDeliverOrder);
 
 export default router;
