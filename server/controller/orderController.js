@@ -995,27 +995,40 @@ export const getAllOrdersByShipper = asyncHandler(async (req, res, next) => {
     }
     where.status = status;
   }
+  // Build include array; optionally filter by client username
+  const includes = [];
+  // If clientname is provided, include Client with a where clause to filter by username
+  const clientInclude = { model: Client, as: "OrderClient", attributes: ["id", "username"] };
+  includes.push(clientInclude);
 
-  const { count, rows } = await Order.findAndCountAll({
-    where,
+  includes.push({
+    model: OrderItem,
+    as: "OrderItems",
     include: [
       {
-        model: OrderItem,
-        as: "OrderItems",
+        model: ProductVariant,
+        as: "OrderItemProductVariant",
         include: [
-          {
-            model: ProductVariant,
-            as: "OrderItemProductVariant",
-            include: [
-              { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] },
-            ],
-          },
+          { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] },
         ],
       },
     ],
+  });
+
+  const { count, rows } = await Order.findAndCountAll({
+    where,
+    include: includes,
     order: [["createdAt", "DESC"]],
     limit,
     offset,
+  });
+  // Map Sequelize instances to plain objects and expose client info (username)
+  const transformedRows = rows.map((r) => {
+    const obj = typeof r.toJSON === "function" ? r.toJSON() : r;
+    // include client under `client` and add simple `client_username` for convenience
+    obj.client = obj.OrderClient || null;
+    obj.client_username = obj.OrderClient ? obj.OrderClient.username : null;
+    return obj;
   });
 
   const totalPages = Math.ceil(count / limit) || 1;
@@ -1027,7 +1040,7 @@ export const getAllOrdersByShipper = asyncHandler(async (req, res, next) => {
       totalPages,
       totalRecords: count,
     },
-    results: rows.length,
-    data: { orders: rows },
+    results: transformedRows.length,
+    data: { orders: transformedRows },
   });
 });

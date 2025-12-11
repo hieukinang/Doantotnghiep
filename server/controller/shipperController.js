@@ -29,7 +29,6 @@ export const uploadShipperImage = uploadSingleImage("image");
 // 2) PROCESSING(Sharp)
 export const resizeShipperImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
-  // console.log(req.file);
 
     // safe filename using shipper id (from auth) or timestamp
     const ownerId = req.user && req.user.id ? req.user.id : Date.now();
