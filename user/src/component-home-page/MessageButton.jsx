@@ -23,7 +23,7 @@ const MessageButton = ({ userId, userType, userName, userImage }) => {
 
     setLoading(true);
     try {
-      const currentUserId = chatService.getUserIdFromToken();
+      const currentUserId = localStorage.getItem('userId');
       if (!currentUserId) {
         throw new Error('Không thể lấy thông tin user');
       }
