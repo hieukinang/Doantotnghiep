@@ -15,9 +15,10 @@ export default function UploadImage({ label, value, onChange }) {
             }
 
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images, // ✅ dùng MediaTypeOptions
+                mediaTypes: ['images'], // Cập nhật theo API mới
                 allowsEditing: true,
-                quality: 1,
+                quality: 0.7, // Giảm quality để tránh crash với ảnh lớn
+                exif: false, // Không cần EXIF data
             });
 
             console.log("Pick result:", result);

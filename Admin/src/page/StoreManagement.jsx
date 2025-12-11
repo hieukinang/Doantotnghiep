@@ -207,7 +207,7 @@ const StoreManagement = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-xl shadow-md mt-4">
+      <div className="overflow-visible bg-white rounded-xl shadow-md mt-4">
         <table className="min-w-full text-sm">
           <thead className="bg-blue-600 text-white">
             <tr>
@@ -286,18 +286,36 @@ const StoreManagement = () => {
                               />
                               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-30">
                                 <div className="p-2">
-                                  {["ACTIVE", "INACTIVE", "BANNED", "PROCESSING", "DESTROYED"].map(status => (
+                                  {/* PROCESSING -> chỉ hiện Duyệt */}
+                                  {store.status === "PROCESSING" && (
                                     <button
-                                      key={status}
-                                      onClick={() => handleStatusChange(store.id, status)}
+                                      onClick={() => handleStatusChange(store.id, "ACTIVE")}
                                       className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded"
-                                      style={{
-                                        color: getStatusColor(status)
-                                      }}
+                                      style={{ color: getStatusColor("ACTIVE") }}
                                     >
-                                      {getStatusLabel(status)}
+                                      Duyệt
                                     </button>
-                                  ))}
+                                  )}
+                                  {/* ACTIVE -> chỉ hiện Cấm */}
+                                  {store.status === "ACTIVE" && (
+                                    <button
+                                      onClick={() => handleStatusChange(store.id, "BANNED")}
+                                      className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded"
+                                      style={{ color: getStatusColor("BANNED") }}
+                                    >
+                                      Cấm
+                                    </button>
+                                  )}
+                                  {/* BANNED -> hiện Mở lại (chuyển về ACTIVE) */}
+                                  {store.status === "BANNED" && (
+                                    <button
+                                      onClick={() => handleStatusChange(store.id, "ACTIVE")}
+                                      className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded"
+                                      style={{ color: getStatusColor("ACTIVE") }}
+                                    >
+                                      Mở lại
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </>

@@ -6,6 +6,7 @@ import logo from '../../assets/icon.png';
 import { useAuth } from '../shipper-context/auth-context'; // sửa đường dẫn cho đúng
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from '../shipper-context/config';
+import chatService from '../shipper-context/chatService';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -47,6 +48,16 @@ const Login = () => {
 
         // lưu vào context
         await signIn({ id: shipperId, token }, true);
+
+        // Tạo chat account nếu chưa có (cho user cũ)
+        try {
+          const chatUserId = `SHIPPER${shipperId}`;
+          await chatService.createChatAccount(chatUserId, user.fullname || user.name || 'Shipper');
+          console.log("Chat account ensured:", chatUserId);
+        } catch (chatErr) {
+          // Ignore nếu đã tồn tại hoặc lỗi khác
+          console.log("Chat account check:", chatErr.response?.data?.message || chatErr.message);
+        }
 
         Alert.alert("Success", "Đăng nhập thành công!");
         navigation.replace("MapScreen");
