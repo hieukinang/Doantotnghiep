@@ -74,7 +74,7 @@ const SystemChatBox = () => {
 
       // Tạo conversation với SYSTEM
       // SYSTEM user_id có thể là "SYSTEM" hoặc một ID cụ thể
-      const systemUserId = 'ADMIN1763782398128';
+      const systemUserId = 'ADMIN1764487807882';
       const conversation = await chatService.createDirectConversation(systemUserId);
       setConversationId(conversation._id || conversation.id);
     } catch (error) {

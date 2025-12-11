@@ -321,13 +321,13 @@ const OrdersSeller = () => {
 
         {/* Bảng đơn hàng */}
         <div className="flex-1 overflow-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm table-fixed">
           <thead>
             <tr className="text-left bg-gray-50">
-              <th className="px-4 py-2">Mã đơn</th>
-              <th className="px-4 py-2">Ngày</th>
-              <th className="px-4 py-2">Tổng tiền</th>
-              <th className="px-4 py-2">Trạng thái</th>
+              <th className="px-4 py-2 w-[220px]">Mã đơn</th>
+              <th className="px-4 py-2 w-[220px]">Ngày</th>
+              <th className="px-4 py-2 w-[220px]">Tổng tiền</th>
+              <th className="px-4 py-2 w-[240px]">Trạng thái</th>
               <th className="px-4 py-2 text-right">Thao tác</th>
             </tr>
           </thead>
@@ -364,7 +364,7 @@ const OrdersSeller = () => {
                       </button>
                     )}
                     <button
-                      onClick={() => handleDownloadOrder(selectedOrder)}
+                      onClick={() => handleDownloadOrder(formatOrderForModal(o))}
                       className="px-3 py-1 border border-[#116AD1] text-[#116AD1] rounded hover:bg-blue-50 flex items-center gap-2"
                     >
                       <IoDownloadOutline size={18} />

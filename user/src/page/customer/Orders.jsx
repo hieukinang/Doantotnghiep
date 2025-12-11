@@ -105,8 +105,8 @@ const Orders = () => {
       ? formatOrders
       : formatOrders.filter((o) => o.status === active);
 
-  // 🔹 Xác nhận đã nhận hàng
-  const handleConfirmReceived = async (orderId) => {
+  // 🔹 Xác nhận đã nhận hàng hoặc chưa nhận được
+  const handleConfirmReceived = async (orderId, isReceived = true) => {
     const token = localStorage.getItem("clientToken");
     if (!clientToken) {
       toast.warning("⚠️ Vui lòng đăng nhập!");
@@ -114,14 +114,15 @@ const Orders = () => {
     }
 
     try {
+      // Truyền isReceived qua query param thay vì body
       const res = await axios.post(
-        `${backendURL}/orders/client/${orderId}/confirmed-order-is-deliveried`,
+        `${backendURL}/orders/client/${orderId}/confirmed-order?isReceived=${isReceived}`,
         {},
         { headers: { Authorization: `Bearer ${clientToken}` } }
       );
 
       if (res.data.status === "success") {
-        toast.success("Cập nhật trạng thái đơn hàng thành công!");
+        toast.success(isReceived ? "Xác nhận đã nhận hàng thành công!" : "Đã gửi thông báo chưa nhận được hàng!");
         await getOrderofClient();
       } else {
         toast.error(res.data.message || "Cập nhật thất bại!");
@@ -254,76 +255,117 @@ const Orders = () => {
             ))}
           </div>
 
-          {/* Order list */}
-          <div className="mt-4 space-y-4">
-            {filteredOrders.length === 0 ? (
-              <div className="text-center text-gray-500">
-                Không có đơn hàng.
-              </div>
-            ) : (
-              filteredOrders.map((o) => (
-                <div
-                  key={o.id}
-                  className="bg-white rounded-lg p-4 shadow flex items-center justify-between"
-                >
-                  <div>
-                    <div className="font-semibold">{o.id}</div>
-                    <div className="text-sm text-gray-500">
-                      {o.date} • {o.items} sản phẩm
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <div className="text-[#116AD1] font-bold">
-                      {o.total.toLocaleString("vi-VN")}₫
-                    </div>
-                    <div className="text-sm">{o.status}</div>
-                  </div>
-
-                  <div className="flex gap-2 w-40 justify-end">
-
-                    {o.rawStatus === "CLIENT_CONFIRMED" && (
-                      <button
-                        onClick={() => openReasonModal(o.clientOrderId, "return")}
-                        className="text-sm px-3 py-1 border rounded text-red-600 hover:bg-red-50 whitespace-nowrap"
-                      >
-                        Đổi/Trả
-                      </button>
-                    )}
-                    
-                    {(o.rawStatus === "CONFIRMED" || o.rawStatus === "PENDING") && (
-                      <button
-                        onClick={() => openReasonModal(o.clientOrderId, "cancel")}
-                        className="text-sm px-3 py-1 border rounded text-red-600 hover:bg-red-50 whitespace-nowrap"
-                      >
-                        Hủy đơn
-                      </button>
-                    )}
-
-                    {o.rawStatus === "DELIVERED" && (
-                      <button
-                        onClick={() => handleConfirmReceived(o.clientOrderId)}
-                        className="text-sm px-3 py-1 border rounded text-green-600 hover:bg-green-50 whitespace-nowrap"
-                      >
-                        Đã nhận
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleComplaint(o)}
-                      className="text-sm px-3 py-1 border rounded text-blue-600 hover:bg-blue-50"
+          {/* Order table */}
+          <div className="mt-4 bg-white rounded-xl shadow-lg overflow-hidden border border-blue-100">
+            <table className="w-full text-sm table-fixed">
+              <thead>
+                <tr className="bg-gradient-to-r from-[#116AD1] to-[#1e88e5] text-white">
+                  <th className="px-5 py-4 w-[250px] text-left font-semibold">Đơn hàng</th>
+                  <th className="px-5 py-4 w-[130px] text-left font-semibold">Giá tiền</th>
+                  <th className="px-5 py-4 w-[150px] text-left font-semibold">Trạng thái</th>
+                  <th className="px-5 py-4 text-right font-semibold">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-16 text-gray-400">
+                      <div className="text-4xl mb-3">📦</div>
+                      <div>Không có đơn hàng nào</div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredOrders.map((o, index) => (
+                    <tr 
+                      key={o.id} 
+                      className={`hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
                     >
-                      Khiếu nại
-                    </button>
-                    <button
-                      onClick={() => handleViewDetail(o)}
-                      className="text-sm px-3 py-1 border rounded text-blue-600 hover:bg-blue-50"
-                    >
-                      Chi tiết
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                      {/* Cột 1: Đơn hàng */}
+                      <td className="px-5 py-4">
+                        <div className="font-bold text-[#116AD1] text-base">{o.id}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          📅 {o.date} • 📦 {o.items} sản phẩm
+                        </div>
+                      </td>
+
+                      {/* Cột 2: Giá tiền */}
+                      <td className="px-5 py-4">
+                        <div className="font-bold text-[#116AD1] text-base">
+                          {o.total.toLocaleString("vi-VN")}₫
+                        </div>
+                      </td>
+
+                      {/* Cột 3: Trạng thái */}
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                          ${o.rawStatus === 'CLIENT_CONFIRMED' ? 'bg-green-100 text-green-700' : ''}
+                          ${o.rawStatus === 'DELIVERED' ? 'bg-blue-100 text-blue-700' : ''}
+                          ${o.rawStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : ''}
+                          ${o.rawStatus === 'CONFIRMED' ? 'bg-cyan-100 text-cyan-700' : ''}
+                          ${o.rawStatus === 'IN_TRANSIT' ? 'bg-purple-100 text-purple-700' : ''}
+                          ${o.rawStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' : ''}
+                          ${o.rawStatus === 'RETURNED' ? 'bg-orange-100 text-orange-700' : ''}
+                        `}>
+                          {o.status}
+                        </span>
+                      </td>
+
+                      {/* Cột 4: Thao tác */}
+                      <td className="px-5 py-4">
+                        <div className="flex gap-2 flex-wrap justify-end">
+                          {o.rawStatus === "CLIENT_CONFIRMED" && (
+                            <button
+                              onClick={() => openReasonModal(o.clientOrderId, "return")}
+                              className="text-xs px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
+                            >
+                              Đổi/Trả
+                            </button>
+                          )}
+                          
+                          {(o.rawStatus === "CONFIRMED" || o.rawStatus === "PENDING") && (
+                            <button
+                              onClick={() => openReasonModal(o.clientOrderId, "cancel")}
+                              className="text-xs px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
+                            >
+                              Hủy đơn
+                            </button>
+                          )}
+
+                          {o.rawStatus === "DELIVERED" && (
+                            <>
+                              <button
+                                onClick={() => handleConfirmReceived(o.clientOrderId, true)}
+                                className="text-xs px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-green-600 hover:bg-green-100 transition-colors whitespace-nowrap"
+                              >
+                                ✓ Đã nhận
+                              </button>
+                              <button
+                                onClick={() => handleConfirmReceived(o.clientOrderId, false)}
+                                className="text-xs px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
+                              >
+                                ✗ Chưa nhận
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => handleComplaint(o)}
+                            className="text-xs px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-600 hover:bg-orange-100 transition-colors whitespace-nowrap"
+                          >
+                            Khiếu nại
+                          </button>
+                          <button
+                            onClick={() => handleViewDetail(o)}
+                            className="text-xs px-3 py-1.5 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] transition-colors whitespace-nowrap"
+                          >
+                            Chi tiết
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
 
           <div className="mt-6 text-center">
@@ -438,15 +480,26 @@ const Orders = () => {
               {/* Nút hành động */}
               <div className="flex justify-end gap-3">
                 {selectedOrder.rawStatus === "DELIVERED" && (
-                  <button
-                    onClick={() => {
-                      handleConfirmReceived(selectedOrder.clientOrderId);
-                      closeModal();
-                    }}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    Xác nhận đã nhận hàng
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {
+                        handleConfirmReceived(selectedOrder.clientOrderId, true);
+                        closeModal();
+                      }}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Đã nhận hàng
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleConfirmReceived(selectedOrder.clientOrderId, false);
+                        closeModal();
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Chưa nhận được
+                    </button>
+                  </>
                 )}
                 {selectedOrder.rawStatus === "CLIENT_CONFIRMED" && (
                   <Link

@@ -84,7 +84,7 @@ const ProductDetail = () => {
       const defaultOptions = {};
       firstVariant?.ProductVariantOptions?.forEach(opt => {
         if (opt.value !== null) {
-          const name = attributeMap[opt.attributeId] || `Thuộc tính ${opt.attributeId}`;
+          const name = opt.VariantOptionAttribute?.name || `Thuộc tính ${opt.attributeId}`;
           defaultOptions[name] = opt.value;
         }
       });
@@ -92,12 +92,13 @@ const ProductDetail = () => {
       setSelectedVariantPrice(firstVariant.price || 0);
       setSelectedVariantId(firstVariant.id);
       setSelectedVariantStock(firstVariant.stock_quantity || 0);
+
       // Tạo variantAttributes an toàn
       const attrObj = {};
       product.ProductVariants.forEach(v => {
         v.ProductVariantOptions?.forEach(opt => {
           if (opt.value === null) return;
-          const name = attributeMap[opt.attributeId] || `Thuộc tính ${opt.attributeId}`;
+          const name = opt.VariantOptionAttribute?.name || `Thuộc tính ${opt.attributeId}`;
           if (!attrObj[opt.attributeId]) attrObj[opt.attributeId] = { name, options: [] };
           if (!attrObj[opt.attributeId].options.includes(opt.value)) {
             attrObj[opt.attributeId].options.push(opt.value);

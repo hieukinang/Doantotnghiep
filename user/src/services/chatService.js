@@ -97,12 +97,12 @@ class ChatService {
     }
   }
 
-  // Tạo direct conversation
+  // Tạo direct conversation (chuẩn hoá trả về object conversation thuần)
   async createDirectConversation(userId) {
     try {
       const token = this.getToken();
       if (!token) throw new Error('No token found');
-      
+
       const res = await axios.post(
         `${this.baseURL}/conversations/direct?userId=${userId}`,
         {},
@@ -110,7 +110,14 @@ class ChatService {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      return res.data;
+
+      const data = res.data;
+      // Backend chuẩn: { conversation, message, isNew }
+      if (data && data.conversation) {
+        return data.conversation;
+      }
+      // Fallback nếu backend trả thẳng conversation
+      return data;
     } catch (error) {
       console.error('Error creating direct conversation:', error);
       throw error;
