@@ -165,9 +165,11 @@ const ShopContextProvider = ({ children }) => {
         const clientToken = res.data.token;
         const userData = res.data?.data?.user;
         const username = userData?.username || userData?.email || "Client";
+        const userId = userData?.id;
 
         localStorage.setItem("clientToken", clientToken);
         localStorage.setItem("clientUsername", username);
+        localStorage.setItem("userId", userId);
         if (userData) {
           localStorage.setItem("clientUser", JSON.stringify(userData));
           setClientUser(userData);

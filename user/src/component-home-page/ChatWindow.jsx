@@ -15,7 +15,7 @@ const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  const currentUserId = chatService.getUserIdFromToken();
+  const currentUserId = localStorage.getItem('userId');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

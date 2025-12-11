@@ -9,46 +9,16 @@ class ChatService {
     this._currentToken = null; // Token tùy chỉnh (nếu có)
   }
 
-  // Set token tùy chỉnh (để SystemChatBox có thể set token đúng)
   setToken(token) {
     this._currentToken = token;
   }
 
-  // Clear token tùy chỉnh
   clearToken() {
     this._currentToken = null;
   }
 
-  // Lấy token từ localStorage (clientToken hoặc sellerToken)
-  getToken() {
-    // Nếu có token tùy chỉnh, dùng nó
-    if (this._currentToken) {
-      return this._currentToken;
-    }
-    
-    // Kiểm tra xem có đang ở seller page không (dựa vào window.location)
-    const isSellerPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/seller');
-    
-    // Nếu đang ở seller page, ưu tiên sellerToken
-    if (isSellerPage) {
-      return localStorage.getItem('sellerToken') || localStorage.getItem('clientToken');
-    }
-    
-    // Ngược lại, ưu tiên clientToken
-    return localStorage.getItem('clientToken') || localStorage.getItem('sellerToken');
-  }
-
-  // Lấy user_id từ token (decode JWT)
-  getUserIdFromToken() {
-    const token = this.getToken();
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.userId || payload.user_id;
-    } catch (e) {
-      console.error('Error decoding token:', e);
-      return null;
-    }
+  getToken(){
+    return localStorage.getItem('clientToken');
   }
 
   // Cache để tránh tạo user nhiều lần
@@ -76,21 +46,17 @@ class ChatService {
       });
       return res.data;
     } catch (error) {
-      // Nếu lỗi duplicate key (user đã tồn tại), coi như thành công
       const errorMessage = error.response?.data?.message || error.message || '';
       if (error.response?.status === 400 || 
           error.response?.status === 409 ||
           errorMessage.includes('duplicate') ||
           errorMessage.includes('E11000') ||
           errorMessage.includes('already exists')) {
-        // User đã tồn tại, coi như thành công
         return { status: 'success', message: 'User already exists' };
       }
-      // Các lỗi khác thì log nhưng không throw để không làm gián đoạn flow
       console.warn('Error creating user in chat system (non-critical):', errorMessage);
       return { status: 'success', message: 'User creation attempted' };
     } finally {
-      // Xóa khỏi set sau 1 giây để có thể thử lại nếu cần
       setTimeout(() => {
         this._creatingUsers.delete(userId);
       }, 1000);
@@ -112,7 +78,7 @@ class ChatService {
       );
 
       const data = res.data;
-      // Backend chuẩn: { conversation, message, isNew }
+
       if (data && data.conversation) {
         return data.conversation;
       }
@@ -125,21 +91,6 @@ class ChatService {
   }
 
   // Lấy danh sách conversations
-  async getConversations() {
-    try {
-      const token = this.getToken();
-      if (!token) throw new Error('No token found');
-      
-      const res = await axios.get(`${this.baseURL}/conversations`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return res.data;
-    } catch (error) {
-      console.error('Error getting conversations:', error);
-      throw error;
-    }
-  }
-
   async getAllConversations() {
     try {
       const token = this.getToken();

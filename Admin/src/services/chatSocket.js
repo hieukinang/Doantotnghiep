@@ -10,7 +10,7 @@ let socket = null;
  * Socket.io client dùng cho trang quản lý chat của admin.
  */
 export function getAdminChatSocket() {
-  const token = adminChatService.getToken();
+  const token = localStorage.getItem('adminToken');
   if (!token) {
     return null;
   }

@@ -13,8 +13,8 @@ const SystemChatBox = () => {
   const [conversationId, setConversationId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-//   const currentToken = clientToken || sellerToken;
-//   const currentUsername = clientUsername || localStorage.getItem('storeName') ||  'User';
+  //   const currentToken = clientToken || sellerToken;
+  //   const currentUsername = clientUsername || localStorage.getItem('storeName') ||  'User';
 
   const isSellerPage = location.pathname.startsWith('/seller');
 
@@ -24,20 +24,11 @@ const SystemChatBox = () => {
   useEffect(() => {
 
     if (currentToken){
-        chatService.setToken(currentToken);
+      chatService.setToken(currentToken);
     } else {
-        chatService.clearToken();
+      chatService.clearToken();
     }
-    // Tự động tạo user trong chat system khi login
-    if (currentToken && !isOpen) {
-      const userId = chatService.getUserIdFromToken();
-      if (userId) {
-        // Tạo user trong chat system nếu chưa có (silent, không hiển thị lỗi)
-        chatService.createUser(userId, currentUsername || 'User').catch(() => {
-          // Ignore error nếu user đã tồn tại
-        });
-      }
-    }
+    // User đã được tạo trong chat system khi đăng ký
   }, [currentToken, currentUsername, isOpen]);
 
   useEffect(() => {
@@ -55,27 +46,19 @@ const SystemChatBox = () => {
 
     setLoading(true);
     try {
-      const userId = chatService.getUserIdFromToken();
+      const userId = localStorage.getItem("userId");
       if (!userId) {
         throw new Error('Không thể lấy thông tin user');
       }
 
-      // Tạo user trong chat system nếu chưa có
-    //   try {
-    //     await chatService.createUser(userId, clientUsername || 'User');
-    //   } catch (e) {
-    //     // User có thể đã tồn tại, ignore
-    //   }
-
-      chatService.createUser(userId, currentUsername || 'User').catch(() => {
-        // Ignore error nếu user đã tồn tại
-      });
-
+      // User đã được tạo trong chat system khi đăng ký
 
       // Tạo conversation với SYSTEM
       // SYSTEM user_id có thể là "SYSTEM" hoặc một ID cụ thể
-      const systemUserId = 'ADMIN1764487807882';
-      const conversation = await chatService.createDirectConversation(systemUserId);
+      const systemUserId = "ADMIN1765353220494";
+      const conversation = await chatService.createDirectConversation(
+        systemUserId
+      );
       setConversationId(conversation._id || conversation.id);
     } catch (error) {
       console.error('Error creating system conversation:', error);

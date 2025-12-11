@@ -30,6 +30,7 @@ const AdminLogin = () => {
           res.data.data?.user?.email ||
           "Admin";
         localStorage.setItem("adminUsername", usernameValue);
+        localStorage.setItem("adminId", res.data.data?.user?.id)
 
         window.location.href = "/dashboard";
 

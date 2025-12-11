@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Base URL cho chat API
 const CHAT_API_URL = import.meta.env.VITE_CHAT_API_URL || 'http://127.0.0.1:3000/api';
 
 class AdminChatService {
@@ -13,25 +12,22 @@ class AdminChatService {
     return localStorage.getItem('adminToken');
   }
 
-  // Lấy user_id từ token (decode JWT)
-  getUserIdFromToken() {
-    const token = this.getToken();
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.userId || payload.user_id;
-    } catch (e) {
-      console.error('Error decoding token:', e);
-      return null;
-    }
-  }
+  // // Lấy user_id từ token (decode JWT)
+  // getUserIdFromToken() {
+  //   const token = this.getToken();
+  //   if (!token) return null;
+  //   try {
+  //     const payload = JSON.parse(atob(token.split('.')[1]));
+  //     return payload.userId || payload.user_id;
+  //   } catch (e) {
+  //     console.error('Error decoding token:', e);
+  //     return null;
+  //   }
+  // }
 
-  // Cache để tránh tạo user nhiều lần
   _creatingUsers = new Set();
 
-  // Tạo user trong chat system (nếu chưa có)
   async createUser(userId, username) {
-    // Nếu đang trong quá trình tạo user này, đợi
     if (this._creatingUsers.has(userId)) {
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -39,19 +35,15 @@ class AdminChatService {
         }, 100);
       });
     }
-
-    // Đánh dấu đang tạo
     this._creatingUsers.add(userId);
 
     try {
       const res = await axios.post(`${this.baseURL}/users/create`, {
         user_id: userId,
         username: username
-        // role sẽ được tự động parse từ user_id prefix (ADMINxxx)
       });
       return res.data;
     } catch (error) {
-      // Nếu lỗi duplicate key (user đã tồn tại), coi như thành công
       const errorMessage = error.response?.data?.message || error.message || '';
       if (error.response?.status === 400 || 
           error.response?.status === 409 ||
@@ -63,7 +55,6 @@ class AdminChatService {
       console.warn('Error creating user in chat system (non-critical):', errorMessage);
       return { status: 'success', message: 'User creation attempted' };
     } finally {
-      // Xóa khỏi set sau 1 giây
       setTimeout(() => {
         this._creatingUsers.delete(userId);
       }, 1000);

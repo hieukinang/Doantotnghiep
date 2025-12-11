@@ -28,7 +28,7 @@ const ChatManagement = () => {
   useEffect(() => {
     // Tự động tạo user trong chat system nếu chưa có
     const initAdminUser = async () => {
-      const userId = adminChatService.getUserIdFromToken();
+      const userId = localStorage.getItem('adminId');
       const username = localStorage.getItem('adminUsername') || 'Admin';
 
       if (!userId) {
@@ -37,18 +37,18 @@ const ChatManagement = () => {
         return;
       }
 
-      try {
-        // Tạo user trong chat system (sẽ tự động handle duplicate)
-        await adminChatService.createUser(userId, username);
-        // Đợi một chút để đảm bảo user đã được tạo
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        // Sau đó mới fetch conversations
-        fetchConversations();
-      } catch (error) {
-        // Nếu vẫn lỗi, thử fetch conversations (có thể user đã tồn tại)
-        console.warn('Could not create admin user in chat system:', error);
-        setTimeout(() => fetchConversations(), 500);
-      }
+//       try {
+//         // Tạo user trong chat system (sẽ tự động handle duplicate)
+//         await adminChatService.createUser(userId, username);
+//         // Đợi một chút để đảm bảo user đã được tạo
+//         await new Promise((resolve) => setTimeout(resolve, 300));
+//         // Sau đó mới fetch conversations
+//         fetchConversations();
+//       } catch (error) {
+//         // Nếu vẫn lỗi, thử fetch conversations (có thể user đã tồn tại)
+//         console.warn('Could not create admin user in chat system:', error);
+//         setTimeout(() => fetchConversations(), 500);
+//       }
     };
 
     initAdminUser();
@@ -56,7 +56,7 @@ const ChatManagement = () => {
 
   // Khởi tạo socket.io client cho admin
   useEffect(() => {
-    const token = adminChatService.getToken();
+    const token = localStorage.getItem('adminToken');
     if (!token) return;
 
     const s = getAdminChatSocket();
@@ -171,23 +171,22 @@ const ChatManagement = () => {
         'Không thể tải danh sách cuộc trò chuyện';
 
       // Nếu lỗi là user chưa tồn tại, thử tạo lại user (Giữ nguyên logic này)
-      if (
-        errorMessage.includes('does no longer exist') ||
-        errorMessage.includes('Unauthorized')
-      ) {
-        const userId = adminChatService.getUserIdFromToken();
-        const username = localStorage.getItem('adminUsername') || 'Admin';
-        if (userId) {
-          try {
-            await adminChatService.createUser(userId, username);
-            // Thử lại sau khi tạo user
-            setTimeout(() => fetchConversations(), 500);
-            return;
-          } catch (createError) {
-            console.error("Error creating admin user:", createError);
-          }
-        }
-      }
+//       if (
+//         errorMessage.includes('does no longer exist') ||
+//         errorMessage.includes('Unauthorized')
+//       ) {
+//         const userId = adminChatService.getUserIdFromToken();
+//         const username = localStorage.getItem('adminUsername') || 'Admin';
+//         if (userId) {
+//           try {
+//             await adminChatService.createUser(userId, username);
+//             setTimeout(() => fetchConversations(), 500);
+//             return;
+//           } catch (createError) {
+//             console.error("Error creating admin user:", createError);
+//           }
+//         }
+//       }
 
       alert(errorMessage);
     } finally {
@@ -303,7 +302,7 @@ const ChatManagement = () => {
     }
 
     // Direct conversation - lấy tên của participant khác
-    const currentUserId = adminChatService.getUserIdFromToken();
+    const currentUserId = localStorage.getItem('adminId');
     const otherParticipant = conversation.participants?.find(
       (p) =>
         (typeof p.user_id === "string" ? p.user_id : p.user_id?.user_id) !==
@@ -474,7 +473,7 @@ const ChatManagement = () => {
               senderUsername = message.sender.username;
             }
 
-            const currentAdminId = adminChatService.getUserIdFromToken();
+            const currentAdminId = localStorage.getItem('adminId');
             const isAdmin = senderId === currentAdminId; // So sánh chính xác admin hiện tại
 
                     return (
@@ -498,7 +497,7 @@ const ChatManagement = () => {
                               ? "Admin"
                               : senderId === "ADMIN" || senderId?.includes("ADMIN")
                               ? "Hệ thống"
-                              : senderUsername || "Người dùng"} // Hiển thị username
+                              : senderUsername || "Người dùng"}
                           </div>
                           <div className="text-sm">{message.content}</div> {/* Tin nhắn nhỏ hơn */}
                           {message.attachments &&
