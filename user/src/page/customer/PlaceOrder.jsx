@@ -5,9 +5,6 @@ import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-  const backendURL =
-    import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
-const API_BASE_URL = "http://127.0.0.1:5000/api";
 const format = (v) => (v ? v.toLocaleString("vi-VN") : "0");
 
 const PlaceOrder = () => {
@@ -23,6 +20,10 @@ const PlaceOrder = () => {
 
   const buyNowItems = JSON.parse(localStorage.getItem("buyNowItems") || "[]");
   const isBuyNowMode = buyNowItems.length > 0;
+
+  // State cho tên cửa hàng
+  const [storeNames, setStoreNames] = useState({});
+  const [loadingStores, setLoadingStores] = useState(true);
 
   // Chuẩn bị orderItems
   let orderItems = [];
@@ -75,6 +76,43 @@ const PlaceOrder = () => {
       return;
     }
   }, [clientToken, cartItems, navigate]);
+
+  // ------------------- FETCH TÊN CỬA HÀNG (SỬA LẠI) -------------------
+  useEffect(() => {
+    const fetchStoreNames = async () => {
+      // Lấy danh sách storeId duy nhất
+      const storeIds = [...new Set(orderItems.map(item => item.storeId).filter(Boolean))];
+      
+      if (storeIds.length === 0) {
+        setLoadingStores(false);
+        return;
+      }
+
+      setLoadingStores(true);
+      const newStoreNames = {};
+      
+      // Fetch tất cả store names song song
+      await Promise.all(
+        storeIds.map(async (storeId) => {
+          try {
+            const res = await axios.get(`${backendURL}/stores/${storeId}`);
+            const storeName = res.data?.data?.name || "Cửa hàng méo xác định";
+            newStoreNames[storeId] = storeName;
+          } catch (err) {
+            console.error(`❌ Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
+            newStoreNames[storeId] = "Cửa hàng néo xác định";
+          }
+        })
+      );
+      
+      setStoreNames(newStoreNames);
+      setLoadingStores(false);
+    };
+
+    if (orderItems.length > 0) {
+      fetchStoreNames();
+    }
+  }, [orderItems.length, backendURL]); // Chỉ chạy lại khi số lượng orderItems thay đổi
 
   // ------------------- LOGIC QUANTITY -------------------
   const handleQtyChange = (id, value) => {
@@ -353,7 +391,7 @@ const PlaceOrder = () => {
     const grouped = {};
     orderItems.forEach((item) => {
       const storeId = item.storeId || `product-${item.product_variantId}`;
-      const storeName = item.storeName || "Cửa hàng không xác định";
+      const storeName = storeNames[storeId] || item.storeName || "Đang tải tên cửa hàng...";
 
       if (!grouped[storeId]) {
         grouped[storeId] = {
@@ -455,6 +493,7 @@ const PlaceOrder = () => {
         await fetchMyCart();
         localStorage.removeItem("checkedItems");
         localStorage.removeItem("quantities");
+        localStorage.removeItem("buyNowItems");
         localStorage.removeItem("appliedStoreCoupons");
         localStorage.removeItem("appliedCartCoupon");
         navigate("/");

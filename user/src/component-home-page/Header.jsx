@@ -40,6 +40,11 @@ const Header = () => {
     setIsToggleOpen(false);
   };
 
+  const handleGetFollowedShop = () => {
+    navigate("/followed-shops");
+    setIsToggleOpen(false);
+  }
+
   // Tìm kiếm và hiển thị dropdown
   const handleSearchInput = async (value) => {
     setSearchQuery(value);
@@ -167,6 +172,12 @@ const Header = () => {
                         className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
                       >
                         Đơn hàng của tôi
+                      </button>
+                      <button
+                        onClick={handleGetFollowedShop}
+                        className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
+                      >
+                        Đang theo dõi
                       </button>
                     </div>
                   )}
