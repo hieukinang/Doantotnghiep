@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import AdminChatService from "../services/chatService";
 import {
   AccountCircle,
   Lock,
@@ -86,9 +87,35 @@ const CreateAccount = () => {
         else if (value !== undefined && value !== null && value !== "") data.append(key, value);
       });
 
-      await axios.post(url, data);
+      const res = await axios.post(url, data);
 
-      setSuccessMessage(`Tài khoản "${formData.username}" đã được tạo thành công.`);
+      if (res?.status === "success" || res.status === "success") {
+        // 🎯 Tạo user trong chat system ngay sau khi tạo tài khoản thành công
+        if (res.data?.newAdmin) {
+          console.log("cdscd", res.data?.newAdmin)
+          const adminData = res.data.newAdmin;
+          const username = adminData.username || adminData.email || "Admin";
+          const userId = adminData.id;
+
+          try {
+            await AdminChatService.createUser(userId, username);
+            console.log("✅ Admin đã được tạo trong chat system");
+          } catch (chatError) {
+            console.warn(
+              "⚠️ Không thể tạo admin trong chat system:",
+              chatError
+            );
+            // Không hiển thị lỗi cho user vì đây không phải lỗi critical
+          }
+        }
+        else {
+          console.log("lỗi")
+        }
+      }
+
+      setSuccessMessage(
+        `Tài khoản "${formData.username}" đã được tạo thành công.`
+      );
       setFormData({
         username: "",
         password: "",

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ChatService from '../../services/chatService';
 import { getChatSocket } from '../../services/chatSocket';
-import { 
-  Chat as ChatIcon, 
+import {
+  Chat as ChatIcon,
   Send as SendIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon
@@ -22,27 +22,17 @@ const Chat = () => {
   useEffect(() => {
     // Tự động tạo user trong chat system nếu chưa có
     const initAdminUser = async () => {
-      const userId = ChatService.getUserIdFromToken();
-      const username = localStorage.getItem('storeName') || 'Store';
-      
+      const userId = localStorage.getItem('storeId');
+      const username = localStorage.getItem("storeName") || "Store";
+
       if (!userId) {
         console.error('Cannot get userId from token');
         alert('Không thể xác thực. Vui lòng đăng nhập lại.');
         return;
       }
 
-      try {
-        // Tạo user trong chat system (sẽ tự động handle duplicate)
-        await ChatService.createUser(userId, username);
-        // Đợi một chút để đảm bảo user đã được tạo
-        await new Promise(resolve => setTimeout(resolve, 300));
-        // Sau đó mới fetch conversations
-        fetchConversations();
-      } catch (error) {
-        // Nếu vẫn lỗi, thử fetch conversations (có thể user đã tồn tại)
-        console.warn('Could not create admin user in chat system:', error);
-        setTimeout(() => fetchConversations(), 500);
-      }
+      // User đã được tạo trong chat system khi đăng ký
+      fetchConversations();
     };
 
     initAdminUser();
@@ -50,7 +40,7 @@ const Chat = () => {
 
   // Socket.io client cho trang chat của seller
   useEffect(() => {
-    const token = ChatService.getToken?.();
+    const token = localStorage.getItem('sellerToken');
     if (!token) return;
 
     const s = getChatSocket();
@@ -143,25 +133,12 @@ const Chat = () => {
       const data = await ChatService.getAllConversations();
       setConversations(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Không thể tải danh sách cuộc trò chuyện';
-      
-      // Nếu lỗi là user chưa tồn tại, thử tạo lại user
-      if (errorMessage.includes('does no longer exist') || errorMessage.includes('Unauthorized')) {
-        const userId = ChatService.getUserIdFromToken();
-        const username = localStorage.getItem('storeName') || 'Store';
-        if (userId) {
-          try {
-            await ChatService.createUser(userId, username);
-            // Thử lại sau khi tạo user
-            setTimeout(() => fetchConversations(), 500);
-            return;
-          } catch (createError) {
-            console.error('Error creating admin user:', createError);
-          }
-        }
-      }
-      
+      console.error("Error fetching conversations:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể tải danh sách cuộc trò chuyện";
+
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -256,29 +233,29 @@ const Chat = () => {
   };
 
   const getConversationTitle = (conversation) => {
-    if (conversation.type === 'group') {
-      return conversation.name || 'Nhóm chat';
-    }
-    
+
     // Direct conversation - lấy tên của participant khác
-    const currentUserId = ChatService.getUserIdFromToken();
+    const currentUserId = localStorage.getItem('userId');
     const otherParticipant = conversation.participants?.find(
-      p => (typeof p.user_id === 'string' ? p.user_id : p.user_id?.user_id) !== currentUserId
+      (p) =>
+        (typeof p.user_id === "string" ? p.user_id : p.user_id?.user_id) !==
+        currentUserId
     );
-    
+
     if (otherParticipant) {
-      const userId = typeof otherParticipant.user_id === 'string' 
-        ? otherParticipant.user_id 
-        : otherParticipant.user_id?.user_id;
-      
+      const userId =
+        typeof otherParticipant.user_id === "string"
+          ? otherParticipant.user_id
+          : otherParticipant.user_id?.user_id;
+
       // Kiểm tra nếu là SYSTEM
       if (userId === 'SYSTEM' || userId?.includes('SYSTEM')) {
         return 'Hệ thống';
       }
-      
+
       return otherParticipant.username || userId || 'Người dùng';
     }
-    
+
     return 'Cuộc trò chuyện';
   };
 
@@ -297,27 +274,27 @@ const Chat = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Danh sách conversations */}
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
-          <button
-            onClick={fetchConversations}
-            className="p-2 hover:bg-gray-100 rounded transition"
-            title="Làm mới"
-          >
-            <RefreshIcon style={{ fontSize: 20 }} />
-          </button>
-        </div>
+            <button
+              onClick={fetchConversations}
+              className="p-2 hover:bg-gray-100 rounded transition"
+              title="Làm mới"
+            >
+              <RefreshIcon style={{ fontSize: 20 }} />
+            </button>
+          </div>
 
-        {/* Nút chat với hệ thống */}
-        <div className="p-3 border-b border-gray-100">
-          <button
-            onClick={handleChatWithSystem}
-            className="w-full text-sm px-3 py-2 rounded-lg bg-[#116AD1] text-white hover:bg-[#0d5ba8] transition"
-          >
-            Nhắn với hệ thống
-          </button>
-        </div>
+          {/* Nút chat với hệ thống */}
+          <div className="p-3 border-b border-gray-100">
+            <button
+              onClick={handleChatWithSystem}
+              className="w-full text-sm px-3 py-2 rounded-lg bg-[#116AD1] text-white hover:bg-[#0d5ba8] transition"
+            >
+              Nhắn với hệ thống
+            </button>
+          </div>
 
           {/* Conversations List */}
           <div className="flex-1 overflow-y-auto">
@@ -329,7 +306,7 @@ const Chat = () => {
               conversations.map((conv) => {
                 const isSelected = selectedConversation && 
                   (selectedConversation._id === conv._id || selectedConversation.id === conv.id);
-                
+
                 return (
                   <div
                     key={conv._id || conv.id}
@@ -430,17 +407,17 @@ const Chat = () => {
                           </div>
                           <div className="text-sm">{message.content}</div>
                           {message.attachments && message.attachments.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              {message.attachments.map((url, idx) => (
-                                <img
-                                  key={idx}
-                                  src={url}
-                                  alt={`Attachment ${idx + 1}`}
-                                  className="max-w-full h-auto rounded"
-                                />
-                              ))}
-                            </div>
-                          )}
+                              <div className="mt-2 space-y-1">
+                                {message.attachments.map((url, idx) => (
+                                  <img
+                                    key={idx}
+                                    src={url}
+                                    alt={`Attachment ${idx + 1}`}
+                                    className="max-w-full h-auto rounded"
+                                  />
+                                ))}
+                              </div>
+                            )}
                           <div className="text-xs mt-1 opacity-70">
                             {formatTime(message.sent_at || message.createdAt)}
                           </div>

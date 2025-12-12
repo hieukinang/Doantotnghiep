@@ -36,6 +36,9 @@ const Sidebar = ({ onClose }) => {
       <TouchableOpacity onPress={() => handleNavigate("TakeanOrder")}>
         <Text style={styles.sidebarItem}>Nhận thêm đơn hàng</Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => handleNavigate("ChatList")}>
+        <Text style={styles.sidebarItem}>Tin nhắn</Text>
+      </TouchableOpacity>
       <TouchableOpacity onPress={() => handleNavigate("Profile")}>
         <Text style={styles.sidebarItem}>Hồ sơ cá nhân</Text>
       </TouchableOpacity>

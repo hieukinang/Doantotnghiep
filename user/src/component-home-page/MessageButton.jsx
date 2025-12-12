@@ -23,20 +23,11 @@ const MessageButton = ({ userId, userType, userName, userImage }) => {
 
     setLoading(true);
     try {
-      const currentUserId = chatService.getUserIdFromToken();
+      const currentUserId = localStorage.getItem('userId');
       if (!currentUserId) {
         throw new Error('Không thể lấy thông tin user');
       }
 
-      // Tạo user trong chat system nếu chưa có
-      try {
-        await chatService.createUser(currentUserId, clientUsername || 'User');
-      } catch (e) {
-        // User có thể đã tồn tại, ignore
-      }
-
-      chatService.createUser(currentUserId, clientUsername || 'User').catch(() => {
-      });
       // Tạo hoặc lấy conversation
       const conversation = await chatService.createDirectConversation(userId);
       setConversationId(conversation._id || conversation.id);

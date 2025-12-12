@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 import chatService from './chatService';
 
 const CHAT_SOCKET_URL =
-  import.meta.env.VITE_CHAT_API_URL || 'http://127.0.0.1:3000/api';
+  import.meta.env.VITE_CHAT_SOCKET_URL || 'http://127.0.0.1:3000/api';
 
 let socket = null;
 
@@ -11,7 +11,7 @@ let socket = null;
  * Lấy token từ chatService (đã xử lý chọn clientToken/sellerToken theo ngữ cảnh).
  */
 export function getChatSocket() {
-  const token = chatService.getToken();
+  const token = localStorage.getItem('clientToken');
   if (!token) {
     return null;
   }

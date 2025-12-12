@@ -219,7 +219,7 @@ export default function TakeanOrder() {
                                 </View>
                                 {/* Thông tin người nhận */}
                                 <View style={styles.receiverInfo}>
-                                    <Text style={styles.receiverName}>👤 {order.receiver_name || 'Khách hàng'}</Text>
+                                    <Text style={styles.receiverName}>👤 {order.OrderClient.username || 'Khách hàng'}</Text>
                                     {order.receiver_phone && (
                                         <Text style={styles.receiverPhone}>📞 {order.receiver_phone}</Text>
                                     )}

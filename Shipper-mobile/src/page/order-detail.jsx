@@ -98,6 +98,22 @@ const OrderDetail = () => {
                     </View>
                 </View>
 
+                {/* Nút liên hệ khách hàng */}
+                <TouchableOpacity
+                    style={styles.buttonChat}
+                    onPress={() => {
+                        // TODO: Thay customerId bằng ID thực từ order
+                        // navigation.navigate('ChatRoom', { 
+                        //   conversationId: null, 
+                        //   targetUserId: order.customerId,
+                        //   otherUser: { username: order.receiver_name }
+                        // });
+                        navigation.navigate('ChatList');
+                    }}
+                >
+                    <Text style={styles.buttonChatText}>💬 Liên hệ khách hàng</Text>
+                </TouchableOpacity>
+
                 {/* Nút hành động */}
                 <View style={styles.buttonRow}>
                     <TouchableOpacity
@@ -196,6 +212,14 @@ const styles = StyleSheet.create({
     totalLabel: { fontSize: 15, fontWeight: "bold" },
     totalPrice: { fontSize: 15, fontWeight: "bold", color: "#116AD1" },
 
+    buttonChat: {
+        backgroundColor: "#E8F5E9",
+        paddingVertical: 14,
+        borderRadius: 8,
+        alignItems: "center",
+        marginBottom: 12,
+    },
+    buttonChatText: { color: "#2E7D32", fontWeight: "bold", fontSize: 15 },
     buttonRow: { flexDirection: "row", justifyContent: "space-between" },
     buttonPrimary: {
         flex: 1,

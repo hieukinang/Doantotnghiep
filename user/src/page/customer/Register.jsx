@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import chatService from "../../services/chatService";
 import logo from "../../assets/home/logo.svg";
 import Footer from "../../component-home-page/Footer";
 import image from "../../../public/register.png";
@@ -262,6 +263,21 @@ const Register = () => {
       });
 
       if (res.data?.status === "success") {
+        // 🎯 Tạo user trong chat system ngay sau khi đăng ký thành công
+        if (res.data?.token && res.data?.data?.user) {
+          const userData = res.data.data.user;
+          const username = userData.username || userData.email || "Client";
+          const userId = userData.id;
+
+          try {
+            await chatService.createUser(userId, username);
+            console.log("✅ User đã được tạo trong chat system");
+          } catch (chatError) {
+            console.warn("⚠️ Không thể tạo user trong chat system:", chatError);
+            // Không hiển thị lỗi cho user vì đây không phải lỗi critical
+          }
+        }
+
         toast.success("Đăng ký thành công!");
         setTimeout(() => navigate("/login"), 1500);
       } else {
@@ -273,7 +289,7 @@ const Register = () => {
       if (backendErrors?.length > 0) {
         const field = backendErrors[0].param; // email / phone
         let msg = backendErrors[0].msg;
-        if (msg.toLowerCase().includes("exist") && field === "email" ) {
+        if (msg.toLowerCase().includes("exist") && field === "email") {
           msg = "Email đã tồn tại";
         } else if (msg.toLowerCase().includes("exist") && field === "phone") {
           msg = "Số điện thoại đã tồn tại";

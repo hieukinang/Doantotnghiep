@@ -324,10 +324,10 @@ const OrdersSeller = () => {
         <table className="w-full text-sm table-fixed">
           <thead>
             <tr className="text-left bg-gray-50">
-              <th className="px-4 py-2 w-[220px]">Mã đơn</th>
-              <th className="px-4 py-2 w-[220px]">Ngày</th>
-              <th className="px-4 py-2 w-[220px]">Tổng tiền</th>
-              <th className="px-4 py-2 w-[240px]">Trạng thái</th>
+              <th className="px-4 py-2 w-[120px]">Mã đơn</th>
+              <th className="px-4 py-2 w-[120px]">Ngày</th>
+              <th className="px-4 py-2 w-[120px]">Tổng tiền</th>
+              <th className="px-4 py-2 w-[140px]">Trạng thái</th>
               <th className="px-4 py-2 text-right">Thao tác</th>
             </tr>
           </thead>
