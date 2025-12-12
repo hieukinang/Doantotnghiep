@@ -40,7 +40,10 @@ export function initChatSocket(token) {
   });
 
   socket.on('connect_error', (err) => {
-    console.error('Chat socket connect error:', err?.message || err);
+    // Chỉ log warning, không dùng error để tránh hiển thị red box trên màn hình
+    if (__DEV__) {
+      console.warn('Chat socket connect error:', err?.message || err);
+    }
   });
 
   socket.on('disconnect', (reason) => {

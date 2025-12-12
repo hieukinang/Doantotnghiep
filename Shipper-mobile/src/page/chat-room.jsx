@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
   Image,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,44 +20,60 @@ import { useAuth } from '../shipper-context/auth-context';
 import { getChatSocket, joinRoom, sendTyping, markAsRead } from '../shipper-context/chatConfig';
 
 export default function ChatRoomScreen({ navigation, route }) {
-  const { conversationId, otherUser } = route.params;
-  const { getMessages, sendMessage } = useChat();
+  const { conversationId: initialConversationId, otherUser, targetUserId } = route.params;
+  const { getMessages, sendMessage, openDirectChat } = useChat();
   const { userId } = useAuth();
   
+  const [conversationId, setConversationId] = useState(initialConversationId);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!initialConversationId);
   const [sending, setSending] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [otherTyping, setOtherTyping] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   
   const flatListRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
+  // Lắng nghe keyboard show/hide (cho Android)
   useEffect(() => {
-    loadMessages();
-    setupSocket();
-    
-    return () => {
-      // Cleanup typing timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        // Scroll xuống cuối khi keyboard hiện
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
       }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
     };
+  }, []);
+
+  // Load messages khi có conversationId
+  useEffect(() => {
+    if (conversationId) {
+      loadMessages();
+    } else {
+      setLoading(false);
+    }
   }, [conversationId]);
 
-  const loadMessages = async () => {
-    setLoading(true);
-    try {
-      const data = await getMessages(conversationId);
-      setMessages(data || []);
-    } catch (error) {
-      console.error('Load messages error:', error);
-    }
-    setLoading(false);
-  };
-
-  const setupSocket = () => {
+  // Setup socket riêng biệt
+  useEffect(() => {
+    if (!conversationId) return;
+    
     const socket = getChatSocket();
     if (!socket) return;
 
@@ -77,7 +93,6 @@ export default function ChatRoomScreen({ navigation, route }) {
       }
     };
 
-
     // Lắng nghe typing
     const handleTyping = ({ roomId, userId: typingUserId, isTyping }) => {
       if (roomId === conversationId && typingUserId !== userId) {
@@ -88,10 +103,29 @@ export default function ChatRoomScreen({ navigation, route }) {
     socket.on('new_message', handleNewMessage);
     socket.on('typing', handleTyping);
 
+    // Cleanup khi unmount hoặc conversationId thay đổi
     return () => {
       socket.off('new_message', handleNewMessage);
       socket.off('typing', handleTyping);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
+  }, [conversationId, userId]);
+
+  const loadMessages = async () => {
+    if (!conversationId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await getMessages(conversationId);
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Load messages error:', error);
+    }
+    setLoading(false);
   };
 
   const handleSend = async () => {
@@ -100,11 +134,34 @@ export default function ChatRoomScreen({ navigation, route }) {
 
     setSending(true);
     try {
-      await sendMessage(conversationId, text, attachments);
+      // Nếu chưa có conversationId, tạo conversation mới với tin nhắn đầu tiên
+      if (!conversationId && targetUserId) {
+        const result = await openDirectChat(targetUserId, text);
+        if (result?.conversation) {
+          const newConvId = result.conversation._id;
+          setConversationId(newConvId);
+          
+          // Nếu API trả về message, hiển thị luôn thay vì load lại
+          if (result.message) {
+            setMessages([result.message]);
+          }
+          
+          // Setup socket cho conversation mới
+          const socket = getChatSocket();
+          if (socket) {
+            joinRoom(newConvId, (res) => {
+              if (res?.error) console.error('Join room error:', res.error);
+            });
+          }
+        }
+      } else if (conversationId) {
+        await sendMessage(conversationId, text, attachments);
+        sendTyping(conversationId, false);
+      }
       setInputText('');
       setAttachments([]);
-      sendTyping(conversationId, false);
     } catch (error) {
+      console.error('Send message error:', error);
       Alert.alert('Lỗi', 'Không thể gửi tin nhắn. Vui lòng thử lại.');
     }
     setSending(false);
@@ -113,18 +170,20 @@ export default function ChatRoomScreen({ navigation, route }) {
   const handleTextChange = (text) => {
     setInputText(text);
     
-    // Gửi typing indicator
-    sendTyping(conversationId, true);
-    
-    // Clear timeout cũ
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
+    // Chỉ gửi typing indicator khi đã có conversationId
+    if (conversationId) {
+      sendTyping(conversationId, true);
+      
+      // Clear timeout cũ
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      // Set timeout để tắt typing sau 2s
+      typingTimeoutRef.current = setTimeout(() => {
+        sendTyping(conversationId, false);
+      }, 2000);
     }
-    
-    // Set timeout để tắt typing sau 2s
-    typingTimeoutRef.current = setTimeout(() => {
-      sendTyping(conversationId, false);
-    }, 2000);
   };
 
   const pickImage = async () => {
@@ -252,11 +311,11 @@ export default function ChatRoomScreen({ navigation, route }) {
         </View>
       )}
 
-      {/* Input */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
+      {/* Input - với padding bottom động theo keyboard trên Android */}
+      <View style={[
+        styles.inputWrapper, 
+        Platform.OS === 'android' && keyboardHeight > 0 && { paddingBottom: keyboardHeight }
+      ]}>
         <View style={styles.inputContainer}>
           <TouchableOpacity 
             style={styles.attachButton}
@@ -292,7 +351,7 @@ export default function ChatRoomScreen({ navigation, route }) {
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -430,6 +489,9 @@ const styles = StyleSheet.create({
     right: -6,
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
+  },
+  inputWrapper: {
+    backgroundColor: '#FFFFFF',
   },
   inputContainer: {
     flexDirection: 'row',

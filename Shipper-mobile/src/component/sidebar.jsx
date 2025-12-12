@@ -2,12 +2,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useChat } from '../shipper-context/ChatContext';
 
 const { width } = Dimensions.get('window');
 const HEADER_HEIGHT = 80;
 
 const Sidebar = ({ onClose }) => {
   const navigation = useNavigation();
+  const { unreadCount } = useChat();
 
   const handleNavigate = (screen) => {
     navigation.navigate(screen);
@@ -18,7 +20,6 @@ const Sidebar = ({ onClose }) => {
     <View style={styles.sidebar}>
       <View style={styles.sidebarHeader}>
         <Text style={styles.sidebarTitle}>Menu</Text>
-
       </View>
 
       {/* Items */}
@@ -36,9 +37,21 @@ const Sidebar = ({ onClose }) => {
       <TouchableOpacity onPress={() => handleNavigate("TakeanOrder")}>
         <Text style={styles.sidebarItem}>Nhận thêm đơn hàng</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => handleNavigate("ChatList")}>
+      
+      <TouchableOpacity 
+        style={styles.menuItemRow} 
+        onPress={() => handleNavigate("ChatList")}
+      >
         <Text style={styles.sidebarItem}>Tin nhắn</Text>
+        {unreadCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
+      
       <TouchableOpacity onPress={() => handleNavigate("Profile")}>
         <Text style={styles.sidebarItem}>Hồ sơ cá nhân</Text>
       </TouchableOpacity>
@@ -69,6 +82,25 @@ const styles = StyleSheet.create({
   sidebarTitle: { fontSize: 18, fontWeight: 'bold' },
   backText: { fontSize: 16, paddingVertical: 10, color: '#116AD1' },
   sidebarItem: { fontSize: 16, paddingVertical: 10, color: '#116AD1' },
+  menuItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  badge: {
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
 });
 
 export default Sidebar;

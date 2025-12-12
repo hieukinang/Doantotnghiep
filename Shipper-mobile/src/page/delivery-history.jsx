@@ -130,7 +130,7 @@ const DeliveryHistory = () => {
               <TouchableOpacity 
                 key={order.id} 
                 style={styles.orderCard}
-                onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}
+                onPress={() => navigation.navigate('OrderDetail', { order })}
               >
                 <View style={styles.orderHeader}>
                   <Text style={styles.orderId}>#{order.id}</Text>

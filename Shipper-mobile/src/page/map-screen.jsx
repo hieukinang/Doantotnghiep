@@ -21,6 +21,10 @@ import Sidebar from '../component/sidebar';
 import Popup from '../component/popup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../shipper-context/config';
+import { useChat } from '../shipper-context/ChatContext';
+import { useAuth } from '../shipper-context/auth-context';
+import { Ionicons } from '@expo/vector-icons';
+import { disconnectChatSocket } from '../shipper-context/chatConfig';
 
 const MIN_HEIGHT = 300;
 const MAX_HEIGHT = 500;
@@ -29,6 +33,8 @@ const LOCATIONIQ_API_KEY = 'pk.9d04aa17eed0056b2789ebb797f03cf8';
 
 const MapScreen = () => {
   const navigation = useNavigation();
+  const { conversations, getUnreadCountByUser, clearUnreadByUser, unreadCount } = useChat();
+  const { signOut, token } = useAuth();
   const [showSidebar, setShowSidebar] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [orders, setOrders] = useState([]);
@@ -217,6 +223,29 @@ const MapScreen = () => {
     setShowPopup(false);
   };
 
+  // Đăng xuất
+  const handleLogout = async () => {
+    try {
+      // Gọi API logout
+      await axios.post(
+        `${config.backendUrl}/shippers/logout`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      console.warn('Logout API error:', error.message);
+    } finally {
+      // Ngắt kết nối chat socket
+      disconnectChatSocket();
+      // Clear auth state và chuyển về trang đăng nhập
+      await signOut();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+  };
+
   const confirmCancel = (orderId) => {
     Alert.alert(
       "Xác nhận",
@@ -355,8 +384,15 @@ const MapScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={toggleSidebar}>
+        <TouchableOpacity onPress={toggleSidebar} style={styles.menuBtnContainer}>
           <Text style={styles.menuBtn}>☰</Text>
+          {unreadCount > 0 && (
+            <View style={styles.headerBadge}>
+              <Text style={styles.headerBadgeText}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>KOHI MALL</Text>
@@ -430,7 +466,7 @@ const MapScreen = () => {
               <TouchableOpacity 
                 key={order.id} 
                 style={styles.orderCard}
-                onPress={() => navigation.navigate('OrderDetail', { orderId: order.id })}
+                onPress={() => navigation.navigate('OrderDetail', { order })}
               >
                 <View style={styles.orderHeader}>
                   <Text style={styles.orderId}>#{order.id}</Text>
@@ -441,7 +477,52 @@ const MapScreen = () => {
                 
                 {/* Thông tin người nhận */}
                 <View style={styles.receiverInfo}>
-                  <Text style={styles.receiverName}>👤 {order.OrderClient.username || 'Khách hàng'}</Text>
+                  <View style={styles.receiverRow}>
+                    <Text style={styles.receiverName}>👤 {order.OrderClient?.username || 'Khách hàng'}</Text>
+                    {(() => {
+                      const clientId = order.clientId || order.OrderClient?.id;
+                      const clientIdStr = String(clientId);
+                      const unreadCount = getUnreadCountByUser(clientIdStr);
+                      
+                      return (
+                        <TouchableOpacity
+                          style={styles.chatButton}
+                          onPress={() => {
+                            const clientName = order.OrderClient?.username || 'Khách hàng';
+                            
+                            // Clear unread khi mở chat
+                            clearUnreadByUser(clientIdStr);
+                            
+                            const existingConv = conversations.find(conv =>
+                              conv.participants?.some(p => String(p.user_id) === clientIdStr)
+                            );
+
+                            if (existingConv) {
+                              navigation.navigate('ChatRoom', {
+                                conversationId: existingConv._id,
+                                otherUser: { user_id: clientIdStr, username: clientName }
+                              });
+                            } else {
+                              navigation.navigate('ChatRoom', {
+                                conversationId: null,
+                                targetUserId: clientIdStr,
+                                otherUser: { user_id: clientIdStr, username: clientName }
+                              });
+                            }
+                          }}
+                        >
+                          <Ionicons name="chatbubble-outline" size={18} color="#116AD1" />
+                          {unreadCount > 0 && (
+                            <View style={styles.unreadBadge}>
+                              <Text style={styles.unreadBadgeText}>
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                              </Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })()}
+                  </View>
                   {order.receiver_phone && (
                     <Text style={styles.receiverPhone}>📞 {order.receiver_phone}</Text>
                   )}
@@ -492,8 +573,8 @@ const MapScreen = () => {
           visible={showPopup}
           onClose={closeAll}
           items={[
-            { label: "Hồ sơ", onPress: () => console.log("Hồ sơ") },
-            { label: "Đăng xuất", onPress: () => console.log("Đăng xuất") },
+            { label: "Hồ sơ", onPress: () => navigation.navigate("Profile") },
+            { label: "Đăng xuất", onPress: handleLogout },
           ]}
         />
       )}
@@ -564,7 +645,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   headerTitle: { color: '#116AD1', fontSize: 20, fontWeight: 'bold' },
+  menuBtnContainer: {
+    position: 'relative',
+  },
   menuBtn: { fontSize: 22, color: '#116AD1' },
+  headerBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  headerBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
   mapContainer: {
     flex: 1,
     position: 'relative',
@@ -639,11 +740,39 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 10,
   },
+  receiverRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   receiverName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 4,
+    flex: 1,
+  },
+  chatButton: {
+    padding: 6,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 16,
+    position: 'relative',
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  unreadBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   receiverPhone: {
     fontSize: 13,
