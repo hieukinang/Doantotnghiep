@@ -203,8 +203,8 @@ const StoreProfile = () => {
                   {followLoading
                     ? "Đang xử lý..."
                     : isFollowing
-                    ? "Unfollow"
-                    : "Follow"}
+                    ? "Hủy theo dõi"
+                    : "Theo dõi"}
                 </button>
               </div>
             </div>
