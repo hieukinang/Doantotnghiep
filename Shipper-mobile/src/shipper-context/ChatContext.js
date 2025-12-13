@@ -10,10 +10,22 @@ export const ChatProvider = ({ children }) => {
   const [conversations, setConversations] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Đếm tin nhắn chưa đọc theo user_id: { "user123": 2, "user456": 1 }
+  const [unreadByUser, setUnreadByUser] = useState({});
 
-  // Khởi tạo socket khi có token
+  // Khởi tạo socket và load conversations khi có token
   useEffect(() => {
     if (token) {
+      // Load danh sách conversations ngay khi có token
+      (async () => {
+        try {
+          const data = await chatService.getConversations();
+          setConversations(data || []);
+        } catch (error) {
+          console.error('Auto load conversations error:', error);
+        }
+      })();
+
       const socket = initChatSocket(token);
       
       if (socket) {
@@ -35,6 +47,16 @@ export const ChatProvider = ({ children }) => {
                 : conv
             )
           );
+          
+          // Tăng số tin nhắn chưa đọc nếu không phải tin nhắn của mình
+          if (message.sender?.user_id !== userId) {
+            const senderUserId = String(message.sender?.user_id);
+            setUnreadByUser(prev => ({
+              ...prev,
+              [senderUserId]: (prev[senderUserId] || 0) + 1
+            }));
+            setUnreadCount(prev => prev + 1);
+          }
         });
 
         // Lắng nghe conversation mới
@@ -123,16 +145,36 @@ export const ChatProvider = ({ children }) => {
     return conversation.participants.find(p => p.user_id !== userId);
   }, [userId]);
 
+  // Lấy số tin nhắn chưa đọc của một user cụ thể
+  const getUnreadCountByUser = useCallback((targetUserId) => {
+    return unreadByUser[String(targetUserId)] || 0;
+  }, [unreadByUser]);
+
+  // Đánh dấu đã đọc tin nhắn của một user
+  const clearUnreadByUser = useCallback((targetUserId) => {
+    const userIdStr = String(targetUserId);
+    setUnreadByUser(prev => {
+      const count = prev[userIdStr] || 0;
+      setUnreadCount(c => Math.max(0, c - count));
+      const newState = { ...prev };
+      delete newState[userIdStr];
+      return newState;
+    });
+  }, []);
+
   const value = {
     conversations,
     isConnected,
     unreadCount,
+    unreadByUser,
     loadConversations,
     openDirectChat,
     sendMessage,
     getMessages,
     leaveConversation,
     getOtherParticipant,
+    getUnreadCountByUser,
+    clearUnreadByUser,
     socket: getChatSocket(),
   };
 

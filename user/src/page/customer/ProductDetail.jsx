@@ -1,14 +1,15 @@
-import React, { useState, useContext, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useState, useContext, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import MessageButton from "../../component-home-page/MessageButton";
+
 const ProductDetail = () => {
   const { productId } = useParams();
-  const { product, getProduct, backendURL } = useContext(ShopContext);
+  const { product, getProduct, backendURL, fetchMyCart } = useContext(ShopContext);
   const navigate = useNavigate();
   const [active, setActive] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -118,41 +119,53 @@ const ProductDetail = () => {
     const newSelected = { ...selectedOptions, [attrName]: value };
     setSelectedOptions(newSelected);
 
-    // Tìm variant phù hợp
-    const matched = product.ProductVariants?.find(v =>
-      v.ProductVariantOptions?.every(opt => {
-        if (opt.value === null) return true;
-        const name = attributeMap[opt.attributeId] || `Thuộc tính ${opt.attributeId}`;
-        if (!(name in newSelected)) return true;
-        return newSelected[name] === opt.value;
-      })
-    );
+    // Tìm variant phù hợp - variant phải match TẤT CẢ options đã chọn
+    const matched = product.ProductVariants?.find(v => {
+      const variantOpts = v.ProductVariantOptions?.filter(opt => opt.value !== null) || [];
+      
+      // Kiểm tra: mỗi option đã chọn phải có trong variant
+      const allSelectedMatch = Object.entries(newSelected).every(([selName, selValue]) => {
+        return variantOpts.some(opt => {
+          const optName = opt.VariantOptionAttribute?.name || `Thuộc tính ${opt.attributeId}`;
+          return optName === selName && opt.value === selValue;
+        });
+      });
+
+      // Kiểm tra: mỗi option của variant phải có trong đã chọn
+      const allVariantMatch = variantOpts.every(opt => {
+        const optName = opt.VariantOptionAttribute?.name || `Thuộc tính ${opt.attributeId}`;
+        return newSelected[optName] === opt.value;
+      });
+
+      return allSelectedMatch && allVariantMatch;
+    });
 
     if (matched) {
+      console.log("✅ Matched variant:", matched.id, matched);
       setSelectedVariantPrice(matched.price || 0);
       setSelectedVariantId(matched.id);
       setSelectedVariantStock(matched.stock_quantity || 0);
+    } else {
+      console.log("⚠️ No variant matched for:", newSelected);
     }
   };
 
   const handleAddToCart = async () => {
     const token = localStorage.getItem("clientToken");
-    console.log("Token khi thêm giỏ hàng:", token);
     if (!token || token === "null" || token === "undefined" || token.trim() === "") {
-      alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
+      toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng");
       navigate("/login");
       return;
     }
 
-
     if (!selectedVariantId) {
-      alert("Vui lòng chọn đầy đủ thuộc tính!");
+      toast.warning("Vui lòng chọn đầy đủ thuộc tính sản phẩm");
       return;
     }
-    console.log("Thêm vào giỏ hàng với variantId:", selectedVariantId, "số lượng:", quantity);
+
     try {
-      const res = await axios.post(
-        "http://127.0.0.1:5000/api/carts",
+      await axios.post(
+        `${backendURL}/carts`,
         {
           product_variantId: selectedVariantId,
           quantity: quantity
@@ -164,38 +177,36 @@ const ProductDetail = () => {
           }
         }
       );
-      console.log("Thêm giỏ hàng thành công:", res.data);
-      alert("Đã thêm sản phẩm vào giỏ hàng!");
+      
+      // Fetch lại giỏ hàng để cập nhật số lượng trên header
+      await fetchMyCart();
+      toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng 🛒`);
     } catch (err) {
       console.error("Lỗi khi thêm giỏ hàng:", err.response?.data || err.message);
-
-      // nếu server trả mảng errors
-      if (err.response?.data?.errors) {
-        err.response.data.errors.forEach(e => console.error("Chi tiết lỗi:", e));
-        alert(err.response.data.errors[0]?.message || "Thêm giỏ hàng thất bại");
-      } else {
-        alert("Thêm giỏ hàng thất bại. Vui lòng thử lại.");
-      }
+      const errorMsg = err.response?.data?.errors?.[0]?.message 
+        || err.response?.data?.message 
+        || "Không thể thêm vào giỏ hàng";
+      toast.error(errorMsg);
     }
   };
 
   const handleBuyNow = () => {
     const token = localStorage.getItem("clientToken");
     if (!token || token === "null" || token === "undefined" || token.trim() === "") {
-      alert("Vui lòng đăng nhập để mua hàng!");
+      toast.warning("Vui lòng đăng nhập để mua hàng");
       navigate("/login");
       return;
     }
 
     if (!selectedVariantId) {
-      alert("Vui lòng chọn đầy đủ thuộc tính!");
+      toast.warning("Vui lòng chọn đầy đủ thuộc tính sản phẩm");
       return;
     }
 
     // Lấy thông tin variant đã chọn
     const selectedVariant = product?.ProductVariants?.find(v => v.id === selectedVariantId);
     if (!selectedVariant) {
-      alert("Không tìm thấy thông tin sản phẩm!");
+      toast.error("Không tìm thấy thông tin sản phẩm");
       return;
     }
 

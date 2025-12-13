@@ -36,6 +36,7 @@ const ShopContextProvider = ({ children }) => {
   const [storeId, setStoreId] = useState(null);
   const [ordersStore, setOrdersStore] = useState([]);
   const [ordersClient, setOrdersClient] = useState([]);
+  const [followedStores, setFollowedStores] = useState([]);
 
   // ================== 🛒 GIỎ HÀNG ==================
 
@@ -370,10 +371,33 @@ const ShopContextProvider = ({ children }) => {
       console.error("Lỗi tải đơn hàng:", error);
     }
   };
+
+  const getFollowedStores = async () => {
+    if (!clientToken) return [];
+
+    try {
+      const res = await axios.get(
+        `${backendURL}/follows/client/followed-stores`,
+        {
+          headers: { Authorization: `Bearer ${clientToken}` }
+        }
+      );
+
+      const stores = res.data?.data?.stores || [];
+      setFollowedStores(stores);
+      return stores;
+
+    } catch (error) {
+      console.error("❌ Lỗi khi lấy danh sách shop đã follow:", error);
+      return [];
+    }
+  };
+
   // 🔁 Tải danh mục cha khi khởi động
   useEffect(() => {
     getAllSuperCategories();
   }, []);
+
 
   const value = {
     backendURL,
@@ -411,6 +435,8 @@ const ShopContextProvider = ({ children }) => {
     getOrdersofStore,
     getOrderofClient,
     setOrdersStore,
+    followedStores,
+    getFollowedStores,
   };
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

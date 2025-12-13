@@ -23,6 +23,10 @@ const Cart = () => {
   // State lưu mã giảm giá đã áp dụng theo storeId (thay vì cartItemId)
   const [appliedStoreCoupons, setAppliedStoreCoupons] = useState({});
 
+  // State cho tên cửa hàng
+  const [storeNames, setStoreNames] = useState({});
+  const [loadingStores, setLoadingStores] = useState(true);
+
   // ==================== LOAD INITIAL DATA ====================
   useEffect(() => {
     fetchMyCart();
@@ -89,6 +93,56 @@ const Cart = () => {
       setAppliedStoreCoupons({});
     }
   }, [cartItems]);
+
+  // ==================== FETCH TÊN CỬA HÀNG ====================
+  useEffect(() => {
+    const fetchStoreNames = async () => {
+      if (!cartItems || cartItems.length === 0) {
+        setLoadingStores(false);
+        return;
+      }
+
+      // Lấy danh sách storeId duy nhất từ cartItems
+      const storeIds = new Set();
+      cartItems.forEach((item) => {
+        const variant = item.CartItemProductVariant;
+        const product = variant?.ProductVariantProduct;
+        const storeId = variant?.storeId ?? product?.storeId ?? null;
+        if (storeId) storeIds.add(storeId);
+      });
+
+      const uniqueStoreIds = Array.from(storeIds);
+
+      if (uniqueStoreIds.length === 0) {
+        setLoadingStores(false);
+        return;
+      }
+
+      setLoadingStores(true);
+      const newStoreNames = {};
+
+      // Fetch tất cả store names song song
+      await Promise.all(
+        uniqueStoreIds.map(async (storeId) => {
+          try {
+            const res = await axios.get(`${backendURL}/stores/${storeId}`);
+            const storeName = res.data?.data?.name || "Cửa hàng không xác định";
+            newStoreNames[storeId] = storeName;
+          } catch (err) {
+            console.error(`❌ Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
+            newStoreNames[storeId] = "Cửa hàng không xác định";
+          }
+        })
+      );
+
+      setStoreNames(newStoreNames);
+      setLoadingStores(false);
+    };
+
+    if (cartItems && cartItems.length > 0) {
+      fetchStoreNames();
+    }
+  }, [cartItems?.length, backendURL]);
 
   // ==================== LƯU TRẠNG THÁI VÀO LOCALSTORAGE ====================
   useEffect(() => {
@@ -371,7 +425,7 @@ const Cart = () => {
         variant?.storeId ??
         product?.storeId ??
         `product-${product?.id ?? variant?.productId ?? it.product_variantId ?? it.id}`;
-      const storeName = variant?.storeName || product?.storeName || "Cửa hàng không xác định";
+      const storeName = storeNames[storeId] || "Đang tải tên cửa hàng...";
 
       if (!grouped[storeId]) {
         grouped[storeId] = {
