@@ -23,6 +23,9 @@ const connectToDB = async () => {
     // await sequelize.sync({ force: true }); // Xóa và tạo lại bảng
     console.log("MySQL Connected successfully!".cyan.underline);
 
+    const managerUsername = "default_manager";
+    const managerPassword = "manager@123";
+
     // check existence via raw SQL
       const existing = await sequelize.query(
         "SELECT id FROM admins WHERE role = :role LIMIT 1",

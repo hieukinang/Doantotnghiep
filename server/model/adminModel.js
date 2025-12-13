@@ -9,7 +9,7 @@ const Admin = sequelize.define(
     id: {
       type: DataTypes.STRING(255),
       primaryKey: true,
-      llowNull: false,
+      allowNull: false,
       unique: true,
     },
     username: {
