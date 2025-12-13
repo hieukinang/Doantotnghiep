@@ -45,6 +45,11 @@ const Header = () => {
     setIsToggleOpen(false);
   }
 
+  const handleCreateComplaint = () => {
+    navigate("/create-complaint");
+    setIsToggleOpen(false);
+  }
+
   // Tìm kiếm và hiển thị dropdown
   const handleSearchInput = async (value) => {
     setSearchQuery(value);
@@ -178,6 +183,12 @@ const Header = () => {
                         className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
                       >
                         Đang theo dõi
+                      </button>
+                      <button
+                        onClick={handleCreateComplaint}
+                        className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
+                      >
+                        Khiếu nại
                       </button>
                     </div>
                   )}

@@ -7,8 +7,8 @@ import { ShopContext } from "../../context/ShopContext";
 import { toast } from "react-toastify";
 import { IoClose, IoCloudUploadOutline, IoCheckmarkCircle, IoAlertCircle } from "react-icons/io5";
 
-const CreateComplaint = () => {
-  const { backendURL, clientToken } = useContext(ShopContext);
+const SellerCreateComplaint = () => {
+  const { backendURL, sellerToken } = useContext(ShopContext);
   const navigate = useNavigate();
 
   const [type, setType] = useState("PRODUCT");
@@ -66,7 +66,7 @@ const CreateComplaint = () => {
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${clientToken}`,
+          Authorization: `Bearer ${sellerToken}`,
         },
       };
       const res = await axios.post(`${backendURL}/complaints`, formData, config);
@@ -294,4 +294,4 @@ const CreateComplaint = () => {
   );
 };
 
-export default CreateComplaint;
+export default SellerCreateComplaint;
