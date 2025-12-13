@@ -15,15 +15,16 @@ import {
   registerValidator
 } from "../../validators/admin.validator.js";
 
-import { isAuth } from "../../middleware/auth.middleware.js";
+import { allowedTo, isAuth } from "../../middleware/auth.middleware.js";
 import Admin from "../../model/adminModel.js";
+import { checkAdminStatus } from "../../validators/status.validator.js";
 
 const router = express.Router();
 
 router.route("/register").post(
-  // isAuth(Admin),          // chỉ admin mới được tạo admin account
-  // checkAdminStatus,
-  // allowedTo("manager"),  // chỉ manager mới được tạo admin
+  isAuth(Admin),          // chỉ admin mới được tạo admin account
+  checkAdminStatus,
+  allowedTo("manager"),  // chỉ manager mới được tạo admin
   uploadAdminImage,      // nếu hợp lệ mới upload file
   registerValidator,     // validate dữ liệu trước
   resizeAdminImage,      // xử lý ảnh
