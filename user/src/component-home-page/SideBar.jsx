@@ -27,7 +27,7 @@ const navItems = [
   { label: "Đánh giá", icon: RatingIcon, href: "/account/rating" },
   { label: "Tài chính", icon: FinanceIcon, href: "/account/finance" },
   { label: "Hồ sơ cửa hàng", icon: StoreIcon, href: "/account/edit-profile" },
-  { label: "Quản lý người dùng", icon: UserIcon, href: "/account/edit-user" },
+  { label: "Thêm khiếu nại", icon: UserIcon, href: "/account/create-complaint" },
 ];
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {

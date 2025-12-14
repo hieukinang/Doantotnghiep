@@ -32,7 +32,7 @@ import ListProduct from "./page/seller/ListProduct";
 import AddProduct from "./page/seller/AddProduct";
 import EditProduct from "./page/seller/EditProduct";
 import EditProfileSeller from "./page/seller/EditProfileSeller";
-import EditUser from "./page/seller/EditUser";
+import SellerCreateComplaint from "./page/seller/sellerCreateComplaint";
 import Finance from "./page/seller/Finance";
 import OrdersSeller from "./page/seller/OrdersSeller";
 import Rating from "./page/seller/Rating";
@@ -142,7 +142,7 @@ function App() {
           <Route path="/seller/add-coupon" element={<AddCoupon />} />
           <Route path="/seller/update-product" element={<EditProduct />} />
           <Route path="/seller/edit-profile" element={<EditProfileSeller />} />
-          <Route path="/seller/edit-user" element={<EditUser />} />
+          <Route path="/seller/create-complaint" element={<SellerCreateComplaint />} />
           <Route path="/seller/finance" element={<Finance />} />
           <Route path="/seller/rating" element={<Rating />} />
           <Route path="/seller/sales-report" element={<SalesReport />} />
