@@ -655,7 +655,7 @@ const PlaceOrder = () => {
               {mainAddress && !showAddressForm && !showAddressList ? (
                 <div className="mt-3 text-sm">
                   <div className="font-medium">
-                    {clientUser.full_name || "Người nhận"} • {clientUser.phone || "Số điện thoại"}{" "}
+                    {clientUser.username || "Người nhận"} • {clientUser.phone || "Số điện thoại"}{" "}
                     <span className="text-xs text-green-600 border border-green-600 px-1 rounded ml-1">
                       Mặc định
                     </span>
@@ -691,7 +691,7 @@ const PlaceOrder = () => {
                   )}
                   
                   <div className="text-xs text-gray-500 mb-2">
-                    Người nhận: <span className="font-medium">{clientUser.full_name || "Chưa có tên"}</span> • {clientUser.phone || "Chưa có SĐT"}
+                    Người nhận: <span className="font-medium">{clientUser.username || "Chưa có tên"}</span> • {clientUser.phone || "Chưa có SĐT"}
                   </div>
 
                   <input

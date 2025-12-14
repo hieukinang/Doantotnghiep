@@ -20,6 +20,12 @@ const ProductDetail = () => {
   const [variantAttributes, setVariantAttributes] = useState({});
   const [storeInfo, setStoreInfo] = useState(null);
 
+  // REVIEW
+  const [reviews, setReviews] = useState([]);
+  const [avgRating, setAvgRating] = useState(0);
+  const [showReviews, setShowReviews] = useState(false);
+
+
   // Lấy sản phẩm theo ID
   useEffect(() => {
     if (productId) {
@@ -55,6 +61,32 @@ const ProductDetail = () => {
       fetchStoreInfo();
     }
   }, [product?.storeId, product?.ProductStore, product?.ProductVariants, backendURL]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(
+          `${backendURL}/reviews/product/${product.id}`
+        );
+
+        const list = res.data?.data?.reviews || [];
+        setReviews(list);
+
+        if (list.length > 0) {
+          const avg =
+            list.reduce((sum, r) => sum + r.rating, 0) / list.length;
+          setAvgRating(avg.toFixed(1));
+        }
+      } catch (err) {
+        console.error("Lỗi lấy đánh giá:", err);
+      }
+    };
+
+    fetchReviews();
+  }, [product?.id, backendURL]);
+
 
   // Tạo gallery
   const gallery = [
@@ -323,7 +355,7 @@ const ProductDetail = () => {
           <div className="bg-white rounded-lg p-5 shadow">
             <h1 className="text-xl font-semibold">{product.name}</h1>
             <div className="mt-2 text-sm text-gray-500">
-              ⭐ {product.rating || "4.8"} • Đã bán {product.sold || 0} • Kho: {selectedVariantStock}
+              ⭐ {avgRating || "Chưa có"} • {reviews.length} đánh giá • Đã bán {product.sold || 0} • Kho: {selectedVariantStock}
             </div>
             {product.shipping_free && (
               <div className="mt-3 bg-[#116AD1]/10 text-[#116AD1] inline-block px-3 py-1 rounded">
@@ -391,6 +423,65 @@ const ProductDetail = () => {
                 {product.description || "Chưa có mô tả cho sản phẩm này."}
               </p>
             </div>
+
+            <div
+              onClick={() => setShowReviews(!showReviews)}
+              className="mt-4 text-[#116AD1] font-medium cursor-pointer hover:underline"
+            >
+              Đánh giá ({reviews.length})
+            </div>
+
+            {showReviews && (
+              <div className="mt-6 space-y-6">
+                {reviews.length === 0 && (
+                  <p className="text-gray-500">Chưa có đánh giá nào</p>
+                )}
+
+                {reviews.map((rv) => (
+                  <div key={rv.id} className="border-b pb-5">
+                    {/* User */}
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={rv.ReviewClient?.image}
+                        alt={rv.ReviewClient?.username}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-800">
+                          {rv.ReviewClient?.username}
+                        </p>
+                        <div className="text-[#f59e0b] text-sm">
+                          {"⭐".repeat(rv.rating)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Nội dung */}
+                    <p className="mt-3 text-sm text-gray-700">{rv.text}</p>
+
+                    {/* Ảnh */}
+                    {rv.ReviewImages?.length > 0 && (
+                      <div className="mt-3 flex gap-2 flex-wrap">
+                        {rv.ReviewImages.map((img) => (
+                          <img
+                            key={img.id}
+                            src={`${backendURL}/reviews/${img.url}`}
+                            alt="review"
+                            className="w-20 h-20 rounded object-cover border"
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Thời gian */}
+                    <p className="mt-2 text-xs text-gray-400">
+                      {new Date(rv.createdAt).toLocaleDateString("vi-VN")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
 
             {/* Thông tin cửa hàng và nút nhắn tin */}
             {storeInfo && (
