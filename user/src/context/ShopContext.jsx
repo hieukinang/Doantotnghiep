@@ -209,15 +209,17 @@ const ShopContextProvider = ({ children }) => {
     } catch (error) {
       console.warn("⚠️ Lỗi khi logout:", error);
     } finally {
-      localStorage.removeItem("clientToken");
-      localStorage.removeItem("clientUsername");
-      localStorage.removeItem("clientUser");
+      // Clear tất cả localStorage
+      localStorage.clear();
+      
       setClientToken(null);
       setClientUsername(null);
       setClientUser(null);
       setIsLoggedIn(false);
       toast.info("Đã đăng xuất");
-      navigate("/login");
+      
+      // Reload page để reset hoàn toàn state
+      window.location.href = "/login";
     }
   };
 

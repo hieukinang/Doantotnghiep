@@ -73,20 +73,25 @@ const OrdersSeller = () => {
   }, [statusFilter, startDate, endDate]);
 
   // Format orders cho modal
-  const formatOrderForModal = (o) => ({
-    id: o.orderCode || `${o.id}`,
-    rawStatus: o.status,
-    status: STATUS_MAP[o.status] || o.status,
-    total: o.total_price || 0,
-    orderItems: o.OrderItems || [],
-    shippingAddress: o.shipping_address || "",
-    shippingFee: o.shipping_fee || 0,
-    paymentMethod: o.payment_method || "Thanh toán khi nhận hàng",
-    createdAt: o.createdAt ? new Date(o.createdAt).toLocaleString("vi-VN") : "",
-    deliveredAt: o.delivered_at ? new Date(o.delivered_at).toLocaleDateString("vi-VN") : "",
-    clientOrderId: o.id,
-    qrCode: o.qr_code || null,
-  });
+  const formatOrderForModal = (o) => {
+    const totalPrice = o.total_price || 0;
+    const shippingFee = o.shipping_fee || 0;
+    return {
+      id: o.orderCode || `${o.id}`,
+      rawStatus: o.status,
+      status: STATUS_MAP[o.status] || o.status,
+      total: totalPrice + shippingFee, // Tổng tiền = giá sản phẩm + phí ship
+      subtotal: totalPrice, // Giá sản phẩm (chưa ship)
+      orderItems: o.OrderItems || [],
+      shippingAddress: o.shipping_address || "",
+      shippingFee: shippingFee,
+      paymentMethod: o.payment_method || "Thanh toán khi nhận hàng",
+      createdAt: o.createdAt ? new Date(o.createdAt).toLocaleString("vi-VN") : "",
+      deliveredAt: o.delivered_at ? new Date(o.delivered_at).toLocaleDateString("vi-VN") : "",
+      clientOrderId: o.id,
+      qrCode: o.qr_code || null,
+    };
+  };
 
   // Tải xuống đơn hàng dưới dạng PDF
   const handleDownloadOrder = async (order) => {
@@ -161,6 +166,7 @@ const OrdersSeller = () => {
       </div>
       
       <div style="text-align: right; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 14px;">Tạm tính: ${order.subtotal.toLocaleString('vi-VN')}₫</div>
         <div style="margin-bottom: 8px; font-size: 14px;">Phí vận chuyển: ${order.shippingFee.toLocaleString('vi-VN')}₫</div>
         <div style="font-size: 18px; color: #116AD1; font-weight: bold;">Tổng cộng: ${order.total.toLocaleString('vi-VN')}₫</div>
       </div>
@@ -340,7 +346,7 @@ const OrdersSeller = () => {
                 <td className="px-4 py-2">{o.order_date}</td>
 
                 <td className="px-4 py-2 text-[#116AD1] font-semibold">
-                  {o.total_price.toLocaleString("vi-VN")}₫
+                  {((o.total_price || 0) + (o.shipping_fee || 0)).toLocaleString("vi-VN")}₫
                 </td>
 
                 <td className="px-4 py-2">{STATUS_MAP[o.status] || o.status}</td>
@@ -517,11 +523,15 @@ const OrdersSeller = () => {
                     </span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-gray-500">Tạm tính</span>
+                    <span className="font-medium">{selectedOrder.subtotal.toLocaleString("vi-VN")}₫</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-gray-500">Phí vận chuyển</span>
                     <span className="font-medium">{selectedOrder.shippingFee.toLocaleString("vi-VN")}₫</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tổng tiền</span>
+                  <div className="flex justify-between border-t pt-2 mt-2">
+                    <span className="text-gray-700 font-medium">Tổng cộng</span>
                     <span className="font-bold text-[#116AD1]">{selectedOrder.total.toLocaleString("vi-VN")}₫</span>
                   </div>
                 </div>

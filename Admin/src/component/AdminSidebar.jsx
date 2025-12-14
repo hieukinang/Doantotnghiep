@@ -9,12 +9,11 @@ import {
   CheckCircleOutline as ApproveIcon,
   Gavel as ComplaintIcon,
   ReportProblem as ViolationIcon,
-  BarChart as ReportIcon,
-  Settings as SettingsIcon,
   Menu as MenuIcon,
   LocalActivity as CreateCouponIcon,
   Inventory2 as CreateCategoryIcon,
   Chat as ChatIcon,
+  AccountBalanceWallet as WalletIcon,
 } from "@mui/icons-material";
 
 const navItems = [
@@ -28,9 +27,8 @@ const navItems = [
   { name: "Duyệt sản phẩm", icon: ApproveIcon, path: "/product-approval" },
   { name: "Khiếu nại", icon: ComplaintIcon, path: "/complaints" },
   { name: "Vi phạm", icon: ViolationIcon, path: "/violations" },
-  { name: "Báo cáo hệ thống", icon: ReportIcon, path: "/reports" },
-  { name: "Cài đặt", icon: SettingsIcon, path: "/settings" },
-  {name: "Quản lý Chat", icon: ChatIcon, path: "/chat-management"}
+  { name: "Ví Admin", icon: WalletIcon, path: "/wallet" },
+  { name: "Quản lý Chat", icon: ChatIcon, path: "/chat-management" },
 ];
 
 const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {

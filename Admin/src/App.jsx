@@ -21,7 +21,9 @@ import PendingShipperList from "./page/PendingShipperList";
 import PendingStoreList from "./page/PendingStoreList";
 import StoreProfileDetail from "./page/StoreProfileDetail";
 import ProfileDetail from "./page/ProfileDetail";
-import ChatManagement from "./page/ChatManagement"
+import ChatManagement from "./page/ChatManagement";
+import Wallet from "./page/Wallet";
+import PaymentSuccess from "./page/PaymentSuccess";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
@@ -105,6 +107,8 @@ function App() {
         />
         <Route path="/profile-detail" element={<ProfileDetail />} />
         <Route path="/chat-management" element={<ChatManagement />} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
       </Route>
     </Routes>
   );

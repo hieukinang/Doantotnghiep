@@ -10,31 +10,35 @@ import { IoClose } from "react-icons/io5";
 const STATUS_MAP = {
   PENDING: "Đang xử lý",
   CONFIRMED: "Đã xác nhận",
-  IN_TRANSIT: "Đang giao",
+  IN_TRANSIT: "Đang vận chuyển",
   DELIVERED: "Đã vận chuyển",
-  CLIENT_CONFIRMED: "Hoàn thành",
+  CLIENT_CONFIRMED: "Đã nhận hàng",
+  CLIENT_NOT_CONFIRMED: "Không nhận được hàng",
   CANCELLED: "Đã hủy",
   FAILED: "Lỗi",
   RETURNED: "Yêu cầu trả hàng",
-  RETURN_CONFIRMED: "Đã trả hàng",
+  RETURN_CONFIRMED: "Trả hàng thành công",
+  RETURN_NOT_CONFIRMED: "Trả hàng không thành công",
 };
 
-const tabs = [
-  "Tất cả",
-  "Đang xử lý",
-  "Đã xác nhận",
-  "Đang giao",
-  "Đã vận chuyển",
-  "Hoàn thành",
-  "Đã hủy",
-  "Lỗi",
-  "Yêu cầu trả hàng",
-  "Đã trả hàng",
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "PENDING", label: "Đang xử lý" },
+  { value: "CONFIRMED", label: "Đã xác nhận" },
+  { value: "IN_TRANSIT", label: "Đang vận chuyển" },
+  { value: "DELIVERED", label: "Đã vận chuyển" },
+  { value: "CLIENT_CONFIRMED", label: "Đã nhận hàng" },
+  { value: "CLIENT_NOT_CONFIRMED", label: "Không nhận được hàng" },
+  { value: "CANCELLED", label: "Đã hủy" },
+  { value: "FAILED", label: "Lỗi" },
+  { value: "RETURNED", label: "Yêu cầu trả hàng" },
+  { value: "RETURN_CONFIRMED", label: "Trả hàng thành công" },
+  { value: "RETURN_NOT_CONFIRMED", label: "Trả hàng không thành công" },
 ];
 
 const Orders = () => {
   const { ordersClient, getOrderofClient, clientToken } = useContext(ShopContext);
-  const [active, setActive] = useState("Tất cả");
+  const [activeStatus, setActiveStatus] = useState("ALL");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
@@ -101,9 +105,9 @@ const Orders = () => {
   };
 
   const filteredOrders =
-    active === "Tất cả"
+    activeStatus === "ALL"
       ? formatOrders
-      : formatOrders.filter((o) => o.status === active);
+      : formatOrders.filter((o) => o.rawStatus === activeStatus);
 
   // 🔹 Xác nhận đã nhận hàng hoặc chưa nhận được
   const handleConfirmReceived = async (orderId, isReceived = true) => {
@@ -239,20 +243,20 @@ const Orders = () => {
       <main className="pt-32 px-5 flex-1">
         <div className="max-w-6xl mx-auto">
 
-          {/* Tabs */}
-          <div className="flex gap-2 overflow-auto pb-2">
-            {tabs.map((t) => (
-              <button
-                key={t}
-                onClick={() => setActive(t)}
-                className={`px-4 py-2 rounded-full border ${active === t
-                  ? "bg-[#116AD1] text-white border-[#116AD1]"
-                  : "border-gray-300 bg-white"
-                  }`}
-              >
-                {t}
-              </button>
-            ))}
+          {/* Dropdown lọc trạng thái */}
+          <div className="flex items-center gap-3 mb-2">
+            <label className="text-sm font-medium text-gray-700">Trạng thái:</label>
+            <select
+              value={activeStatus}
+              onChange={(e) => setActiveStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1] focus:border-transparent"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Order table */}
@@ -298,13 +302,17 @@ const Orders = () => {
                       {/* Cột 3: Trạng thái */}
                       <td className="px-5 py-4">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                          ${o.rawStatus === 'CLIENT_CONFIRMED' ? 'bg-green-100 text-green-700' : ''}
-                          ${o.rawStatus === 'DELIVERED' ? 'bg-blue-100 text-blue-700' : ''}
                           ${o.rawStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : ''}
                           ${o.rawStatus === 'CONFIRMED' ? 'bg-cyan-100 text-cyan-700' : ''}
                           ${o.rawStatus === 'IN_TRANSIT' ? 'bg-purple-100 text-purple-700' : ''}
-                          ${o.rawStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' : ''}
+                          ${o.rawStatus === 'DELIVERED' ? 'bg-blue-100 text-blue-700' : ''}
+                          ${o.rawStatus === 'CLIENT_CONFIRMED' ? 'bg-green-100 text-green-700' : ''}
+                          ${o.rawStatus === 'CLIENT_NOT_CONFIRMED' ? 'bg-red-100 text-red-700' : ''}
+                          ${o.rawStatus === 'CANCELLED' ? 'bg-gray-100 text-gray-700' : ''}
+                          ${o.rawStatus === 'FAILED' ? 'bg-red-100 text-red-700' : ''}
                           ${o.rawStatus === 'RETURNED' ? 'bg-orange-100 text-orange-700' : ''}
+                          ${o.rawStatus === 'RETURN_CONFIRMED' ? 'bg-teal-100 text-teal-700' : ''}
+                          ${o.rawStatus === 'RETURN_NOT_CONFIRMED' ? 'bg-pink-100 text-pink-700' : ''}
                         `}>
                           {o.status}
                         </span>

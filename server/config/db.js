@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import "colors";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -23,8 +24,9 @@ const connectToDB = async () => {
     // await sequelize.sync({ force: true }); // Xóa và tạo lại bảng
     console.log("MySQL Connected successfully!".cyan.underline);
 
-    const managerUsername = "default_manager";
+    const managerUsername = "0123456789";
     const managerPassword = "manager@123";
+    const managerEmail = "manager@admin.com";
 
     // check existence via raw SQL
       const existing = await sequelize.query(
