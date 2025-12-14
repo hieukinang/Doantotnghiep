@@ -24,6 +24,10 @@ import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
+// Client
+router.route("/").get(getAllProductsForClient);
+router.route("/:id", IdValidator).get(getSingleProduct); // Lấy từng sản phẩm
+
 // Admin
 router.get("/admin", isAuth(Admin), checkAdminStatus, getAllProductsForAdmin);
 
@@ -64,10 +68,5 @@ router.patch(
   checkStoreStatus,
   IdValidator,
   updateSingleProduct);  
-
-// Client
-router.route("/").get(getAllProductsForClient);
-router.route("/:id", IdValidator).get(getSingleProduct); // Lấy từng sản phẩm
-
 
 export default router;

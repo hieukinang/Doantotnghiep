@@ -12,8 +12,13 @@ import {
 // @route   GET /api/addresses
 // @access  Protected (Client)
 export const getAllAddresses = asyncHandler(async (req, res, next) => {
-  req.filterObj = { clientId: req.user.id };
-  getAll(Address)(req, res, next);
+  const clientId = req.user && req.user.id;
+  if (!clientId) return next(new APIError("Unauthorized", 401));
+
+  // Explicitly query addresses belonging to the logged-in client
+  const addresses = await Address.findAll({ where: { clientId }, order: [["createdAt", "DESC"]] });
+
+  res.status(200).json({ status: "success", results: addresses.length, data: { addresses } });
 });
 
 export const getMainAddress = asyncHandler(async (req, res, next) => {
