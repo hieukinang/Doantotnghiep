@@ -93,8 +93,12 @@ class ChatService {
   // Lấy danh sách conversations
   async getAllConversations() {
     try {
-      const token = this.getToken();
-      if (!token) throw new Error('No token found');
+      const isSeller = window.location.href.includes("/seller");
+
+      const token = isSeller
+        ? localStorage.getItem("sellerToken")
+        : localStorage.getItem("clientToken");
+        if (!token) throw new Error('No token found');
       
       const res = await axios.get(`${this.baseURL}/conversations`, {
         headers: { Authorization: `Bearer ${token}` }
