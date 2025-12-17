@@ -43,7 +43,7 @@ export const getTopSoldProductsToday = asyncHandler(async (req, res, next) => {
   const pageData = rows.slice(start, start + pageSize).map((r) => ({
     id: r.id,
     name: r.name,
-    main_image: r.main_image,
+    main_image: r.main_image && String(r.main_image).startsWith("http") ? r.main_image : (r.main_image ? `${process.env.BASE_URL}/products/${r.main_image}` : null),
     totalSold: Number(r.totalSold) || 0,
   }));
 
@@ -142,7 +142,7 @@ export const getTopDiscountedProducts = asyncHandler(async (req, res, next) => {
   const pageData = rows.slice(start, start + pageSize).map((r) => ({
     id: r.id,
     name: r.name,
-    main_image: r.main_image,
+    main_image: r.main_image && String(r.main_image).startsWith("http") ? r.main_image : (r.main_image ? `${process.env.BASE_URL}/products/${r.main_image}` : null),
     min_price: Number(r.min_price),
     discount_percent: Number(r.discount) || 0,
     product_discount_amount: Number(r.product_discount_amount) || 0,
