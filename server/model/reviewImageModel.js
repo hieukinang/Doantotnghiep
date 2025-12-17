@@ -14,6 +14,12 @@ const ReviewImage = sequelize.define(
     url: {
       type: DataTypes.STRING(255),
       allowNull: false,
+      get() {
+        const rawValue = this.getDataValue("url");
+        if (!rawValue) return null;
+        if (rawValue.startsWith("http")) return rawValue;
+        return `${process.env.BASE_URL}/reviewImages/${rawValue}`;
+      },
     },
     reviewId: {
       type: DataTypes.INTEGER,
