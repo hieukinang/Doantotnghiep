@@ -143,7 +143,7 @@ export const getOneByOrder = asyncHandler(async (req, res, next) => {
   if (!review) return next(new APIError("Review not found for this order", 404));
   const images = await ReviewImage.findAll({ where: { reviewId: review.id } });
   const data = review.toJSON();
-  data.images = images.map((i) => ({ id: i.id, url: `${process.env.BASE_URL}/reviews/${i.url}` }));
+  data.images = images;
   res.status(200).json({ status: "success", data: { review: data } });
 });
 
