@@ -249,7 +249,7 @@ const Chat = () => {
           : otherParticipant.user_id?.user_id;
 
       // Kiểm tra nếu là SYSTEM
-      if (userId === 'SYSTEM' || userId?.includes('SYSTEM')) {
+      if (userId === 'ADMIN' || userId?.includes('ADMIN')) {
         return 'Hệ thống';
       }
 

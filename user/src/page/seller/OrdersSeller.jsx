@@ -2,7 +2,7 @@ import { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { ShopContext } from "../../context/ShopContext";
 import { toast } from "react-toastify";
-import { IoClose, IoChevronDown, IoFilter, IoChevronBack, IoChevronForward, IoDownloadOutline } from "react-icons/io5";
+import { IoClose, IoChevronDown, IoFilter, IoChevronBack, IoChevronForward, IoDownloadOutline, IoStar, IoStarOutline } from "react-icons/io5";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -22,12 +22,18 @@ const statusOptions = ["Tất cả", ...Object.keys(STATUS_MAP)];
 
 const ITEMS_PER_PAGE = 10;
 
+// Các trạng thái được phép xem đánh giá
+const REVIEWABLE_STATUSES = ["CONFIRMED", "DELIVERED", "CLIENT_CONFIRMED"];
+
 const OrdersSeller = () => {
   const [statusFilter, setStatusFilter] = useState("Tất cả");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewData, setReviewData] = useState(null);
+  const [loadingReview, setLoadingReview] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const filterRef = useRef(null);
@@ -91,6 +97,52 @@ const OrdersSeller = () => {
       clientOrderId: o.id,
       qrCode: o.qr_code || null,
     };
+  };
+
+  // Fetch review data
+  const fetchReviewData = async (orderId) => {
+    setLoadingReview(true);
+    try {
+      const token = localStorage.getItem("sellerToken");
+      const res = await axios.get(`${backendURL}/reviews/order/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (res.data.status === "success") {
+        setReviewData(res.data.data.review);
+      }
+    } catch (error) {
+      console.error("Error fetching review:", error);
+      if (error.response?.status === 404) {
+        toast.info("Đơn hàng này chưa có đánh giá");
+      } else {
+        toast.error("Không thể tải đánh giá");
+      }
+      setReviewData(null);
+    } finally {
+      setLoadingReview(false);
+    }
+  };
+
+  // Render stars
+  const renderStars = (rating) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          star <= rating ? (
+            <IoStar key={star} className="text-yellow-400" size={20} />
+          ) : (
+            <IoStarOutline key={star} className="text-gray-300" size={20} />
+          )
+        ))}
+      </div>
+    );
+  };
+
+  // Handle view review
+  const handleViewReview = async (orderId) => {
+    setShowReviewModal(true);
+    await fetchReviewData(orderId);
   };
 
   // Tải xuống đơn hàng dưới dạng PDF
@@ -207,6 +259,12 @@ const OrdersSeller = () => {
     setShowModal(false);
     setSelectedOrder(null);
   };
+
+  const closeReviewModal = () => {
+    setShowReviewModal(false);
+    setReviewData(null);
+  };
+
   const handleUpdateOrderStatus = async (id) => {
     const token = localStorage.getItem("sellerToken");
     try {
@@ -327,75 +385,84 @@ const OrdersSeller = () => {
 
         {/* Bảng đơn hàng */}
         <div className="flex-1 overflow-auto">
-        <table className="w-full text-sm table-fixed">
-          <thead>
-            <tr className="text-left bg-gray-50">
-              <th className="px-4 py-2 w-[120px]">Mã đơn</th>
-              <th className="px-4 py-2 w-[120px]">Ngày</th>
-              <th className="px-4 py-2 w-[120px]">Tổng tiền</th>
-              <th className="px-4 py-2 w-[140px]">Trạng thái</th>
-              <th className="px-4 py-2 text-right">Thao tác</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y">
-            {paginatedOrders.map((o) => (
-              <tr key={o.id}>
-                <td className="px-4 py-2 font-medium">{o.id}</td>
-
-                <td className="px-4 py-2">{o.order_date}</td>
-
-                <td className="px-4 py-2 text-[#116AD1] font-semibold">
-                  {((o.total_price || 0) + (o.shipping_fee || 0)).toLocaleString("vi-VN")}₫
-                </td>
-
-                <td className="px-4 py-2">{STATUS_MAP[o.status] || o.status}</td>
-
-                <td className="px-4 py-2">
-                  <div className="flex justify-end gap-2">
-                    {(o.status === "PENDING" || o.status === "RETURNED") && (
-                      <button
-                        className="px-3 py-1 border rounded text-green-600 hover:bg-green-50"
-                        onClick={() => handleConfirmAction(o)}
-                      >
-                        {o.status === "RETURNED" ? "Xác nhận trả hàng" : "Xác nhận"}
-                      </button>
-                    )}
-                    {o.status === "PENDING" && (
-                      <button
-                        className="px-3 py-1 border rounded text-red-600 hover:bg-red-50"
-                        onClick={() => handleUpdateOrderStatus(o.id)}
-                      >
-                        Từ chối
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDownloadOrder(formatOrderForModal(o))}
-                      className="px-3 py-1 border border-[#116AD1] text-[#116AD1] rounded hover:bg-blue-50 flex items-center gap-2"
-                    >
-                      <IoDownloadOutline size={18} />
-                      Tải xuống
-                    </button>
-                    <button
-                      onClick={() => handleViewDetail(o)}
-                      className="px-3 py-1 border rounded text-blue-600 hover:bg-blue-50"
-                    >
-                      Chi tiết
-                    </button>
-                  </div>
-                </td>
+          <table className="w-full text-sm table-fixed">
+            <thead>
+              <tr className="text-left bg-gray-50">
+                <th className="px-4 py-2 w-[120px]">Mã đơn</th>
+                <th className="px-4 py-2 w-[120px]">Ngày</th>
+                <th className="px-4 py-2 w-[120px]">Tổng tiền</th>
+                <th className="px-4 py-2 w-[140px]">Trạng thái</th>
+                <th className="px-4 py-2 text-right">Thao tác</th>
               </tr>
-            ))}
+            </thead>
 
-            {filteredOrders.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center py-20 text-gray-400">
-                  Không có đơn hàng nào
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            <tbody className="divide-y">
+              {paginatedOrders.map((o) => (
+                <tr key={o.id}>
+                  <td className="px-4 py-2 font-medium">{o.id}</td>
+
+                  <td className="px-4 py-2">{o.order_date}</td>
+
+                  <td className="px-4 py-2 text-[#116AD1] font-semibold">
+                    {((o.total_price || 0) + (o.shipping_fee || 0)).toLocaleString("vi-VN")}₫
+                  </td>
+
+                  <td className="px-4 py-2">{STATUS_MAP[o.status] || o.status}</td>
+
+                  <td className="px-4 py-2">
+                    <div className="flex justify-end gap-2">
+                      {(o.status === "PENDING" || o.status === "RETURNED") && (
+                        <button
+                          className="px-3 py-1 border rounded text-green-600 hover:bg-green-50"
+                          onClick={() => handleConfirmAction(o)}
+                        >
+                          {o.status === "RETURNED" ? "Xác nhận trả hàng" : "Xác nhận"}
+                        </button>
+                      )}
+                      {o.status === "PENDING" && (
+                        <button
+                          className="px-3 py-1 border rounded text-red-600 hover:bg-red-50"
+                          onClick={() => handleUpdateOrderStatus(o.id)}
+                        >
+                          Từ chối
+                        </button>
+                      )}
+                      {REVIEWABLE_STATUSES.includes(o.status) && (
+                        <button
+                          onClick={() => handleViewReview(o.id)}
+                          className="px-3 py-1 border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50 flex items-center gap-2"
+                        >
+                          <IoStar size={16} />
+                          Xem đánh giá
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDownloadOrder(formatOrderForModal(o))}
+                        className="px-3 py-1 border border-[#116AD1] text-[#116AD1] rounded hover:bg-blue-50 flex items-center gap-2"
+                      >
+                        <IoDownloadOutline size={18} />
+                        Tải xuống
+                      </button>
+                      <button
+                        onClick={() => handleViewDetail(o)}
+                        className="px-3 py-1 border rounded text-blue-600 hover:bg-blue-50"
+                      >
+                        Chi tiết
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {filteredOrders.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center py-20 text-gray-400">
+                    Không có đơn hàng nào
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Phân trang */}
@@ -449,6 +516,105 @@ const OrdersSeller = () => {
           </div>
         )}
       </div>
+
+      {/* Modal Đánh giá */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-lg font-semibold text-yellow-600 flex items-center gap-2">
+                <IoStar size={24} />
+                Đánh giá đơn hàng
+              </h2>
+              <button
+                onClick={closeReviewModal}
+                className="p-1 hover:bg-gray-100 rounded-full"
+              >
+                <IoClose size={24} />
+              </button>
+            </div>
+
+            <div className="p-5">
+              {loadingReview ? (
+                <div className="text-center py-8 text-gray-500">
+                  Đang tải đánh giá...
+                </div>
+              ) : reviewData ? (
+                <div className="space-y-4">
+                  {/* Thông tin người đánh giá */}
+                  <div className="flex items-center gap-3 pb-4 border-b">
+                    <img
+                      src={reviewData.ReviewClient?.image || "https://via.placeholder.com/50"}
+                      alt={reviewData.ReviewClient?.username}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {reviewData.ReviewClient?.username || "Khách hàng"}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {new Date(reviewData.createdAt).toLocaleString("vi-VN")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Đánh giá sao */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Đánh giá:</span>
+                    {renderStars(reviewData.rating)}
+                    <span className="text-sm text-gray-600 ml-1">
+                      ({reviewData.rating}/5)
+                    </span>
+                  </div>
+
+                  {/* Nội dung đánh giá */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                      Nội dung đánh giá:
+                    </h4>
+                    <p className="text-gray-800 bg-gray-50 p-4 rounded-lg">
+                      {reviewData.text || "Không có nội dung"}
+                    </p>
+                  </div>
+
+                  {/* Hình ảnh đánh giá */}
+                  {reviewData.images && reviewData.images.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                        Hình ảnh ({reviewData.images.length}):
+                      </h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        {reviewData.images.map((img) => (
+                          <img
+                            key={img.id}
+                            src={img.url}
+                            alt="Review"
+                            className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition"
+                            onClick={() => window.open(img.url, '_blank')}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Đơn hàng này chưa có đánh giá
+                </div>
+              )}
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={closeReviewModal}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Chi tiết đơn hàng */}
       {showModal && selectedOrder && (
@@ -570,6 +736,18 @@ const OrdersSeller = () => {
 
               {/* Nút hành động */}
               <div className="flex justify-end gap-3">
+                {REVIEWABLE_STATUSES.includes(selectedOrder.rawStatus) && (
+                  <button
+                    onClick={() => {
+                      closeModal();
+                      handleViewReview(selectedOrder.clientOrderId);
+                    }}
+                    className="px-4 py-2 border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50 flex items-center gap-2"
+                  >
+                    <IoStar size={18} />
+                    Xem đánh giá
+                  </button>
+                )}
                 <button
                   onClick={() => handleDownloadOrder(selectedOrder)}
                   className="px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-blue-50 flex items-center gap-2"

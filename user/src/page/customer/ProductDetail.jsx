@@ -24,7 +24,15 @@ const ProductDetail = () => {
   const [reviews, setReviews] = useState([]);
   const [avgRating, setAvgRating] = useState(0);
   const [showReviews, setShowReviews] = useState(false);
-
+  const [selectedRating, setSelectedRating] = useState(null);
+  const [ratingCounts, setRatingCounts] = useState({
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  });
+  const [loadingReviews, setLoadingReviews] = useState(false);
 
   // Lấy sản phẩm theo ID
   useEffect(() => {
@@ -62,30 +70,76 @@ const ProductDetail = () => {
     }
   }, [product?.storeId, product?.ProductStore, product?.ProductVariants, backendURL]);
 
-  useEffect(() => {
+  // Lấy review + filter rating
+  const fetchReviews = async (rating = null) => {
     if (!product?.id) return;
 
-    const fetchReviews = async () => {
-      try {
-        const res = await axios.get(
-          `${backendURL}/reviews/product/${product.id}`
-        );
+    try {
+      setLoadingReviews(true);
 
-        const list = res.data?.data?.reviews || [];
-        setReviews(list);
+      const url = rating
+        ? `${backendURL}/reviews/rating/${rating}?productId=${product.id}`
+        : `${backendURL}/reviews/product/${product.id}`;
 
-        if (list.length > 0) {
-          const avg =
-            list.reduce((sum, r) => sum + r.rating, 0) / list.length;
-          setAvgRating(avg.toFixed(1));
-        }
-      } catch (err) {
-        console.error("Lỗi lấy đánh giá:", err);
+      const res = await axios.get(url);
+      const list = res.data?.data?.reviews || [];
+
+      setReviews(list);
+
+      if (list.length > 0) {
+        const avg =
+          list.reduce((sum, r) => sum + r.rating, 0) / list.length;
+        setAvgRating(avg.toFixed(1));
+      } else {
+        setAvgRating(0);
       }
-    };
+    } catch (err) {
+      console.error("Lỗi lấy đánh giá:", err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
 
+  // Đếm số lượng rating 1–5 sao
+  const fetchRatingCounts = async () => {
+    if (!product?.id) return;
+
+    const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+    try {
+      await Promise.all(
+        [1, 2, 3, 4, 5].map(async (star) => {
+          const res = await axios.get(
+            `${backendURL}/reviews/rating/${star}?productId=${product.id}`
+          );
+          counts[star] = res.data?.results || 0;
+        })
+      );
+
+      setRatingCounts(counts);
+    } catch (err) {
+      console.error("Lỗi lấy số lượng rating:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (product?.id) {
+      fetchReviews();
+      fetchRatingCounts();
+    }
+  }, [product?.id]);
+
+  const handleFilterRating = (rating) => {
+    setSelectedRating(rating);
+    fetchReviews(rating);
+  };
+
+  const handleClearFilter = () => {
+    setSelectedRating(null);
     fetchReviews();
-  }, [product?.id, backendURL]);
+  };
+
+
 
 
   // Tạo gallery
@@ -437,6 +491,34 @@ const ProductDetail = () => {
                   <p className="text-gray-500">Chưa có đánh giá nào</p>
                 )}
 
+                {/* FILTER RATING */}
+                <div className="flex gap-2 flex-wrap mb-4">
+                  <button
+                    onClick={handleClearFilter}
+                    className={`px-3 py-1 border rounded text-sm
+                      ${selectedRating === null
+                        ? "bg-[#116AD1] text-white border-[#116AD1]"
+                        : "border-gray-300 hover:bg-gray-100"
+                      }`}
+                  >
+                    Tất cả
+                  </button>
+
+                  {[5, 4, 3, 2, 1].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => handleFilterRating(star)}
+                      className={`px-3 py-1 border rounded text-sm
+                        ${selectedRating === star
+                          ? "bg-[#116AD1] text-white border-[#116AD1]"
+                          : "border-gray-300 hover:bg-gray-100"
+                        }`}
+                    >
+                      {star} ⭐ ({ratingCounts[star]})
+                    </button>
+                  ))}
+                </div>
+                
                 {reviews.map((rv) => (
                   <div key={rv.id} className="border-b pb-5">
                     {/* User */}

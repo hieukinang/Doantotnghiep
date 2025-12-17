@@ -17,7 +17,10 @@ const ListProduct = () => {
 
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
+  const [openDetail, setOpenDetail] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productDetail, setProductDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -41,6 +44,24 @@ const ListProduct = () => {
     fetchProducts();
   }, []);
 
+  // --- FETCH PRODUCT DETAIL ---
+  const fetchProductDetail = async (productId) => {
+    setLoadingDetail(true);
+    try {
+      const backendURL =
+        import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
+      const token = localStorage.getItem("sellerToken");
+      const res = await axios.get(`${backendURL}/products/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProductDetail(res.data?.data?.doc || null);
+    } catch (err) {
+      console.error("Lỗi khi tải chi tiết sản phẩm:", err);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
   // --- SEARCH & PAGINATION ---
   const filteredProducts = products.filter((p) =>
     p.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -53,7 +74,11 @@ const ListProduct = () => {
   );
 
   // --- HANDLERS ---
-  const handleDetail = (id) => navigate(`/seller/product-detail/${id}`);
+  const handleDetail = async (product) => {
+    setSelectedProduct(product);
+    setOpenDetail(true);
+    await fetchProductDetail(product.id);
+  };
 
   const handleUpdate = (product) => {
     setSelectedProduct(product);
@@ -141,7 +166,7 @@ const ListProduct = () => {
                       className="w-16 h-16 object-cover rounded-md border"
                     />
                   </td>
-                  <td className="p-3 text-leftleft">{product.name}</td>
+                  <td className="p-3 text-left">{product.name}</td>
                   <td className="p-3 text-center">{product.sold || 0} </td>
                   <td className="p-3 text-center text-yellow-500">
                     {product.rating_average || 5} ⭐ 
@@ -152,10 +177,10 @@ const ListProduct = () => {
                       {/* Xem chi tiết */}
                       <div className="relative group">
                         <button
-                          onClick={() => handleDetail(product.id)}
-                          className="p-2 rounded-full hover:bg-gray-200 "
+                          onClick={() => handleDetail(product)}
+                          className="p-2 rounded-full hover:bg-gray-200"
                         >
-                          <img src={IconView} alt="Xem chi tiết" className="w5 h-5" />
+                          <img src={IconView} alt="Xem chi tiết" className="w-5 h-5" />
                         </button>
                         <span
                           className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 
@@ -238,6 +263,155 @@ const ListProduct = () => {
           </button>
         </div>
       )}
+
+      {/* --- POPUP CHI TIẾT SẢN PHẨM --- */}
+      {openDetail && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40 overflow-y-auto">
+        <div className="bg-white p-6 rounded-xl shadow-lg w-[800px] max-h-[90vh] overflow-y-auto my-8">
+
+          {/* Header */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-blue-600">
+              Chi tiết sản phẩm
+            </h2>
+            <button
+              onClick={() => setOpenDetail(false)}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+          {loadingDetail ? (
+            <div className="text-center py-8 text-gray-500">
+              Đang tải chi tiết...
+            </div>
+          ) : productDetail ? (
+            <div className="space-y-5">
+
+              {/* DÒNG 1: TÊN */}
+              <h1 className="text-2xl font-bold text-gray-800">
+                {productDetail.name}
+              </h1>
+
+              {/* DÒNG 2: ẢNH CHÍNH + ẢNH PHỤ */}
+              <div className="flex gap-4">
+                {/* Ảnh chính */}
+                <img
+                  src={productDetail.main_image}
+                  alt={productDetail.name}
+                  className="w-24 h-24 object-cover rounded-lg border"
+                />
+
+                {/* Ảnh phụ */}
+                {productDetail.ProductImages?.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {productDetail.ProductImages.map((img) => (
+                      <img
+                        key={img.id}
+                        src={img.image_url}
+                        alt="Product"
+                        className="w-16 h-16 object-cover rounded-md border"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* DÒNG 3: BIẾN THỂ */}
+              {productDetail.ProductVariants?.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Biến thể sản phẩm
+                  </h3>
+                  <div className="space-y-2">
+                    {productDetail.ProductVariants.map((variant) => (
+                      <div
+                        key={variant.id}
+                        className="border rounded-lg p-2 bg-gray-50 text-sm"
+                      >
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <span className="font-medium">Giá</span>
+                            <p className="text-blue-600 font-semibold">
+                              {variant.price?.toLocaleString("vi-VN")}đ
+                            </p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Tồn kho</span>
+                            <p>{variant.stock_quantity}</p>
+                          </div>
+                          <div>
+                            {variant.ProductVariantOptions?.map((opt) => (
+                              <p key={opt.id}>
+                                {opt.VariantOptionAttribute?.name}: {opt.value}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* DÒNG 4: TRẠNG THÁI + ĐÃ BÁN */}
+              <div className="flex gap-8 text-sm">
+                <div>
+                  <span className="font-semibold">Trạng thái:</span>{" "}
+                  {productDetail.status}
+                </div>
+                <div>
+                  <span className="font-semibold">Đã bán:</span>{" "}
+                  {productDetail.sold || 0}
+                </div>
+              </div>
+
+              {/* DÒNG 5: ĐÁNH GIÁ – XUẤT XỨ – GIẢM GIÁ */}
+              <div className="flex gap-8 text-sm">
+                <div className="text-yellow-600">
+                  <span className="font-semibold">Đánh giá:</span>{" "}
+                  {productDetail.rating_average || 0} ⭐ (
+                  {productDetail.review_numbers || 0})
+                </div>
+                <div>
+                  <span className="font-semibold">Xuất xứ:</span>{" "}
+                  {productDetail.origin || "Không có"}
+                </div>
+                {productDetail.discount > 0 && (
+                  <div className="text-red-600 font-semibold">
+                    Giảm giá: {productDetail.discount}%
+                  </div>
+                )}
+              </div>
+
+              {/* DÒNG 6: MÔ TẢ */}
+              <div>
+                <span className="font-semibold text-gray-700">Mô tả</span>
+                <p className="text-gray-600 mt-1">
+                  {productDetail.description || "Không có mô tả"}
+                </p>
+              </div>
+
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              Không thể tải chi tiết sản phẩm
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex justify-end mt-6">
+            <button
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              onClick={() => setOpenDetail(false)}
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
       {/* --- POPUP XÁC NHẬN XÓA --- */}
       {openDelete && (

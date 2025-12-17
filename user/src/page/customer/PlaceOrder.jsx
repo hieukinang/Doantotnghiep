@@ -77,6 +77,19 @@ const PlaceOrder = () => {
     }
   }, [clientToken, cartItems, navigate]);
 
+   useEffect(() => {
+    return () => {
+      const timer = setTimeout(() => {
+        if (!window.location.pathname.includes('/place-order')) {
+          localStorage.removeItem("quantities");
+          localStorage.removeItem("buyNowItems");
+        }
+      }, 0);
+      
+      return () => clearTimeout(timer);
+    };
+  }, []);
+
   // ------------------- FETCH TÊN CỬA HÀNG (SỬA LẠI) -------------------
   useEffect(() => {
     const fetchStoreNames = async () => {
