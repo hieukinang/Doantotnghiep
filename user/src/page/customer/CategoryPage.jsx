@@ -2,93 +2,161 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 
-const backendURL = 
-  import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000";
-
 const formatPrice = (v) =>
   v ? v.toLocaleString("vi-VN", { minimumFractionDigits: 0 }) : "0";
 
 const CategoryPage = () => {
   const { id } = useParams();
+  const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
-  const [categoryName, setCategoryName] = useState("");
-
-  // Lấy danh sách sản phẩm theo category name
-  const fetchProducts = async (name) => {
-    try {
-      const res = await axios.get(
-        `${backendURL}/recommendations/by-category?page=1&name=${encodeURIComponent(
-          name
-        )}`
-      );
-      setProducts(res.data.data.docs || []);
-    } catch (err) {
-      console.error("Fetch category products error:", err);
-    }
-  };
+  const [displayProducts, setDisplayProducts] = useState([]);
+  const [sortType, setSortType] = useState("");
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Gọi API lấy thông tin category theo id
-        const res = await axios.get(`${backendURL}/categories/${id}`);
-        const category = res.data.data?.docs?.[0];
-        if (category) {
-          setCategoryName(category.name);
-          fetchProducts(category.name);
+    const fetchData = async () => {
+      const cateRes = await axios.get(
+        `http://127.0.0.1:5000/api/categories/${id}`
+      );
+      setCategory(cateRes.data.data.doc);
+
+      const productRes = await axios.get(
+        `http://127.0.0.1:5000/api/recommendations/by-category`,
+        {
+          params: { name: cateRes.data.data.doc.name },
         }
-      } catch (err) {
-        console.error("Fetch category error:", err);
-      }
+      );
+
+      setProducts(productRes.data.data || []);
+      setDisplayProducts(productRes.data.data || []);
     };
-    loadData();
+
+    fetchData();
   }, [id]);
 
+  // SORT / FILTER
+  useEffect(() => {
+    let list = [...products];
+
+    switch (sortType) {
+      case "price-asc":
+        list.sort((a, b) => (a.min_price || 0) - (b.min_price || 0));
+        break;
+      case "price-desc":
+        list.sort((a, b) => (b.min_price || 0) - (a.min_price || 0));
+        break;
+      case "discount-asc":
+        list.sort(
+          (a, b) =>
+            (a.discount_percent || 0) - (b.discount_percent || 0)
+        );
+        break;
+      case "discount-desc":
+        list.sort(
+          (a, b) =>
+            (b.discount_percent || 0) - (a.discount_percent || 0)
+        );
+        break;
+      case "random":
+        list.sort(() => 0.5 - Math.random());
+        break;
+      default:
+        break;
+    }
+
+    setDisplayProducts(list);
+  }, [sortType, products]);
+
   return (
-    <div className="mx-[100px] mt-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-        {products.map((p) => (
-          <Link
-            key={p.id || p._id}
-            to={`/product/${p.id || p._id}`}
-            className="bg-white rounded-xl overflow-hidden shadow hover:shadow-xl hover:-translate-y-1 border border-gray-200 transition-all duration-300"
-          >
-            <div className="aspect-[1/1] bg-gray-100 flex items-center justify-center overflow-hidden">
-              <img
-                src={
-                  p.main_image ||
-                  (p.images?.length ? p.images[0] : "") ||
-                  "/no-image.png"
-                }
-                alt={p.name}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-              />
+    <div className="max-w-[1400px] mx-auto px-6 py-8">
+      <div className="grid grid-cols-12 gap-6">
+        {/* SIDEBAR */}
+        <div className="col-span-12 md:col-span-3 bg-white rounded-xl border p-4 h-fit">
+          <h2 className="text-lg font-semibold text-gray-800">
+            {category?.name}
+          </h2>
+
+          <div className="mt-6">
+            <div className="text-sm font-medium text-gray-700 mb-2">
+              Sắp xếp theo giá
             </div>
 
-            <div className="p-2">
-              <div className="line-clamp-2 text-sm font-medium text-gray-800">
-                {p.name}
-              </div>
+            {[
+              { label: "Thấp → Cao", value: "price-asc" },
+              { label: "Cao → Thấp", value: "price-desc" },
+              { label: "Ngẫu nhiên", value: "random" },
+            ].map((opt) => (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2 text-sm text-gray-600 mb-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={sortType === opt.value}
+                  onChange={() => setSortType(opt.value)}
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
 
-              {p.min_price ? (
-                <>
-                  <div className="mt-1 text-xs text-gray-500 line-through">
-                    {formatPrice(p.min_price * 1.1)}₫
+          <div className="mt-6">
+            <div className="text-sm font-medium text-gray-700 mb-2">
+              Giảm giá
+            </div>
+
+            {[
+              { label: "Thấp → Cao", value: "discount-asc" },
+              { label: "Cao → Thấp", value: "discount-desc" },
+            ].map((opt) => (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2 text-sm text-gray-600 mb-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={sortType === opt.value}
+                  onChange={() => setSortType(opt.value)}
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* PRODUCTS */}
+        <div className="col-span-12 md:col-span-9">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {displayProducts.map((p) => (
+              <Link
+                key={p.id}
+                to={`/product/${p.id}`}
+                className="bg-white rounded-xl overflow-hidden border hover:shadow-lg hover:-translate-y-1 transition"
+              >
+                <div className="aspect-square bg-gray-100 overflow-hidden">
+                  <img
+                    src={p.main_image || "/no-image.png"}
+                    alt={p.name}
+                    className="w-full h-full object-cover hover:scale-105 transition"
+                  />
+                </div>
+
+                <div className="p-2">
+                  <div className="text-sm font-medium line-clamp-2 text-gray-800">
+                    {p.name}
                   </div>
+
                   <div className="mt-1 text-[#116AD1] font-semibold">
                     {formatPrice(p.min_price)}₫
                   </div>
-                </>
-              ) : (
-                <div className="mt-1 text-gray-400 text-sm">Liên hệ</div>
-              )}
 
-              <div className="mt-1 text-xs text-gray-500">
-                Đã bán {p.sold?.toLocaleString("vi-VN") || "0"}
-              </div>
-            </div>
-          </Link>
-        ))}
+                  <div className="mt-1 text-xs text-gray-500">
+                    Đã bán {p.sold?.toLocaleString("vi-VN") || 0}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
