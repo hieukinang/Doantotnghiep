@@ -9,6 +9,8 @@ import { ORDER_STATUS } from "../constants/index.js";
 import { uploadMixOfImages } from "../middleware/imgUpload.middleware.js";
 import { getOne } from "../utils/refactorControllers.utils.js";
 import Sharp from "sharp";
+import { sequelize } from "../config/db.js";
+import { fn, col } from "sequelize";
 
 // helper to save uploaded images (stores raw buffer files)
 export const uploadReviewImages = uploadMixOfImages([
@@ -43,43 +45,77 @@ export const resizeReviewImages = asyncHandler(async (req, res, next) => {
 // @desc Create a review (client) with up to 5 images when order status is DELIVERED
 // @route POST /api/reviews/order/:orderId
 // @access Protected(Client)
+
 export const createReview = asyncHandler(async (req, res, next) => {
-  console.log(req.body);
   const clientId = req.user && req.user.id;
   const { orderId } = req.params;
   const { text, rating, productId } = req.body;
 
-  if (!clientId) return next(new APIError("Authentication required", 401));
-  if (!orderId) return next(new APIError("orderId is required", 400));
-  if (!productId) return next(new APIError("productId is required", 400));
-  if (!text || !rating) return next(new APIError("text and rating are required", 400));
+  if (!orderId) return next(new APIError("orderId là bắt buộc", 400));
+  if (!productId) return next(new APIError("productId là bắt buộc", 400));
+  if (!text || !rating) return next(new APIError("Vui lòng nhập đầy đủ thông tin", 400));
 
   // find order
   const order = await Order.findByPk(orderId);
-  if (!order) return next(new APIError("Order not found", 404));
-  if (order.clientId !== clientId) return next(new APIError("You cannot review this order", 403));
+  if (!order) return next(new APIError("Order không tồn tại", 404));
+  if (order.clientId !== clientId) return next(new APIError("Bạn không thể đánh giá đơn hàng này", 403));
   if (![
     ORDER_STATUS.DELIVERED,
     ORDER_STATUS.CLIENT_CONFIRMED,
   ].includes(order.status)) {
-    return next(new APIError("Order must be DELIVERED or CLIENT_CONFIRMED before reviewing", 400));
+    return next(new APIError("Order phải ở trạng thái DELIVERED hoặc CLIENT_CONFIRMED trước khi đánh giá", 400));
   }
 
-  // ensure product exists
+  // Đảm bảo product thuộc order này
   const product = await Product.findByPk(productId);
-  if (!product) return next(new APIError("Product not found", 404));
-  // create review
-  const review = await Review.create({ text, rating, clientId, productId, orderId });
-
-  // Thêm các reviewImage vào database nếu có
-  if (req.body.images && Array.isArray(req.body.images)) {
-    await Promise.all(
-      req.body.images.map((imgName) =>
-        ReviewImage.create({ reviewId: review.id, url: imgName })
-      )
+  if (!product) return next(new APIError("Product không tồn tại", 404));
+  // create review and images inside a transaction, then update product stats
+  const created = await sequelize.transaction(async (t) => {
+    const review = await Review.create(
+      { text, rating, clientId, productId, orderId },
+      { transaction: t }
     );
-  }
-  const created = await Review.findByPk(review.id, { include: [{ model: Client, as: "ReviewClient", attributes: ["id", "username", "image"] }] });
+
+    // Thêm các reviewImage vào database nếu có
+    if (req.body.images && Array.isArray(req.body.images)) {
+      await Promise.all(
+        req.body.images.map((imgName) =>
+          ReviewImage.create(
+            { reviewId: review.id, url: imgName },
+            { transaction: t }
+          )
+        )
+      );
+    }
+
+    // Recalculate stats for product: average rating and count
+    const stats = await Review.findOne({
+      where: { productId },
+      attributes: [
+        [fn("AVG", col("rating")), "avgRating"],
+        [fn("COUNT", col("id")), "count"],
+      ],
+      raw: true,
+      transaction: t,
+    });
+
+    const avgRating = stats && stats.avgRating ? Number(stats.avgRating) : Number(rating);
+    const count = stats && stats.count ? Number(stats.count) : 1;
+
+    // product.rating_average is INTEGER in model, store rounded nearest integer
+    const newRatingAverage = Math.round(avgRating);
+
+    await product.update(
+      { rating_average: newRatingAverage, review_numbers: count },
+      { transaction: t }
+    );
+
+    // return created review with client include
+    return Review.findByPk(review.id, {
+      include: [{ model: Client, as: "ReviewClient", attributes: ["id", "username", "image"] }],
+      transaction: t,
+    });
+  });
 
   res.status(201).json({ status: "success", data: { review: created } });
 });
@@ -122,16 +158,55 @@ export const updateReview = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const { id } = req.params;
   const { text, rating } = req.body;
-  if (!clientId) return next(new APIError("Authentication required", 401));
   const review = await Review.findByPk(id);
-  if (!review) return next(new APIError("Review not found", 404));
-  if (review.clientId !== clientId) return next(new APIError("You cannot update this review", 403));
+  if (!review) return next(new APIError("Review không tồn tại", 404));
+  if (review.clientId !== clientId) return next(new APIError("Bạn không có quyền cập nhật review này", 403));
   const allowed = {};
   if (text !== undefined) allowed.text = text;
   if (rating !== undefined) allowed.rating = rating;
-  if (Object.keys(allowed).length === 0) return next(new APIError("No fields to update", 400));
-  await review.update(allowed);
-  res.status(200).json({ status: "success", data: { review } });
+  if (Object.keys(allowed).length === 0) return next(new APIError("Không có trường nào để cập nhật", 400));
+
+  // Update review inside a transaction. If rating changed, recalculate product stats.
+  const updated = await sequelize.transaction(async (t) => {
+    await review.update(allowed, { transaction: t });
+
+    if (rating !== undefined) {
+      // ensure product exists
+      const product = await Product.findByPk(review.productId, { transaction: t });
+      if (!product) throw new APIError("Product không tồn tại", 404);
+
+      // Recalculate avg rating and count
+      const stats = await Review.findOne({
+        where: { productId: review.productId },
+        attributes: [
+          [fn("AVG", col("rating")), "avgRating"],
+          [fn("COUNT", col("id")), "count"],
+        ],
+        raw: true,
+        transaction: t,
+      });
+
+      const avgRating = stats && stats.avgRating ? Number(stats.avgRating) : Number(rating);
+      const count = stats && stats.count ? Number(stats.count) : 0;
+      const newRatingAverage = Math.round(avgRating);
+
+      await product.update(
+        { rating_average: newRatingAverage, review_numbers: count },
+        { transaction: t }
+      );
+    }
+
+    // return the refreshed review with related data
+    return Review.findByPk(review.id, {
+      include: [
+        { model: Client, as: "ReviewClient", attributes: ["id", "username", "image"] },
+        { model: ReviewImage, as: "ReviewImages" }
+      ],
+      transaction: t,
+    });
+  });
+
+  res.status(200).json({ status: "success", data: { review: updated } });
 });
 
 // @desc Get review by order id
@@ -140,7 +215,7 @@ export const updateReview = asyncHandler(async (req, res, next) => {
 export const getOneByOrder = asyncHandler(async (req, res, next) => {
   const { orderId } = req.params;
   const review = await Review.findOne({ where: { orderId }, include: [{ model: Client, as: "ReviewClient", attributes: ["id", "username", "image"] }] });
-  if (!review) return next(new APIError("Review not found for this order", 404));
+  if (!review) return next(new APIError("Review không tồn tại cho đơn hàng này", 404));
   const images = await ReviewImage.findAll({ where: { reviewId: review.id } });
   const data = review.toJSON();
   data.images = images;
@@ -152,7 +227,7 @@ export const getOneByOrder = asyncHandler(async (req, res, next) => {
 // @access Public
 export const getAllByRating = asyncHandler(async (req, res, next) => {
   const rating = parseInt(req.params.rating, 10);
-  if (!rating || rating < 1 || rating > 5) return next(new APIError("Invalid rating value", 400));
+  if (!rating || rating < 1 || rating > 5) return next(new APIError("Giá trị đánh giá không hợp lệ", 400));
   const reviews = await Review.findAll({ where: { rating }, include: [{ model: Client, as: "ReviewClient", attributes: ["id", "username", "image"] }], order: [["createdAt", "DESC"]] });
   res.status(200).json({ status: "success", results: reviews.length, data: { reviews } });
 });
