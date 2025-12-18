@@ -547,7 +547,7 @@ const ProductDetail = () => {
                         {rv.ReviewImages.map((img) => (
                           <img
                             key={img.id}
-                            src={`${backendURL}/reviews/${img.url}`}
+                            src={img.url}
                             alt="review"
                             className="w-20 h-20 rounded object-cover border"
                           />
