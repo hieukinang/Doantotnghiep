@@ -74,6 +74,7 @@ export const createProduct = asyncHandler(async (req, res, next) => {
   const product = await Product.create({
     name: req.body.name,
     description: req.body.description,
+    origin: req.body.origin,
     main_image: req.body.main_image,
     categoryId: req.body.categoryId,
     storeId: req.user.id,

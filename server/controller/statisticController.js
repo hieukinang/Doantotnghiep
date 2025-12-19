@@ -3,10 +3,6 @@ import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import { sequelize } from "../config/db.js";
 import { ORDER_STATUS } from "../constants/index.js";
-import Admin from "../model/adminModel.js";
-import Client from "../model/clientModel.js";
-import Store from "../model/storeModel.js";
-import Shipper from "../model/shipperModel.js";
 
 // small helpers for local Y-M-D parsing/formatting
 const parseYMD = (s) => {
