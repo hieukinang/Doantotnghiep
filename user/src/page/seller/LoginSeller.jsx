@@ -44,6 +44,8 @@ const LoginSeller = () => {
       const storeId =
         res.data.data?.user?.id || "StoreID";
       localStorage.setItem("storeId", storeId);
+      const sellerData = res.data.data?.user;
+      localStorage.setItem("sellerUser",  JSON.stringify(sellerData));
 
       setTimeout(() => {
         window.location.replace("/seller/orders");
