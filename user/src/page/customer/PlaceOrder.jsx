@@ -155,7 +155,7 @@ const PlaceOrder = () => {
   };
 
   // ------------------- LOGIC ADDRESS -------------------
-  const [mainAddress, setMainAddress] = useState(null);
+ const [mainAddress, setMainAddress] = useState(null);
   const [allAddresses, setAllAddresses] = useState([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showAddressList, setShowAddressList] = useState(false);
@@ -164,40 +164,31 @@ const PlaceOrder = () => {
     city: "",
     village: "",
     detail_address: "",
+    isMain: false,
   });
-  const [paymentMethod, setPaymentMethod] = useState("COD"); // COD hoặc WALLET
+  const [paymentMethod, setPaymentMethod] = useState("COD");
 
-  // Lấy thông tin user từ localStorage
   const clientUser = JSON.parse(localStorage.getItem("clientUser") || "{}");
 
-  // Fetch địa chỉ chính khi component mount
+  // Khởi tạo địa chỉ khi component mount
   useEffect(() => {
     const initAddresses = async () => {
-      await fetchAllAddresses();
-      await fetchMainAddress();
+      const addresses = await fetchAllAddresses();
+      
+      if (addresses.length === 0) {
+        // Chưa có địa chỉ → Hiện form thêm
+        setShowAddressForm(true);
+        setShowAddressList(false);
+        setMainAddress(null);
+      } else {
+        // Có địa chỉ → Fetch main address
+        await fetchMainAddress(addresses);
+        setShowAddressForm(false);
+        setShowAddressList(false);
+      }
     };
     initAddresses();
   }, []);
-
-  const fetchMainAddress = async () => {
-    try {
-      const res = await axios.get(`${backendURL}/addresses/main`, {
-        headers: { Authorization: `Bearer ${clientToken}` }
-      });
-      
-      if (res.data.status === "success" && res.data.data?.doc) {
-        setMainAddress(res.data.data.doc);
-        setShowAddressForm(false);
-      } else {
-        setMainAddress(null);
-        setShowAddressForm(true);
-      }
-    } catch (err) {
-      console.error("❌ Lỗi khi lấy địa chỉ chính:", err);
-      setMainAddress(null);
-      setShowAddressForm(true);
-    }
-  };
 
   const fetchAllAddresses = async () => {
     try {
@@ -206,19 +197,47 @@ const PlaceOrder = () => {
       });
       
       if (res.data.status === "success") {
-        setAllAddresses(res.data.data?.docs || []);
+        const addresses = res.data.data?.addresses || [];
+        setAllAddresses(addresses);
+        return addresses;
       }
+      return [];
     } catch (err) {
       console.error("❌ Lỗi khi lấy danh sách địa chỉ:", err);
       setAllAddresses([]);
+      return [];
+    }
+  };
+
+  const fetchMainAddress = async (addresses = null) => {
+    try {
+      const res = await axios.get(`${backendURL}/addresses/main`, {
+        headers: { Authorization: `Bearer ${clientToken}` }
+      });
+      
+      if (res.data.status === "success" && res.data.data?.doc) {
+        setMainAddress(res.data.data.doc);
+      } else {
+        // Không có main → Dùng địa chỉ đầu tiên
+        const addressList = addresses || allAddresses;
+        if (addressList.length > 0) {
+          await handleSetMainAddress(addressList[0].id, false);
+        }
+      }
+    } catch (err) {
+      console.error("❌ Lỗi khi lấy địa chỉ chính:", err);
+      const addressList = addresses || allAddresses;
+      if (addressList.length > 0) {
+        await handleSetMainAddress(addressList[0].id, false);
+      }
     }
   };
 
   const handleAddressChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -235,7 +254,10 @@ const PlaceOrder = () => {
     };
 
     try {
+      let savedAddressId = editingAddressId;
+
       if (editingAddressId) {
+        // Cập nhật địa chỉ
         await axios.patch(
           `${backendURL}/addresses/${editingAddressId}`,
           addressPayload,
@@ -243,43 +265,57 @@ const PlaceOrder = () => {
         );
         toast.success("Cập nhật địa chỉ thành công!");
       } else {
+        // Thêm địa chỉ mới
         const res = await axios.post(
           `${backendURL}/addresses`,
           addressPayload,
           { headers: { Authorization: `Bearer ${clientToken}` } }
         );
         toast.success("Thêm địa chỉ mới thành công!");
+        savedAddressId = res.data.data?.doc?.id;
         
-        if (allAddresses.length === 0 && res.data.data?.doc?.id) {
-          await handleSetMainAddress(res.data.data.doc.id);
+        // Nếu đây là địa chỉ đầu tiên, tự động set làm main
+        if (allAddresses.length === 0) {
+          formData.isMain = true;
         }
       }
 
-      await fetchAllAddresses();
-      await fetchMainAddress();
+      // Nếu checkbox "Đặt làm mặc định" được chọn
+      if (formData.isMain && savedAddressId) {
+        await handleSetMainAddress(savedAddressId, true);
+      } else {
+        const updatedAddresses = await fetchAllAddresses();
+        await fetchMainAddress(updatedAddresses);
+      }
+
       setShowAddressForm(false);
+      setShowAddressList(false);
       setEditingAddressId(null);
-      setFormData({ city: "", village: "", detail_address: "" });
+      setFormData({ city: "", village: "", detail_address: "", isMain: false });
     } catch (err) {
       console.error("❌ Lỗi khi lưu địa chỉ:", err);
-      alert(err.response?.data?.message || "Không thể lưu địa chỉ!");
+      toast.error(err.response?.data?.message || "Không thể lưu địa chỉ!");
     }
   };
 
-  const handleSetMainAddress = async (addressId) => {
+  const handleSetMainAddress = async (addressId, showToast = true) => {
     try {
       await axios.patch(
         `${backendURL}/addresses/main/${addressId}`,
         {},
         { headers: { Authorization: `Bearer ${clientToken}` } }
       );
-      toast.success("Đã đặt làm địa chỉ mặc định!");
-      await fetchMainAddress();
-      await fetchAllAddresses();
+      if (showToast) {
+        toast.success("Đã đặt làm địa chỉ mặc định!");
+      }
+      const updatedAddresses = await fetchAllAddresses();
+      await fetchMainAddress(updatedAddresses);
       setShowAddressList(false);
     } catch (err) {
       console.error("❌ Lỗi khi đặt địa chỉ mặc định:", err);
-      alert(err.response?.data?.message || "Không thể đặt địa chỉ mặc định!");
+      if (showToast) {
+        toast.error(err.response?.data?.message || "Không thể đặt địa chỉ mặc định!");
+      }
     }
   };
 
@@ -292,13 +328,25 @@ const PlaceOrder = () => {
       });
       toast.success("Đã xóa địa chỉ!");
       
+      const updatedAddresses = await fetchAllAddresses();
+      
+      // Nếu xóa địa chỉ main
       if (mainAddress?.id === addressId) {
-        await fetchMainAddress();
+        if (updatedAddresses.length > 0) {
+          // Set địa chỉ đầu tiên làm main
+          await handleSetMainAddress(updatedAddresses[0].id, false);
+        } else {
+          // Không còn địa chỉ → Hiện form thêm
+          setMainAddress(null);
+          setShowAddressForm(true);
+          setShowAddressList(false);
+        }
+      } else {
+        await fetchMainAddress(updatedAddresses);
       }
-      await fetchAllAddresses();
     } catch (err) {
       console.error("❌ Lỗi khi xóa địa chỉ:", err);
-      alert(err.response?.data?.message || "Không thể xóa địa chỉ!");
+      toast.error(err.response?.data?.message || "Không thể xóa địa chỉ!");
     }
   };
 
@@ -306,7 +354,8 @@ const PlaceOrder = () => {
     setFormData({
       city: address.city || "",
       village: address.village || "",
-      detail_address: address.detail_address || ""
+      detail_address: address.detail_address || "",
+      isMain: address.id === mainAddress?.id,
     });
     setEditingAddressId(address.id);
     setShowAddressForm(true);
@@ -319,11 +368,23 @@ const PlaceOrder = () => {
   };
 
   const handleShowAddressForm = () => {
-    setFormData({ city: "", village: "", detail_address: "" });
+    setFormData({ city: "", village: "", detail_address: "", isMain: false });
     setEditingAddressId(null);
     setShowAddressForm(true);
     setShowAddressList(false);
   };
+
+  const handleCancelAddressForm = () => {
+    setShowAddressForm(false);
+    setEditingAddressId(null);
+    setFormData({ city: "", village: "", detail_address: "", isMain: false });
+    
+    // Quay về danh sách nếu có địa chỉ
+    if (allAddresses.length > 0) {
+      setShowAddressList(true);
+    }
+  };
+
 
   // ------------------- LOGIC COUPON (API CALL) -------------------
   const [showStoreCouponModal, setShowStoreCouponModal] = useState(false);
