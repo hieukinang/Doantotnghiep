@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { toast } from "react-toastify";
 import SellerLayout from '../../component-seller-page/SellerLayout'
 
 const EditProfileSeller = () => {
+  const token = localStorage.getItem('sellerToken')
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -90,7 +92,7 @@ const EditProfileSeller = () => {
       const submitData = new FormData()
       submitData.append('name', formData.name)
       submitData.append('phone', formData.phone)
-       submitData.append('phone', formData.email)
+       submitData.append('email', formData.email)
       submitData.append('description', formData.description)
       submitData.append('detail_address', formData.detail_address)
       submitData.append('city', formData.city)
@@ -109,6 +111,9 @@ const EditProfileSeller = () => {
 
       const response = await fetch(`http://127.0.0.1:5000/api/stores/update-profile`, {
         method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: submitData
       })
 
@@ -118,14 +123,14 @@ const EditProfileSeller = () => {
         // Cập nhật localStorage với thông tin mới
         localStorage.setItem('sellerUser', JSON.stringify(data))
         
-        alert('Cập nhật thông tin thành công!')
+        toast.success('Cập nhật thông tin thành công!')
       } else {
         const error = await response.json()
-        alert('Lỗi: ' + (error.message || 'Không thể cập nhật thông tin'))
+        toast.error(error.message || 'Không thể cập nhật thông tin');
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Có lỗi xảy ra khi cập nhật thông tin')
+     toast.error('Có lỗi xảy ra khi cập nhật thông tin')
     } finally {
       setLoading(false)
     }
