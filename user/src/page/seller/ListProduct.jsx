@@ -5,7 +5,6 @@ import IconView from "../../assets/home/icon-view.svg";
 import IconDelete from "../../assets/home/icon-delete.svg";
 import IconEdit from "../../assets/home/icon-edit.svg";
 
-
 const ListProduct = () => {
   const navigate = useNavigate();
 
@@ -21,6 +20,10 @@ const ListProduct = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productDetail, setProductDetail] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const [mainImage, setMainImage] = useState(null);
+  const [slideImages, setSlideImages] = useState([]);
+  const [updating, setUpdating] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -80,16 +83,69 @@ const ListProduct = () => {
     await fetchProductDetail(product.id);
   };
 
-  const handleUpdate = (product) => {
-    setSelectedProduct(product);
+  const handleUpdate = async (product) => {
+    setSelectedProduct({ ...product });
+    setMainImage(null);
+    setSlideImages([]);
     setOpenUpdate(true);
+    // Fetch chi tiết để có đầy đủ thông tin
+    await fetchProductDetail(product.id);
   };
 
-  const handleUpdateSubmit = (updatedProduct) => {
-    setProducts(
-      products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
-    );
-    setOpenUpdate(false);
+  const handleUpdateSubmit = async () => {
+    const backendURL =
+      import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
+    const token = localStorage.getItem("sellerToken");
+    if (!productDetail) return;
+
+    setUpdating(true);
+    try {
+      const formData = new FormData();
+
+      // Chỉ append các trường có giá trị
+      if (productDetail.name) formData.append("name", productDetail.name);
+      if (productDetail.description)
+        formData.append("description", productDetail.description);
+      if (productDetail.origin) formData.append("origin", productDetail.origin);
+
+      if (mainImage) {
+        formData.append("main_image", mainImage);
+      }
+
+      if (slideImages.length > 0) {
+        slideImages.forEach((file) => {
+          formData.append("slide_images", file);
+        });
+      }
+
+      const res = await axios.patch(
+        `${backendURL}/products/store/${productDetail.id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const updatedProduct = res.data?.data?.doc;
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
+      );
+
+      alert("Cập nhật sản phẩm thành công!");
+      setOpenUpdate(false);
+    } catch (err) {
+      console.error("Lỗi cập nhật sản phẩm:", err);
+      alert(
+        "Cập nhật sản phẩm thất bại: " +
+          (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const handleDelete = (product) => {
@@ -131,9 +187,11 @@ const ListProduct = () => {
           <thead className="bg-blue-600 text-white">
             <tr className="border-b border-gray-300/30 transition">
               <th className="p-3 text-left w-[50px]">STT</th>
-              <th className="p-3 text-left w-[120px]">Ảnh</th>
-              <th className="p-3 text-left w-[150px]">Tên sản phẩm</th>
-              <th className="p-3 text-center [120px]">Đã bán</th>
+              <th className="p-3 text-left w-[100px]">Ảnh</th>
+              <th className="p-3 text-left w-[120px]">Tên sản phẩm</th>
+              <th className="p-3 text-center [120px]">Xuất xứ</th>
+              <th className="p-3 text-center [100px]">Đã bán</th>
+              <th className="p-3 text-center [120px]">Giảm giá</th>
               <th className="p-3 text-center [120px]">Đánh giá trung bình</th>
               <th className="p-3 text-center [120px]">Lượt đánh giá</th>
               <th className="p-3 text-center w-[150px]">Hành động</th>
@@ -142,13 +200,13 @@ const ListProduct = () => {
           <tbody>
             {loading ? (
               <tr className="border-b border-gray-300/30 hover:bg-gray-50 transition">
-                <td colSpan="8" className="text-center p-4 text-gray-500">
+                <td colSpan="9" className="text-center p-4 text-gray-500">
                   Đang tải dữ liệu...
                 </td>
               </tr>
             ) : currentProducts.length === 0 ? (
               <tr className="border-b border-gray-300/30 hover:bg-gray-50 transition">
-                <td colSpan="8" className="text-center p-4 text-gray-500">
+                <td colSpan="9" className="text-center p-4 text-gray-500">
                   Không có sản phẩm nào phù hợp
                 </td>
               </tr>
@@ -167,9 +225,11 @@ const ListProduct = () => {
                     />
                   </td>
                   <td className="p-3 text-left">{product.name}</td>
+                  <td className="p-3 text-center">{product.origin} </td>
                   <td className="p-3 text-center">{product.sold || 0} </td>
+                  <td className="p-3 text-center">{product.discount || 0} </td>
                   <td className="p-3 text-center text-yellow-500">
-                    {product.rating_average || 5} ⭐ 
+                    {product.rating_average || 5} ⭐
                   </td>
                   <td className="p-3 text-center">{product.review_numbers || 0} </td>
                   <td className="p-3 text-center">
@@ -266,152 +326,155 @@ const ListProduct = () => {
 
       {/* --- POPUP CHI TIẾT SẢN PHẨM --- */}
       {openDetail && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40 overflow-y-auto">
-        <div className="bg-white p-6 rounded-xl shadow-lg w-[800px] max-h-[90vh] overflow-y-auto my-8">
-
-          {/* Header */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-blue-600">
-              Chi tiết sản phẩm
-            </h2>
-            <button
-              onClick={() => setOpenDetail(false)}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
-            >
-              ×
-            </button>
-          </div>
-
-          {loadingDetail ? (
-            <div className="text-center py-8 text-gray-500">
-              Đang tải chi tiết...
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-[800px] max-h-[85vh] flex flex-col overflow-hidden">
+            {/* Header - Fixed */}
+            <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
+              <h2 className="text-xl font-bold">
+                Chi tiết sản phẩm
+              </h2>
+              <button
+                onClick={() => setOpenDetail(false)}
+                className="text-white hover:text-gray-200 text-3xl font-light leading-none transition-colors"
+              >
+                ×
+              </button>
             </div>
-          ) : productDetail ? (
-            <div className="space-y-5">
+            
+            {/* Content - Scrollable */}
+            <div className="overflow-y-auto flex-1 p-6">
 
-              {/* DÒNG 1: TÊN */}
-              <h1 className="text-2xl font-bold text-gray-800">
-                {productDetail.name}
-              </h1>
-
-              {/* DÒNG 2: ẢNH CHÍNH + ẢNH PHỤ */}
-              <div className="flex gap-4">
-                {/* Ảnh chính */}
-                <img
-                  src={productDetail.main_image}
-                  alt={productDetail.name}
-                  className="w-24 h-24 object-cover rounded-lg border"
-                />
-
-                {/* Ảnh phụ */}
-                {productDetail.ProductImages?.length > 0 && (
-                  <div className="flex gap-2 flex-wrap">
-                    {productDetail.ProductImages.map((img) => (
-                      <img
-                        key={img.id}
-                        src={img.image_url}
-                        alt="Product"
-                        className="w-16 h-16 object-cover rounded-md border"
-                      />
-                    ))}
-                  </div>
-                )}
+            {loadingDetail ? (
+              <div className="text-center py-8 text-gray-500">
+                Đang tải chi tiết...
               </div>
+            ) : productDetail ? (
+              <div className="space-y-5">
 
-              {/* DÒNG 3: BIẾN THỂ */}
-              {productDetail.ProductVariants?.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-700 mb-2">
-                    Biến thể sản phẩm
-                  </h3>
-                  <div className="space-y-2">
-                    {productDetail.ProductVariants.map((variant) => (
-                      <div
-                        key={variant.id}
-                        className="border rounded-lg p-2 bg-gray-50 text-sm"
-                      >
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <span className="font-medium">Giá</span>
-                            <p className="text-blue-600 font-semibold">
-                              {variant.price?.toLocaleString("vi-VN")}đ
-                            </p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Tồn kho</span>
-                            <p>{variant.stock_quantity}</p>
-                          </div>
-                          <div>
-                            {variant.ProductVariantOptions?.map((opt) => (
-                              <p key={opt.id}>
-                                {opt.VariantOptionAttribute?.name}: {opt.value}
+                {/* DÒNG 1: TÊN */}
+                <h1 className="text-2xl font-bold text-gray-800">
+                  {productDetail.name}
+                </h1>
+
+                {/* DÒNG 2: ẢNH CHÍNH + ẢNH PHỤ */}
+                <div className="flex gap-4">
+                  {/* Ảnh chính */}
+                  <img
+                    src={productDetail.main_image}
+                    alt={productDetail.name}
+                    className="w-24 h-24 object-cover rounded-lg border"
+                  />
+
+                  {/* Ảnh phụ */}
+                  {productDetail.ProductImages?.length > 0 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {productDetail.ProductImages.map((img) => (
+                        <img
+                          key={img.id}
+                          src={img.image_url}
+                          alt="Product"
+                          className="w-16 h-16 object-cover rounded-md border"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* DÒNG 3: BIẾN THỂ */}
+                {productDetail.ProductVariants?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-700 mb-2">
+                      Biến thể sản phẩm
+                    </h3>
+                    <div className="space-y-2">
+                      {productDetail.ProductVariants.map((variant) => (
+                        <div
+                          key={variant.id}
+                          className="border rounded-lg p-2 bg-gray-50 text-sm"
+                        >
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <span className="font-medium">Giá</span>
+                              <p className="text-blue-600 font-semibold">
+                                {variant.price?.toLocaleString("vi-VN")}đ
                               </p>
-                            ))}
+                            </div>
+                            <div>
+                              <span className="font-medium">Tồn kho</span>
+                              <p>{variant.stock_quantity}</p>
+                            </div>
+                            <div>
+                              {variant.ProductVariantOptions?.map((opt) => (
+                                <p key={opt.id}>
+                                {opt.VariantOptionAttribute?.name}: {opt.value}
+                                </p>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* DÒNG 4: TRẠNG THÁI + ĐÃ BÁN */}
-              <div className="flex gap-8 text-sm">
-                <div>
-                  <span className="font-semibold">Trạng thái:</span>{" "}
-                  {productDetail.status}
-                </div>
-                <div>
-                  <span className="font-semibold">Đã bán:</span>{" "}
-                  {productDetail.sold || 0}
-                </div>
-              </div>
-
-              {/* DÒNG 5: ĐÁNH GIÁ – XUẤT XỨ – GIẢM GIÁ */}
-              <div className="flex gap-8 text-sm">
-                <div className="text-yellow-600">
-                  <span className="font-semibold">Đánh giá:</span>{" "}
-                  {productDetail.rating_average || 0} ⭐ (
-                  {productDetail.review_numbers || 0})
-                </div>
-                <div>
-                  <span className="font-semibold">Xuất xứ:</span>{" "}
-                  {productDetail.origin || "Không có"}
-                </div>
-                {productDetail.discount > 0 && (
-                  <div className="text-red-600 font-semibold">
-                    Giảm giá: {productDetail.discount}%
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
 
-              {/* DÒNG 6: MÔ TẢ */}
-              <div>
-                <span className="font-semibold text-gray-700">Mô tả</span>
-                <p className="text-gray-600 mt-1">
-                  {productDetail.description || "Không có mô tả"}
-                </p>
-              </div>
+                {/* DÒNG 4: TRẠNG THÁI + ĐÃ BÁN */}
+                <div className="flex gap-8 text-sm">
+                  <div>
+                    <span className="font-semibold">Trạng thái:</span>{" "}
+                    {productDetail.status}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Đã bán:</span>{" "}
+                    {productDetail.sold || 0}
+                  </div>
+                </div>
 
+                {/* DÒNG 5: ĐÁNH GIÁ – XUẤT XỨ – GIẢM GIÁ */}
+                <div className="flex gap-8 text-sm">
+                  <div className="text-yellow-600">
+                    <span className="font-semibold">Đánh giá:</span>{" "}
+                    {productDetail.rating_average || 0} ⭐ (
+                    {productDetail.review_numbers || 0})
+                  </div>
+                  <div>
+                    <span className="font-semibold">Xuất xứ:</span>{" "}
+                    {productDetail.origin || "Không có"}
+                  </div>
+                  {productDetail.discount > 0 && (
+                    <div className="text-red-600 font-semibold">
+                      Giảm giá: {productDetail.discount}%
+                    </div>
+                  )}
+                </div>
+
+                {/* DÒNG 6: MÔ TẢ */}
+                <div>
+                  <span className="font-semibold text-gray-700">Mô tả</span>
+                  <p className="text-gray-600 mt-1">
+                    {productDetail.description || "Không có mô tả"}
+                  </p>
+                </div>
+
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Không thể tải chi tiết sản phẩm
+              </div>
+            )}
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              Không thể tải chi tiết sản phẩm
-            </div>
-          )}
 
           {/* Footer */}
           <div className="flex justify-end mt-6">
-            <button
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              onClick={() => setOpenDetail(false)}
-            >
-              Đóng
-            </button>
+              <button
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => setOpenDetail(false)}
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
       {/* --- POPUP XÁC NHẬN XÓA --- */}
       {openDelete && (
@@ -444,49 +507,195 @@ const ListProduct = () => {
 
       {/* --- POPUP CẬP NHẬT --- */}
       {openUpdate && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-[600px]">
-            <h2 className="text-xl font-bold text-blue-600 mb-4">
-              Cập nhật sản phẩm
-            </h2>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-[700px] max-h-[85vh] flex flex-col overflow-hidden">
+            {/* Header - Fixed */}
+            <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
+              <h2 className="text-xl font-bold">
+                Cập nhật sản phẩm
+              </h2>
+              <button
+                onClick={() => setOpenUpdate(false)}
+                className="text-white hover:text-gray-200 text-3xl font-light leading-none transition-colors"
+              >
+                ×
+              </button>
+            </div>
 
-            <div className="grid grid-cols-2 gap-4 text-left">
-              {[
-                { key: "name", label: "Tên sản phẩm" },
-                { key: "description", label: "Mô tả" },
-                { key: "origin", label: "Xuất xứ" },
-                { key: "discount", label: "Giảm giá (%)" },
-                { key: "sold", label: "Số lượng đã bán" },
-              ].map((field) => (
-                <div key={field.key}>
-                  <label className="block text-sm mb-1">{field.label}</label>
+            {/* Content - Scrollable */}
+            <div className="overflow-y-auto flex-1 p-6">
+
+            {loadingDetail ? (
+              <div className="text-center py-8 text-gray-500">
+                Đang tải dữ liệu...
+              </div>
+            ) : productDetail ? (
+              <div className="space-y-4">
+                {/* Tên sản phẩm */}
+                {productDetail.name !== undefined && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">
+                      Tên sản phẩm <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={productDetail.name || ""}
+                      onChange={(e) =>
+                        setProductDetail({
+                          ...productDetail,
+                          name: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* Mô tả */}
+                {productDetail.description !== undefined && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">
+                      Mô tả
+                    </label>
+                    <textarea
+                      value={productDetail.description || ""}
+                      onChange={(e) =>
+                        setProductDetail({
+                          ...productDetail,
+                          description: e.target.value,
+                        })
+                      }
+                      rows="4"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* Xuất xứ */}
+                {productDetail.origin !== undefined && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">
+                      Xuất xứ
+                    </label>
+                    <input
+                      type="text"
+                      value={productDetail.origin || ""}
+                      onChange={(e) =>
+                        setProductDetail({
+                          ...productDetail,
+                          origin: e.target.value,
+                        })
+                      }
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* Ảnh chính hiện tại */}
+                {productDetail.main_image && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">
+                      Ảnh chính hiện tại
+                    </label>
+                    <img
+                      src={productDetail.main_image}
+                      alt="Main"
+                      className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
+
+                {/* Upload ảnh chính mới */}
+                <div>
+                  <label className="block text-sm font-semibold mb-1">
+                    Thay đổi ảnh chính{" "}
+                    {mainImage && (
+                      <span className="text-green-600">
+                        (Đã chọn file mới)
+                      </span>
+                    )}
+                  </label>
                   <input
-                    type="text"
-                    value={selectedProduct?.[field.key] || ""}
-                    onChange={(e) =>
-                      setSelectedProduct({
-                        ...selectedProduct,
-                        [field.key]: e.target.value,
-                      })
-                    }
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setMainImage(e.target.files[0])}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                   />
+                  {mainImage && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      File: {mainImage.name}
+                    </p>
+                  )}
                 </div>
-              ))}
+
+                {/* Ảnh phụ hiện tại */}
+                {productDetail.ProductImages &&
+                  productDetail.ProductImages.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">
+                        Ảnh phụ hiện tại
+                      </label>
+                      <div className="flex gap-2 flex-wrap">
+                        {productDetail.ProductImages.map((img) => (
+                          <img
+                            key={img.id}
+                            src={img.image_url}
+                            alt="Slide"
+                            className="w-20 h-20 object-cover rounded-md border border-gray-300"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Upload ảnh phụ mới */}
+                <div>
+                  <label className="block text-sm font-semibold mb-1">
+                    Thêm ảnh phụ mới{" "}
+                    {slideImages.length > 0 && (
+                      <span className="text-green-600">
+                        ({slideImages.length} file)
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => setSlideImages([...e.target.files])}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                  {slideImages.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {slideImages.map((f) => f.name).join(", ")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Không thể tải thông tin sản phẩm
+              </div>
+            )}
             </div>
 
             <div className="flex justify-end mt-6 space-x-3">
               <button
-                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                className="px-5 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
                 onClick={() => setOpenUpdate(false)}
               >
                 Hủy
               </button>
               <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={() => handleUpdateSubmit(selectedProduct)}
+                disabled={updating}
+                className={`px-5 py-2 text-white rounded-lg transition-colors ${
+                  updating
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+                onClick={handleUpdateSubmit}
               >
-                Lưu
+                {updating ? "Đang lưu..." : "Lưu thay đổi"}
               </button>
             </div>
           </div>
