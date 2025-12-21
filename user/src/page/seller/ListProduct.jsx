@@ -34,7 +34,7 @@ const ListProduct = () => {
         const backendURL =
           import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
         const token = localStorage.getItem("sellerToken");
-        const res = await axios.get(`${backendURL}/products`, {
+        const res = await axios.get(`${backendURL}/products/store`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProducts(res.data?.data?.products || []);
