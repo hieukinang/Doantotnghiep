@@ -128,8 +128,6 @@ export const getAllComplaints = asyncHandler(async (req, res, next) => {
   const pageNum = Math.max(parseInt(page) || 1, 1);
   const offset = (pageNum - 1) * perPage;
 
-  console.log(where);
-
   const { count, rows } = await Complaint.findAndCountAll({
     where,
     order: [["createdAt", "DESC"]],

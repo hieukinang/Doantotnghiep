@@ -24,10 +24,6 @@ import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
-// Client
-router.route("/").get(getAllProductsForClient);
-router.route("/:id", IdValidator).get(getSingleProduct); // Lấy từng sản phẩm
-
 // Admin
 router.get("/admin", isAuth(Admin), checkAdminStatus, getAllProductsForAdmin);
 
@@ -52,21 +48,24 @@ router.route("/store").get(
   getAllProductsByStore); // lay tat ca san phan theo store
 
 router
-  .route("/store/:id", isAuth(Store), checkStoreStatus, IdValidator) // Cập nhật, xóa sản phẩm
+  .route("/store/:id")
   .patch(
+    isAuth(Store),
+    checkStoreStatus,
+    IdValidator,
     uploadProductImages,
-    createProductValidator,
     resizeProductImages,
-    updateSingleProduct)
+    updateSingleProduct
+  )
   .delete(
-    deleteSingleProduct);
+    isAuth(Store),
+    checkStoreStatus,
+    IdValidator,
+    deleteSingleProduct
+  );
 
-// Update none image fields of product
-router.patch(
-  "/store/update-info/:id",
-  isAuth(Store),
-  checkStoreStatus,
-  IdValidator,
-  updateSingleProduct);  
+// Client
+router.route("/").get(getAllProductsForClient);
+router.route("/:id", IdValidator).get(getSingleProduct); // Lấy từng sản phẩm
 
 export default router;

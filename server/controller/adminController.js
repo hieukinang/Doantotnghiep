@@ -16,7 +16,6 @@ export const uploadAdminImage = uploadSingleImage("image");
 // 2) PROCESSING(Sharp)
 export const resizeAdminImage = asyncHandler(async (req, res, next) => {
   if (!req.file) return next();
-  // console.log(req.file);
 
   let filename = `${req.body.username}-${req.body.job_title}.jpeg`;
   if(req.user){

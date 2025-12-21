@@ -17,7 +17,7 @@ const ComplaintImage = sequelize.define(
         const rawValue = this.getDataValue("path");
         if (!rawValue) return null;
         if (rawValue.startsWith("http")) return rawValue;
-        return `${process.env.BASE_URL}/complaints/${rawValue}`;
+        return `${process.env.BASE_URL}/complaintImages/${rawValue}`;
       },
     },
     complaintId: {

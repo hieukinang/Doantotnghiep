@@ -14,6 +14,7 @@ import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
 import VariantOption from "../model/variantOptionModel.js";
 import Attribute from "../model/attributeModel.js";
+import APIError from "../utils/apiError.utils.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer)
@@ -221,7 +222,80 @@ export const getSingleProduct = getOne(Product, {
 // @desc    UPDATE Single Product
 // @route   PATCH /api/products/:id
 // @access  Private("ADMIN", "STORE")
-export const updateSingleProduct = updateOne(Product);
+export const updateSingleProduct = asyncHandler(async (req, res, next) => {
+  const productId = req.params.id;
+  // 1. Tìm product
+  const product = await Product.findByPk(productId);
+  if (!product) {
+    return next(new APIError("Không tìm thấy sản phẩm", 404));
+  }
+
+  // 2. Nếu là Store user -> kiểm tra quyền sở hữu
+  const userId = String(req.user?.id || "");
+  const isStoreUser = userId.startsWith("STORE");
+  if (isStoreUser && String(product.storeId) !== userId) {
+    return next(new APIError("Sản phẩm không thuộc cửa hàng của bạn", 403));
+  }
+
+  // 3. Chuẩn bị object update chỉ với các field được gửi và khác null
+  const updatableFields = [
+    "name",
+    "description",
+    "origin",
+    "discount",
+    "min_price",
+    "categoryId",
+    "status"
+  ];
+
+  const updateObj = {};
+  updatableFields.forEach((f) => {
+    if (
+      typeof req.body[f] !== "undefined" &&
+      req.body[f] !== null
+    ) {
+      updateObj[f] = req.body[f];
+    }
+  });
+
+  // 4. Nếu có main_image thì cập nhật main_image
+  if (
+    typeof req.body.main_image !== "undefined" &&
+    req.body.main_image !== null
+  ) {
+    updateObj.main_image = req.body.main_image;
+  }
+
+  // 5. Nếu có slide_images thì xóa toàn bộ ProductImage cũ và thêm mới
+  if (Array.isArray(req.body.slide_images) && req.body.slide_images.length > 0) {
+    // Xóa ảnh cũ
+    await ProductImage.destroy({ where: { productId: product.id } });
+    // Thêm ảnh mới
+    const productImages = req.body.slide_images.map((img) => ({
+      image_url: img,
+      productId: product.id,
+    }));
+    await ProductImage.bulkCreate(productImages);
+  }
+
+  // 6. Cập nhật product (chạy hooks/validators)
+  if (Object.keys(updateObj).length > 0) {
+    await product.update(updateObj, { individualHooks: true });
+  }
+
+  // 7. Lấy lại product kèm quan hệ để trả về
+  const updated = await Product.findByPk(productId, {
+    include: [
+      { model: ProductImage, as: "ProductImages" },
+      { model: ProductVariant, as: "ProductVariants" },
+    ],
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: { product: updated },
+  });
+});
 
 // @desc    DELETE Single Product
 // @route   DELETE /api/products/:id
