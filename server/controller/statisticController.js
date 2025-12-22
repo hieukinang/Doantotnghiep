@@ -596,7 +596,7 @@ export const getStatisticRevenueFollowDateRange = asyncHandler(async (req, res, 
 
 	// revenue per order = total_price * 0.8 + (shipping_fee - 21000)
 	const sql = `
-		SELECT o.order_date AS date, SUM((COALESCE(o.total_price,0) * 0.8) + (COALESCE(o.shipping_fee,0) - 21000)) AS revenue
+		SELECT o.order_date AS date, SUM((COALESCE(o.total_price,0) * 0.2) + (COALESCE(o.shipping_fee,0) - 21000)) AS revenue
 		FROM orders o
 		WHERE o.order_date BETWEEN :start AND :end
 		  AND o.status IN (${statusesSql})
