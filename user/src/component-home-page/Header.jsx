@@ -45,6 +45,11 @@ const Header = () => {
     setIsToggleOpen(false);
   }
 
+  const handleGetFavorites = () => {
+    navigate("/favorites");
+    setIsToggleOpen(false);
+  }
+
   const handleCreateComplaint = () => {
     navigate("/create-complaint");
     setIsToggleOpen(false);
@@ -183,6 +188,12 @@ const Header = () => {
                         className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
                       >
                         Đang theo dõi
+                      </button>
+                      <button
+                        onClick={handleGetFavorites}
+                        className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
+                      >
+                        Yêu thích
                       </button>
                       <button
                         onClick={handleCreateComplaint}

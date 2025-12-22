@@ -19,6 +19,8 @@ const ProductDetail = () => {
   const [selectedVariantStock, setSelectedVariantStock] = useState(0);
   const [variantAttributes, setVariantAttributes] = useState({});
   const [storeInfo, setStoreInfo] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   // REVIEW
   const [reviews, setReviews] = useState([]);
@@ -41,6 +43,108 @@ const ProductDetail = () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [productId]);
+
+  // Kiểm tra trạng thái favorite khi load sản phẩm
+  useEffect(() => {
+    console.log("check favorite effect", product);
+
+    const clientToken = localStorage.getItem("clientToken");
+    
+    if (!product?.id || !clientToken || clientToken === "null" || clientToken === "undefined" || clientToken.trim() === "") {
+      console.log("Missing product or token:", { productId: product?.id, hasToken: !!clientToken });
+      return;
+    }
+
+    const checkFavoriteStatus = async () => {
+      try {
+        console.log("Checking favorite status for product:", product.id);
+        
+        const res = await axios.get(`${backendURL}/favorites`, {
+          headers: {
+            Authorization: `Bearer ${clientToken}`,
+          },
+        });
+
+        console.log("favorite response:", res.data);
+
+        const favorites = res.data?.data?.docs || [];
+        const isFav = favorites.some(
+          (f) => f.productId === product.id
+        );
+
+        console.log("Is favorite:", isFav, "Favorites list:", favorites);
+        setIsFavorite(isFav);
+      } catch (e) {
+        console.error("favorite check error", e);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [product?.id, backendURL]);
+
+  const handleToggleFavorite = async () => {
+    const clientToken = localStorage.getItem("clientToken");
+    
+    console.log("🔥 Toggle favorite clicked", { 
+      productId: product?.id, 
+      currentIsFavorite: isFavorite,
+      hasToken: !!clientToken 
+    });
+    
+    if (!clientToken || clientToken === "null" || clientToken === "undefined" || clientToken.trim() === "") {
+      toast.warning("Bạn cần đăng nhập để thêm vào yêu thích");
+      navigate("/login");
+      return;
+    }
+
+    if (!product?.id) {
+      console.log("❌ No product ID");
+      return;
+    }
+
+    setFavoriteLoading(true);
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${clientToken}`,
+        },
+      };
+
+      if (!isFavorite) {
+        // 👉 THÊM YÊU THÍCH
+        console.log("➕ Adding to favorites:", product.id);
+        await axios.post(
+          `${backendURL}/favorites/${product.id}`,
+          {},
+          config
+        );
+        setIsFavorite(true);
+        toast.success("Đã thêm vào danh sách yêu thích ❤️");
+      } else {
+        // 👉 BỎ YÊU THÍCH
+        console.log("➖ Removing from favorites:", product.id);
+        await axios.delete(
+          `${backendURL}/favorites/${product.id}`,
+          config
+        );
+        setIsFavorite(false);
+        toast.success("Đã bỏ khỏi danh sách yêu thích");
+      }
+    } catch (err) {
+      console.error("❌ Error toggling favorite:", err);
+      console.error("❌ Error response:", err.response?.data);
+      
+      if (err.response?.status === 429) {
+        toast.error("Server đang quá tải, vui lòng khởi động lại server backend");
+      } else {
+        toast.error("Có lỗi xảy ra, vui lòng thử lại");
+      }
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
 
   // Lấy thông tin store từ product
   useEffect(() => {
@@ -138,9 +242,6 @@ const ProductDetail = () => {
     setSelectedRating(null);
     fetchReviews();
   };
-
-
-
 
   // Tạo gallery
   const gallery = [
@@ -407,7 +508,35 @@ const ProductDetail = () => {
 
           {/* Chi tiết sản phẩm */}
           <div className="bg-white rounded-lg p-5 shadow">
-            <h1 className="text-xl font-semibold">{product.name}</h1>
+            {/* Tiêu đề và icon yêu thích */}
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-xl font-semibold flex-1">{product.name}</h1>
+              <button
+                onClick={handleToggleFavorite}
+                disabled={favoriteLoading}
+                className={`transition-all duration-200 ${
+                  favoriteLoading ? "opacity-50 cursor-not-allowed" : "hover:scale-110"
+                }`}
+              >
+                <svg
+                  className={`w-7 h-7 ${
+                    isFavorite
+                      ? "fill-red-500 stroke-red-500"
+                      : "fill-none stroke-gray-400 hover:stroke-red-500"
+                  }`}
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+                  />
+                </svg>
+              </button>
+
+            </div>
+
             <div className="mt-2 text-sm text-gray-500">
               ⭐ {avgRating || "Chưa có"} • {reviews.length} đánh giá • Đã bán {product.sold || 0} • Kho: {selectedVariantStock}
             </div>

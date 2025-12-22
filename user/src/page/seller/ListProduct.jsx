@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import IconView from "../../assets/home/icon-view.svg";
 import IconDelete from "../../assets/home/icon-delete.svg";
 import IconEdit from "../../assets/home/icon-edit.svg";
+import { ShopContext} from "../../context/ShopContext"
 
 const ListProduct = () => {
   const navigate = useNavigate();
@@ -25,15 +26,17 @@ const ListProduct = () => {
   const [slideImages, setSlideImages] = useState([]);
   const [updating, setUpdating] = useState(false);
 
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+
   const itemsPerPage = 10;
+  const { backendURL } = useContext(ShopContext);
+  const token = localStorage.getItem("sellerToken");
 
   // --- FETCH DATA ---
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const backendURL =
-          import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
-        const token = localStorage.getItem("sellerToken");
         const res = await axios.get(`${backendURL}/products/store`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -51,9 +54,6 @@ const ListProduct = () => {
   const fetchProductDetail = async (productId) => {
     setLoadingDetail(true);
     try {
-      const backendURL =
-        import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
-      const token = localStorage.getItem("sellerToken");
       const res = await axios.get(`${backendURL}/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -80,7 +80,10 @@ const ListProduct = () => {
   const handleDetail = async (product) => {
     setSelectedProduct(product);
     setOpenDetail(true);
-    await fetchProductDetail(product.id);
+    await Promise.all([
+      fetchProductDetail(product.id),
+      fetchProductReviews(product.id),
+    ]);
   };
 
   const handleUpdate = async (product) => {
@@ -148,6 +151,22 @@ const ListProduct = () => {
     }
   };
 
+  const fetchProductReviews = async (productId) => {
+    setLoadingReviews(true);
+    try {
+      const res = await axios.get(
+        `${backendURL}/reviews/product/${productId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+      setReviews(res.data?.data?.reviews || []);
+    } catch (err) {
+      console.error("Lỗi khi tải review sản phẩm:", err);
+      setReviews([]);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
   const handleDelete = (product) => {
     setSelectedProduct(product);
     setOpenDelete(true);
@@ -159,7 +178,7 @@ const ListProduct = () => {
   };
 
   return (
-    <div className="p-14 space-y-6">
+    <div className="p-16">
       {/* --- TÌM KIẾM + THÊM SẢN PHẨM --- */}
       <div className="flex justify-end items-center mb-4 gap-3">
         <input
@@ -455,6 +474,66 @@ const ListProduct = () => {
                   </p>
                 </div>
 
+                {/* ===== DÒNG 7: REVIEW KHÁCH HÀNG ===== */}
+                <div>
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Đánh giá từ khách hàng ({reviews.length})
+                  </h3>
+
+                  {loadingReviews ? (
+                    <div className="text-sm text-gray-500">Đang tải đánh giá...</div>
+                  ) : reviews.length === 0 ? (
+                    <div className="text-sm text-gray-500">Chưa có đánh giá nào</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {reviews.map((rv) => (
+                        <div
+                          key={rv.id}
+                          className="border rounded-lg p-3 bg-gray-50"
+                        >
+                          {/* HEADER */}
+                          <div className="flex items-center gap-3 mb-2">
+                            <img
+                              src={rv.ReviewClient?.image}
+                              alt={rv.ReviewClient?.username}
+                              className="w-8 h-8 rounded-full object-cover border"
+                            />
+                            <div>
+                              <p className="text-sm font-semibold">
+                                {rv.ReviewClient?.username}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(rv.createdAt).toLocaleDateString("vi-VN")}
+                              </p>
+                            </div>
+                            <div className="ml-auto text-yellow-500 text-sm">
+                              {"⭐".repeat(rv.rating)}
+                            </div>
+                          </div>
+
+                          {/* CONTENT */}
+                          <p className="text-sm text-gray-700 mb-2">
+                            {rv.text}
+                          </p>
+
+                          {/* REVIEW IMAGES */}
+                          {rv.ReviewImages?.length > 0 && (
+                            <div className="flex gap-2 flex-wrap">
+                              {rv.ReviewImages.map((img) => (
+                                <img
+                                  key={img.id}
+                                  src={img.url}
+                                  alt="Review"
+                                  className="w-16 h-16 object-cover rounded-md border"
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
@@ -464,7 +543,7 @@ const ListProduct = () => {
             </div>
 
           {/* Footer */}
-          <div className="flex justify-end mt-6">
+          <div className="flex justify-center mt-4 mb-2">
               <button
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 onClick={() => setOpenDetail(false)}
@@ -679,7 +758,7 @@ const ListProduct = () => {
             )}
             </div>
 
-            <div className="flex justify-end mt-6 space-x-3">
+            <div className="flex justify-center mt-4 mb-2 space-x-3">
               <button
                 className="px-5 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
                 onClick={() => setOpenUpdate(false)}
