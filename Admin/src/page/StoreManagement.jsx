@@ -198,11 +198,11 @@ const StoreManagement = () => {
           }}
         >
           <option value="all">Tất cả trạng thái</option>
-          <option value="ACTIVE">ACTIVE</option>
-          <option value="PROCESSING">PROCESSING</option>
-          <option value="INACTIVE">INACTIVE</option>
-          <option value="BANNED">BANNED</option>
-          <option value="DESTROYED">DESTROYED</option>
+          <option value="ACTIVE">Đã duyệt</option>
+          <option value="PROCESSING">Chờ duyệt</option>
+          <option value="INACTIVE">Không hoạt động</option>
+          <option value="BANNED">Bị chăn</option>
+          <option value="DESTROYED">Đã xóa</option>
         </select>
       </div>
 

@@ -117,6 +117,7 @@ const ShipperManagement = () => {
       PROCESSING: "Chờ duyệt",
       BANNED: "Bị chặn",
       INACTIVE: "Không hoạt động",
+      DESTROYED: "Đã xóa",
     };
     return labels[status] || status;
   };
@@ -127,6 +128,7 @@ const ShipperManagement = () => {
       PROCESSING: "#FACC15",
       BANNED: "#DC2626",
       INACTIVE: "#6B7280",
+      DESTROYED: "#000000",
     };
     return colors[status] || "#6B7280";
   };
@@ -186,9 +188,11 @@ const ShipperManagement = () => {
           }}
         >
           <option value="all">Tất cả trạng thái</option>
-          <option value="ACTIVE">ACTIVE</option>
-          <option value="PROCESSING">PROCESSING</option>
-          <option value="BANNED">BANNED</option>
+          <option value="ACTIVE">Đã duyệt</option>
+          <option value="PROCESSING">Chờ duyệt</option>
+          <option value="INACTIVE">Không hoạt động</option>
+          <option value="BANNED">Bị chặn</option>
+          <option value="DESTROYED">Đã xóa</option>
         </select>
       </div>
 

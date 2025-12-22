@@ -137,7 +137,7 @@ const CreateCategory = () => {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Nút chọn form */}
       <div className="flex gap-4 mb-4">
         <button
