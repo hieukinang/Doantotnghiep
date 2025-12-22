@@ -10,8 +10,8 @@ let socket = null;
  * Socket.io client dùng chung cho ứng dụng user (client + seller).
  * Lấy token từ chatService (đã xử lý chọn clientToken/sellerToken theo ngữ cảnh).
  */
-export function getChatSocket() {
-  const token = localStorage.getItem('clientToken');
+export function getChatSocket(tokenuser) {
+  const token = tokenuser ;
   if (!token) {
     return null;
   }

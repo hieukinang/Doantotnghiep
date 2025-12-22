@@ -30,7 +30,7 @@ import CreateComplaint from "./page/customer/createComplaint"
 
 import ListProduct from "./page/seller/ListProduct";
 import AddProduct from "./page/seller/AddProduct";
-import EditProduct from "./page/seller/EditProduct";
+// import EditProduct from "./page/seller/EditProduct";
 import EditProfileSeller from "./page/seller/EditProfileSeller";
 import SellerCreateComplaint from "./page/seller/sellerCreateComplaint";
 import Finance from "./page/seller/Finance";
@@ -140,7 +140,7 @@ function App() {
           <Route path="/seller/list-product" element={<ListProduct />} />
           <Route path="/seller/add-product" element={<AddProduct />} />
           <Route path="/seller/add-coupon" element={<AddCoupon />} />
-          <Route path="/seller/update-product" element={<EditProduct />} />
+          {/* <Route path="/seller/update-product" element={<EditProduct />} /> */}
           <Route path="/seller/edit-profile" element={<EditProfileSeller />} />
           <Route path="/seller/create-complaint" element={<SellerCreateComplaint />} />
           <Route path="/seller/finance" element={<Finance />} />

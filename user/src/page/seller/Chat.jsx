@@ -41,9 +41,10 @@ const Chat = () => {
   // Socket.io client cho trang chat của seller
   useEffect(() => {
     const token = localStorage.getItem('sellerToken');
+    console.log(token);
     if (!token) return;
 
-    const s = getChatSocket();
+    const s = getChatSocket(token);
     if (!s) return;
 
     setSocket(s);
@@ -201,7 +202,7 @@ const Chat = () => {
 
   const handleChatWithSystem = async () => {
     try {
-      const systemUserId = 'ADMIN1764487807882';
+      const systemUserId = 'ADMIN1766313158298';
       const conversation = await ChatService.createDirectConversation(
         systemUserId
       );

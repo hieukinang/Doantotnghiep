@@ -4,13 +4,13 @@
 const config = {
   // backendUrl: 'http://10.0.2.2:5000/api',
   // backendUrl: 'http://172.16.12.139:5000/api',//tina4
-  backendUrl: 'http://192.168.1.10:5000/api', //gianghuyen5g
-  // backendUrl: 'http://10.79.183.146:5000/api', //realme 8
+  backendUrl: 'http://192.168.1.40:5000/api', //gianghuyen5g
+  // backendUrl: 'http://10.155.67.146:5000/api', //realme 8
 
   // port:'10.0.2.2',
   // port:'172.16.12.139',// tina4
-  port:'192.168.1.10',// gianghuyen5g
-  // port: '10.79.183.146', //realme 8
+  port:'192.168.1.40',// gianghuyen5g
+  // port: '10.155.67.146', //realme 8
   appName: 'KOHI MALL',
   appVersion: '1.0.0',
 

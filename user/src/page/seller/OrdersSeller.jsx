@@ -80,14 +80,15 @@ const OrdersSeller = () => {
 
   // Format orders cho modal
   const formatOrderForModal = (o) => {
-    const totalPrice = o.total_price || 0;
     const shippingFee = o.shipping_fee || 0;
+    // Tính tạm tính (tổng price * quantity của tất cả OrderItems)
+    const subtotal = (o.OrderItems || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
     return {
       id: o.orderCode || `${o.id}`,
       rawStatus: o.status,
       status: STATUS_MAP[o.status] || o.status,
-      total: totalPrice + shippingFee, // Tổng tiền = giá sản phẩm + phí ship
-      subtotal: totalPrice, // Giá sản phẩm (chưa ship)
+      total: o.total_price || 0, // Tổng tiền từ API
+      subtotal: subtotal, // Tạm tính = tổng price * quantity
       orderItems: o.OrderItems || [],
       shippingAddress: o.shipping_address || "",
       shippingFee: shippingFee,
@@ -710,24 +711,28 @@ const OrdersSeller = () => {
                 </h3>
                 {selectedOrder.orderItems.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2 p-3">
-                    {selectedOrder.orderItems.map((item, index) => (
-                      <div key={index} className="flex p-2 border rounded-lg">
-                        <img
-                          src={item.image || "https://via.placeholder.com/60"}
-                          alt={item.title}
-                          className="w-14 h-14 object-cover rounded"
-                        />
-                        <div className="ml-3 flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-800 text-sm line-clamp-1">
-                            {item.title}
-                          </h4>
-                          <p className="text-xs text-gray-500">x{item.quantity}</p>
-                          <p className="text-sm text-[#116AD1] font-semibold">
-                            {(item.price || 0).toLocaleString("vi-VN")}₫
-                          </p>
+                    {selectedOrder.orderItems.map((item, index) => {
+                      const productImage = item.OrderItemProductVariant?.ProductVariantProduct?.main_image;
+                      const productName = item.OrderItemProductVariant?.ProductVariantProduct?.name || "Sản phẩm";
+                      return (
+                        <div key={index} className="flex p-2 border rounded-lg">
+                          <img
+                            src={productImage || "https://via.placeholder.com/60"}
+                            alt={productName}
+                            className="w-14 h-14 object-cover rounded"
+                          />
+                          <div className="ml-3 flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-800 text-sm line-clamp-1">
+                              {productName}
+                            </h4>
+                            <p className="text-xs text-gray-500">x{item.quantity}</p>
+                            <p className="text-sm text-[#116AD1] font-semibold">
+                              {(item.price || 0).toLocaleString("vi-VN")}₫
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="p-4 text-gray-500 text-center">Không có sản phẩm</p>

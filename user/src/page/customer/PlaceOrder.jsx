@@ -671,7 +671,7 @@ const PlaceOrder = () => {
             product_variantIds: storeData.product_variantIds,
             storeId: storeId,
             coupon_ids: couponIds,
-            shipping_code_id: null,
+            shipping_code_id: appliedShippingCode?.shippingCodeId || null,
             quantities: storeData.quantities
           },
           shipping_address: shippingAddressString
@@ -696,12 +696,30 @@ const PlaceOrder = () => {
       if (allSuccess) {
         const methodText = paymentMethod === "WALLET" ? "thanh toán qua Ví KOHI" : "COD";
         toast.success(`Đã đặt ${results.length} đơn hàng thành công (${methodText})!`);
+        
+        // Xóa các sản phẩm đã đặt khỏi giỏ hàng (chỉ khi không phải chế độ "Mua ngay")
+        if (!isBuyNowMode) {
+          try {
+            // Xóa từng sản phẩm đã đặt khỏi cart
+            const removePromises = orderItems.map(item => 
+              axios.delete(`${backendURL}/carts/${item.product_variantId}`, {
+                headers: { Authorization: `Bearer ${clientToken}` }
+              })
+            );
+            await Promise.all(removePromises);
+            console.log("✅ Đã xóa các sản phẩm đã đặt khỏi giỏ hàng");
+          } catch (err) {
+            console.error("⚠️ Lỗi khi xóa sản phẩm khỏi giỏ hàng:", err);
+          }
+        }
+        
         await fetchMyCart();
         localStorage.removeItem("checkedItems");
         localStorage.removeItem("quantities");
         localStorage.removeItem("buyNowItems");
         localStorage.removeItem("appliedStoreCoupons");
         localStorage.removeItem("appliedCartCoupon");
+        localStorage.removeItem("appliedShippingCode");
         navigate("/");
       } else {
         const failedOrders = results.filter(res => res.status !== "success");

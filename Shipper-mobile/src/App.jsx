@@ -14,6 +14,7 @@ import OrderDetail from './page/order-detail';
 import Profile from './page/profile';
 import ChatListScreen from './page/chat-list';
 import ChatRoomScreen from './page/chat-room';
+import CreateComplaint from './page/create-complaint';
 import { AuthProvider } from './shipper-context/auth-context';
 import { ChatProvider } from './shipper-context/ChatContext';
 import PaymentSuccess from './page/paymentsuccess';
@@ -86,6 +87,11 @@ export default function App() {
               <Stack.Screen
                 name="ChatRoom"
                 component={ChatRoomScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="CreateComplaint"
+                component={CreateComplaint}
                 options={{ headerShown: false }}
               />
             </Stack.Navigator>

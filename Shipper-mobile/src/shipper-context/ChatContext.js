@@ -22,7 +22,7 @@ export const ChatProvider = ({ children }) => {
           const data = await chatService.getConversations();
           setConversations(data || []);
         } catch (error) {
-          console.error('Auto load conversations error:', error);
+          console.warn('Auto load conversations error:', error);
         }
       })();
 
@@ -85,7 +85,7 @@ export const ChatProvider = ({ children }) => {
       const data = await chatService.getConversations();
       setConversations(data || []);
     } catch (error) {
-      console.error('Load conversations error:', error);
+      console.warn('Load conversations error:', error);
     }
   }, []);
 
@@ -101,7 +101,7 @@ export const ChatProvider = ({ children }) => {
       
       return result;
     } catch (error) {
-      console.error('Open direct chat error:', error);
+      console.warn('Open direct chat error:', error);
       throw error;
     }
   }, []);
@@ -112,7 +112,7 @@ export const ChatProvider = ({ children }) => {
       const message = await chatService.sendMessage(conversationId, content, attachments);
       return message;
     } catch (error) {
-      console.error('Send message error:', error);
+      console.warn('Send message error:', error);
       throw error;
     }
   }, []);
@@ -123,7 +123,7 @@ export const ChatProvider = ({ children }) => {
       const messages = await chatService.getMessages(conversationId, limit, skip);
       return messages;
     } catch (error) {
-      console.error('Get messages error:', error);
+      console.warn('Get messages error:', error);
       throw error;
     }
   }, []);
@@ -134,7 +134,7 @@ export const ChatProvider = ({ children }) => {
       await chatService.leaveConversation(conversationId);
       setConversations(prev => prev.filter(c => c._id !== conversationId));
     } catch (error) {
-      console.error('Leave conversation error:', error);
+      console.warn('Leave conversation error:', error);
       throw error;
     }
   }, []);
