@@ -369,6 +369,7 @@ const ShopContextProvider = ({ children }) => {
       });
 
       setOrdersClient(res.data.data.orders || []);
+      console.log(res.data.data.orders)
     } catch (error) {
       console.error("Lỗi tải đơn hàng:", error);
     }

@@ -32,7 +32,7 @@ class ChatService {
       });
       return res.data;
     } catch (error) {
-      console.error('Create chat account error:', error.response?.data || error.message);
+      console.warn('Create chat account error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -72,7 +72,7 @@ class ChatService {
       );
       return res.data;
     } catch (error) {
-      console.error('Create direct chat error:', error.response?.data || error.message);
+      console.warn('Create direct chat error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -89,7 +89,7 @@ class ChatService {
       });
       return res.data;
     } catch (error) {
-      console.error('Get conversations error:', error.response?.data || error.message);
+      console.warn('Get conversations error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -129,7 +129,7 @@ class ChatService {
       );
       return res.data;
     } catch (error) {
-      console.error('Send message error:', error.response?.data || error.message);
+      console.warn('Send message error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -148,7 +148,7 @@ class ChatService {
       );
       return res.data;
     } catch (error) {
-      console.error('Get messages error:', error.response?.data || error.message);
+      console.warn('Get messages error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -166,7 +166,7 @@ class ChatService {
       );
       return res.data;
     } catch (error) {
-      console.error('Leave conversation error:', error.response?.data || error.message);
+      console.warn('Leave conversation error:', error.response?.data || error.message);
       throw error;
     }
   }

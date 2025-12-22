@@ -55,6 +55,10 @@ const Sidebar = ({ onClose }) => {
       <TouchableOpacity onPress={() => handleNavigate("Profile")}>
         <Text style={styles.sidebarItem}>Hồ sơ cá nhân</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => handleNavigate("CreateComplaint")}>
+        <Text style={styles.sidebarItem}>Gửi khiếu nại</Text>
+      </TouchableOpacity>
     </View>
   );
 };

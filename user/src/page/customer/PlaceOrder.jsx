@@ -696,6 +696,23 @@ const PlaceOrder = () => {
       if (allSuccess) {
         const methodText = paymentMethod === "WALLET" ? "thanh toán qua Ví KOHI" : "COD";
         toast.success(`Đã đặt ${results.length} đơn hàng thành công (${methodText})!`);
+        
+        // Xóa các sản phẩm đã đặt khỏi giỏ hàng (chỉ khi không phải chế độ "Mua ngay")
+        if (!isBuyNowMode) {
+          try {
+            // Xóa từng sản phẩm đã đặt khỏi cart
+            const removePromises = orderItems.map(item => 
+              axios.delete(`${backendURL}/carts/${item.product_variantId}`, {
+                headers: { Authorization: `Bearer ${clientToken}` }
+              })
+            );
+            await Promise.all(removePromises);
+            console.log("✅ Đã xóa các sản phẩm đã đặt khỏi giỏ hàng");
+          } catch (err) {
+            console.error("⚠️ Lỗi khi xóa sản phẩm khỏi giỏ hàng:", err);
+          }
+        }
+        
         await fetchMyCart();
         localStorage.removeItem("checkedItems");
         localStorage.removeItem("quantities");

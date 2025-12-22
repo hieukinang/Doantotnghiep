@@ -195,23 +195,25 @@ export default function Wallet() {
 
             </div>
             <div className="bg-white shadow rounded-lg p-4">
-                <h3 className="text-lg font-semibold mt-8 mb-3">Lịch sử giao dịch</h3>
-
-                {/* Bộ lọc */}
-                <div className="flex gap-2 mb-5">
-                    <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="border px-2 py-1 rounded-lg w-32 text-sm"
-                    />
-
-                    <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="border px-2 py-1 rounded-lg w-32 text-sm"
-                    />
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base font-semibold">Lịch sử giao dịch</h3>
+                    <div className="flex items-center gap-2 bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-200">
+                        <span className="text-gray-500 text-xs">Từ</span>
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="border border-gray-300 px-2 py-1 rounded text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer hover:border-blue-400"
+                        />
+                        <span className="text-gray-400 text-xs">→</span>
+                        <span className="text-gray-500 text-xs">Đến</span>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="border border-gray-300 px-2 py-1 rounded text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer hover:border-blue-400"
+                        />
+                    </div>
                 </div>
 
                 {/* Danh sách */}

@@ -23,7 +23,7 @@ const navItems = [
   { label: "Thêm sản phẩm", icon: AddProductIcon, href: "/seller/add-product" },
   { label: "Thêm mã giảm giá", icon: AddProductIcon, href: "/seller/add-coupon" },
   { label: "Ví tiền", icon: Wallet, href: "/seller/wallet" },
-  { label: "Chỉnh sửa sản phẩm", icon: EditProductIcon, href: "/seller/update-product" },
+  // { label: "Chỉnh sửa sản phẩm", icon: EditProductIcon, href: "/seller/update-product" },
   { label: "Báo cáo doanh số", icon: ReportIcon, href: "/seller/sales-report" },
   { label: "Đánh giá", icon: RatingIcon, href: "/seller/rating" },
   // { label: "Tài chính", icon: FinanceIcon, href: "/seller/finance" },

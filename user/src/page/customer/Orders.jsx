@@ -87,12 +87,17 @@ const Orders = () => {
 
   const formatOrders = (ordersClient || []).map((o) => {
     const statusUI = STATUS_MAP[o.status] || "Đang xử lý";
+    // Tính tổng số lượng sản phẩm (tổng quantity của tất cả OrderItems)
+    const totalQuantity = (o.OrderItems || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
+    // Tính tạm tính (tổng price * quantity của tất cả OrderItems)
+    const subtotal = (o.OrderItems || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
     return {
       id: o.orderCode || `${o.id}`,
       rawStatus: o.status,
       status: statusUI,
       total: o.total_price || 0,
-      items: o.OrderItems?.length || 0,
+      subtotal: subtotal,
+      items: totalQuantity,
       date: o.createdAt
         ? new Date(o.createdAt).toLocaleDateString("vi-VN")
         : "",
@@ -454,7 +459,7 @@ const Orders = () => {
       <Header />
 
       <main className="pt-32 px-5 flex-1">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
 
           {/* Dropdown lọc trạng thái */}
           <div className="flex items-center gap-3 mb-2">
@@ -622,7 +627,7 @@ const Orders = () => {
             <div className="p-5">
               {/* Thông tin đơn hàng - 2 cột */}
               <div className="grid grid-cols-2 gap-4 mb-5">
-                {/* Cột trái - Trạng thái & thời gian */}
+                {/* Cột trái - Trạng thái & thời gian & Phí vận chuyển */}
                 <div className="border rounded-lg p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Trạng thái</span>
@@ -642,9 +647,13 @@ const Orders = () => {
                       <span>{selectedOrder.deliveredAt}</span>
                     </div>
                   )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Phí vận chuyển</span>
+                    <span className="font-medium">{selectedOrder.shippingFee.toLocaleString("vi-VN")}₫</span>
+                  </div>
                 </div>
 
-                {/* Cột phải - Địa chỉ & thanh toán */}
+                {/* Cột phải - Địa chỉ, Thanh toán, Tạm tính & Tổng tiền */}
                 <div className="border rounded-lg p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Địa chỉ</span>
@@ -657,8 +666,8 @@ const Orders = () => {
                     <span className="font-medium">{selectedOrder.paymentMethod==='wallet'? "Thanh toán ngay bằng ví Kohi" : "Thanh toán khi nhận hàng"}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Phí vận chuyển</span>
-                    <span className="font-medium">{selectedOrder.shippingFee.toLocaleString("vi-VN")}₫</span>
+                    <span className="text-gray-500">Tạm tính</span>
+                    <span className="font-medium">{selectedOrder.subtotal.toLocaleString("vi-VN")}₫</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Tổng tiền</span>
@@ -674,24 +683,28 @@ const Orders = () => {
                 </h3>
                 {selectedOrder.orderItems.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2 p-3">
-                    {selectedOrder.orderItems.map((item, index) => (
-                      <div key={index} className="flex p-2 border rounded-lg">
-                        <img
-                          src={item.image || "https://via.placeholder.com/60"}
-                          alt={item.title}
-                          className="w-14 h-14 object-cover rounded"
-                        />
-                        <div className="ml-3 flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-800 text-sm line-clamp-1">
-                            {item.title}
-                          </h4>
-                          <p className="text-xs text-gray-500">x{item.quantity}</p>
-                          <p className="text-sm text-[#116AD1] font-semibold">
-                            {(item.price || 0).toLocaleString("vi-VN")}₫
-                          </p>
+                    {selectedOrder.orderItems.map((item, index) => {
+                      const productImage = item.OrderItemProductVariant?.ProductVariantProduct?.main_image;
+                      const productName = item.OrderItemProductVariant?.ProductVariantProduct?.name || "Sản phẩm";
+                      return (
+                        <div key={index} className="flex p-2 border rounded-lg">
+                          <img
+                            src={productImage || "https://via.placeholder.com/60"}
+                            alt={productName}
+                            className="w-14 h-14 object-cover rounded"
+                          />
+                          <div className="ml-3 flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-800 text-sm line-clamp-1">
+                              {productName}
+                            </h4>
+                            <p className="text-xs text-gray-500">x{item.quantity}</p>
+                            <p className="text-sm text-[#116AD1] font-semibold">
+                              {(item.price || 0).toLocaleString("vi-VN")}₫
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="p-4 text-gray-500 text-center">Không có sản phẩm</p>

@@ -87,7 +87,10 @@ const CreateAccount = () => {
         else if (value !== undefined && value !== null && value !== "") data.append(key, value);
       });
 
-      const res = await axios.post(url, data);
+      const adminToken = localStorage.getItem("adminToken");
+      const res = await axios.post(url, data, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
 
       if (res?.status === "success" || res.status === "success") {
         // 🎯 Tạo user trong chat system ngay sau khi tạo tài khoản thành công
