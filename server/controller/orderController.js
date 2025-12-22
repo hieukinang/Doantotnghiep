@@ -112,7 +112,19 @@ export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   const { count, rows } = await Order.findAndCountAll({
     where,
     include: [
-      { model: OrderItem, as: 'OrderItems' },
+      { 
+        model: OrderItem, 
+        as: 'OrderItems',
+        include: [
+          {
+            model: ProductVariant,
+            as: 'OrderItemProductVariant',
+            include: [
+              { model: Product, as: 'ProductVariantProduct', attributes: ['id', 'name', 'main_image'] }
+            ]
+          }
+        ]
+      },
     ],
     order,
     limit: perPage,
