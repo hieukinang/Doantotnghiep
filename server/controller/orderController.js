@@ -73,13 +73,13 @@ export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
     let end = null;
     if (startdate) {
       start = new Date(startdate);
-      if (Number.isNaN(start.getTime())) return next(new APIError('Invalid startdate', 400));
+      if (Number.isNaN(start.getTime())) return next(new APIError('startdate không hợp lệ', 400));
     }
     if (enddate) {
       end = new Date(enddate);
-      if (Number.isNaN(end.getTime())) return next(new APIError('Invalid enddate', 400));
+      if (Number.isNaN(end.getTime())) return next(new APIError('enddate không hợp lệ', 400));
     }
-    if (start && end && start > end) return next(new APIError('startdate must be before or equal to enddate', 400));
+    if (start && end && start > end) return next(new APIError('startdate phải nhỏ hơn hoặc bằng enddate', 400));
 
     if (start && end) {
       const s = start.toISOString().slice(0, 10);
@@ -151,7 +151,7 @@ export const getSingleOrder = asyncHandler(async (req, res, next) => {
       }
     ]
   });
-  if (!order) return next(new APIError("Order not found", 404));
+  if (!order) return next(new APIError("Order không tồn tại", 404));
   res.status(200).json({ status: "success", data: { order } });
 });
 
@@ -167,7 +167,7 @@ export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
   const where = { storeId };
   if (status !== undefined && status !== null && String(status).trim() !== "") {
     if (!Object.values(ORDER_STATUS).includes(status)) {
-      return next(new APIError("Invalid order status", 400));
+      return next(new APIError("Trạng thái đơn hàng không hợp lệ", 400));
     }
     where.status = status;
   }
@@ -177,18 +177,18 @@ export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
     // parse endDate: if not provided, set to today
     const now = new Date();
     let endDate = endDateQ ? new Date(endDateQ) : now;
-    if (Number.isNaN(endDate.getTime())) return next(new APIError("Invalid endDate", 400));
+    if (Number.isNaN(endDate.getTime())) return next(new APIError("enddate không hợp lệ", 400));
 
     // parse startDate if provided
     let startDate = null;
     if (startDateQ) {
       startDate = new Date(startDateQ);
-      if (Number.isNaN(startDate.getTime())) return next(new APIError("Invalid startDate", 400));
+      if (Number.isNaN(startDate.getTime())) return next(new APIError("startdate không hợp lệ", 400));
     }
 
     // If startDate provided, validate startDate <= endDate
     if (startDate && startDate > endDate) {
-      return next(new APIError("startDate must be before or equal to endDate", 400));
+      return next(new APIError("startdate phải nhỏ hơn hoặc bằng enddate", 400));
     }
 
     // Normalize to YYYY-MM-DD for DATEONLY comparison
@@ -233,9 +233,9 @@ export const confirmOrderByStore = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   const order = await Order.findOne({ where: { id, storeId } });
-  if (!order) return next(new APIError("Order not found", 404));
+  if (!order) return next(new APIError("Order không tồn tại", 404));
   if (order.status !== ORDER_STATUS.PENDING) {
-    return next(new APIError("Only pending orders can be confirmed", 400));
+    return next(new APIError("Chỉ những đơn hàng đang chờ mới có thể được xác nhận", 400));
   }
 
   // Cập nhật tồn kho cho từng variant
@@ -316,7 +316,7 @@ export const shipperFindOrderById = asyncHandler(async (req, res, next) => {
   });
 
   if (!order) {
-    return next(new APIError("No confirmed order found with this id", 404));
+    return next(new APIError("Không tìm thấy đơn hàng đã xác nhận hoặc đang giao", 404));
   }
 
   res.status(200).json({
@@ -563,14 +563,14 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
   let { products, shipping_address } = req.body;
 
   if (!products) {
-    return next(new APIError("products is required", 400));
+    return next(new APIError("Vui lòng cung cấp sản phẩm", 400));
   }
 
   if (typeof products === "string") {
     try {
       products = JSON.parse(products);
     } catch (err) {
-      return next(new APIError("Invalid products payload", 400));
+      return next(new APIError("Lỗi sản phẩm", 400));
     }
   }
 
@@ -581,25 +581,25 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
   const quantities = products.quantities || [];
 
   if (!Array.isArray(variantIds) || variantIds.length === 0) {
-    return next(new APIError("product_variantIds must be a non-empty array", 400));
+    return next(new APIError("product_variantIds phải là một mảng không rỗng", 400));
   }
   if (!storeId) {
-    return next(new APIError("storeId is required", 400));
+    return next(new APIError("storeId là bắt buộc", 400));
   }
   if (quantities && quantities.length > 0) {
     if (!Array.isArray(quantities) || quantities.length !== variantIds.length) {
-      return next(new APIError("quantities must be an array with same length as product_variantIds", 400));
+      return next(new APIError("quantities phải là một mảng có cùng độ dài với product_variantIds", 400));
     }
     for (const q of quantities) {
       const qi = parseInt(q, 10);
-      if (!qi || qi <= 0) return next(new APIError("each quantity must be a positive integer", 400));
+      if (!qi || qi <= 0) return next(new APIError("mỗi quantity phải là một số nguyên dương", 400));
     }
   }
   if (!Array.isArray(couponIds)) {
-    return next(new APIError("coupon_ids must be an array", 400));
+    return next(new APIError("coupon_ids phải là một mảng", 400));
   }
   if (couponIds.length > 2) {
-    return next(new APIError("You can provide at most 2 coupons", 400));
+    return next(new APIError("Bạn chỉ có thể cung cấp tối đa 2 mã giảm giá", 400));
   }
 
   // Fetch variants
@@ -609,16 +609,16 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
     const variant = await ProductVariant.findByPk(vId, {
       include: [{ model: Product, as: "ProductVariantProduct" }],
     });
-    if (!variant) return next(new APIError(`No product variant match with id: ${vId}`, 404));
+    if (!variant) return next(new APIError(`Không tìm thấy lựa chọn sản phẩm với id: ${vId}`, 404));
     const product = variant.ProductVariantProduct;
-    if (!product) return next(new APIError(`Product for variant ${vId} not found`, 404));
+    if (!product) return next(new APIError(`Không tìm thấy sản phẩm cho biến thể ${vId}`, 404));
     if (product.storeId !== storeId) {
-      return next(new APIError(`Variant ${vId} does not belong to store ${storeId}`, 400));
+      return next(new APIError(`Biến thể ${vId} không thuộc cửa hàng ${storeId}`, 400));
     }
     const qty = quantities && quantities.length > 0 ? parseInt(quantities[idx], 10) : 1;
-    if (!qty || qty <= 0) return next(new APIError(`Invalid quantity for variant ${vId}`, 400));
+    if (!qty || qty <= 0) return next(new APIError(`Số lượng không hợp lệ cho biến thể ${vId}`, 400));
     if (variant.stock_quantity != null && variant.stock_quantity < qty) {
-      return next(new APIError(`Not enough stock for variant ${vId}`, 400));
+      return next(new APIError(`Không đủ hàng cho biến thể ${vId}`, 400));
     }
     items.push({ variant, product, quantity: qty });
   }
@@ -628,19 +628,19 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
   if (couponIds.length > 0) {
     for (const cid of couponIds) {
       const coupon = await Coupon.findByPk(cid);
-      if (!coupon) return next(new APIError(`No coupon match with id: ${cid}`, 404));
+      if (!coupon) return next(new APIError(`Không tìm thấy mã giảm giá với id: ${cid}`, 404));
       if (coupon.quantity != null && coupon.quantity <= 0) {
-        return next(new APIError(`Coupon ${cid} is no longer available`, 400));
+        return next(new APIError(`Mã giảm giá ${cid} không còn khả dụng`, 400));
       }
       if (coupon.expire) {
         const exp = new Date(coupon.expire);
         const today = new Date();
         if (exp < new Date(today.toDateString())) {
-          return next(new APIError(`Coupon ${cid} has expired`, 400));
+          return next(new APIError(`Mã giảm giá ${cid} đã hết hạn`, 400));
         }
       }
       if (coupon.storeId !== null && coupon.storeId !== storeId) {
-        return next(new APIError(`Coupon ${cid} does not apply to store ${storeId}`, 400));
+        return next(new APIError(`Mã giảm giá ${cid} không áp dụng cho cửa hàng ${storeId}`, 400));
       }
       coupons.push(coupon);
     }
@@ -648,7 +648,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
       const hasAdminCoupon = coupons.some(c => c.storeId === null);
       const hasStoreCoupon = coupons.some(c => c.storeId === storeId);
       if (!hasAdminCoupon || !hasStoreCoupon) {
-        return next(new APIError("If providing two coupons, one must be system-level and one must belong to the store", 400));
+        return next(new APIError("Nếu cung cấp hai mã giảm giá, một phải là mã hệ thống và một phải thuộc cửa hàng", 400));
       }
     }
   }
@@ -659,15 +659,15 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
   let shippingCodeDoc = null;
   if (shipping_code_id) {
     shippingCodeDoc = await ShippingCode.findByPk(shipping_code_id);
-    if (!shippingCodeDoc) return next(new APIError("Shipping code not found", 404));
+    if (!shippingCodeDoc) return next(new APIError("Không tìm thấy mã vận chuyển", 404));
     if (shippingCodeDoc.quantity != null && shippingCodeDoc.quantity <= 0) {
-      return next(new APIError("Shipping code is no longer available", 400));
+      return next(new APIError("Mã vận chuyển không còn khả dụng", 400));
     }
     if (shippingCodeDoc.expire) {
       const exp = new Date(shippingCodeDoc.expire);
       const today = new Date();
       if (exp < new Date(today.toDateString())) {
-        return next(new APIError("Shipping code has expired", 400));
+        return next(new APIError("Mã vận chuyển đã hết hạn", 400));
       }
     }
     shippingDiscount = Number(shippingCodeDoc.discount || 0);
@@ -685,9 +685,9 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
   const total_due = total_price + shipping_fee;
 
   const clientId = req.user && req.user.id ? req.user.id : null;
-  if (!clientId) return next(new APIError("Authentication required", 401));
+  if (!clientId) return next(new APIError("Yêu cầu xác thực", 401));
   const client = await Client.findByPk(clientId);
-  if (!client) return next(new APIError("Client not found", 404));
+  if (!client) return next(new APIError("Không tìm thấy khách hàng", 404));
 
   const currentBalance = Number(client.wallet || 0);
   if (currentBalance < total_due) {
@@ -750,7 +750,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
       payment_method: PAYMENT_METHODS.WALLET,
       type: TRANSACTION_TYPE.PAY_ORDER,
       status: "SUCCESS",
-      description: `Wallet payment for order ${order.id}`,
+      description: `Thanh toán ví cho đơn hàng ${order.id}`,
     }, { transaction: t });
 
     await t.commit();
@@ -991,7 +991,7 @@ export const getAllOrdersByShipper = asyncHandler(async (req, res, next) => {
   const where = { shipperId };
   if (status !== undefined && status !== null && String(status).trim() !== "") {
     if (!Object.values(ORDER_STATUS).includes(status)) {
-      return next(new APIError("Invalid order status", 400));
+      return next(new APIError("Trạng thái đơn hàng không hợp lệ", 400));
     }
     where.status = status;
   }

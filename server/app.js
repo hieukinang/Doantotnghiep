@@ -60,7 +60,7 @@ const limiter = rateLimit({
   // maximum 500 requests per hour
   max: 5000,
   windowMs: 60 * 60 * 1000,
-  message: "Too many requests, please try again in one hour",
+  message: "Hệ thống quá tải, vui lòng thử lại sau 1 giờ",
 });
 app.use(process.env.API_URL, limiter);
 

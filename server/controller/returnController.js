@@ -31,7 +31,7 @@ export const resizeReturnImages = asyncHandler(async (req, res, next) => {
   if (!files || files.length === 0) return next();
 
   // enforce max 3 files
-  if (files.length > 3) return next(new APIError("Maximum 3 return images allowed", 400));
+  if (files.length > 3) return next(new APIError("Chỉ nhập tối đa 3 ảnh trả hàng", 400));
 
   // ensure upload dir exists
   const uploadBase = process.env.FILES_UPLOADS_PATH || path.join(process.cwd(), "uploads");
@@ -59,7 +59,7 @@ export const resizeReturnImages = asyncHandler(async (req, res, next) => {
           .jpeg({ quality: 90 })
           .toFile(outPath);
       } else {
-        throw new Error("Uploaded file has no buffer or path");
+        throw new Error("Tệp tải lên không có buffer hoặc đường dẫn");
       }
       req.body.return_images.push(returnImageName);
     } catch (err) {
@@ -81,11 +81,11 @@ export const returnOrderByClient = asyncHandler(async (req, res, next) => {
     where: { id, clientId },
     include: [{ model: OrderItem, as: "OrderItems" }],
   });
-  if (!order) return next(new APIError("Order not found", 404));
+  if (!order) return next(new APIError("Không tìm thấy đơn hàng", 404));
 
   // Only allow return when delivered or client_confirmed
   if (![ORDER_STATUS.DELIVERED, ORDER_STATUS.CLIENT_CONFIRMED].includes(order.status)) {
-    return next(new APIError("Order is not eligible for return", 400));
+    return next(new APIError("Đơn hàng không đủ điều kiện để trả hàng", 400));
   }
 
   const { reason } = req.body;
@@ -128,10 +128,6 @@ export const returnOrderByClient = asyncHandler(async (req, res, next) => {
         }, { transaction: t });
       }
     }
-
-    // NOTE: refund_amount, wallet credit and transaction creation are handled
-    // when the store confirms the return (confirmReturnOrder). Do not
-    // perform refund here to allow store verification first.
 
     // mark order as RETURNED
     order.status = ORDER_STATUS.RETURNED;
@@ -183,7 +179,7 @@ export const getReturnRequest = asyncHandler(async (req, res, next) => {
     ],
   });
 
-  if (!orderWithReturns) return next(new APIError("Order not found or you are not the owner of this store", 404));
+  if (!orderWithReturns) return next(new APIError("Không tìm thấy đơn hàng hoặc bạn không phải chủ cửa hàng này", 404));
 
   // Return all return information for this order
   res.status(200).json({
@@ -200,27 +196,28 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
 
   // verify order belongs to store
   const order = await Order.findOne({ where: { id, storeId } });
-  if (!order) return next(new APIError("Order not found or you are not the owner of this store", 404));
+  if (!order) return next(new APIError("Không tìm thấy đơn hàng", 404));
 
   // only proceed if order is in RETURNED status
   if (order.status !== ORDER_STATUS.RETURNED) {
-    return next(new APIError("Order must be in RETURNED status to confirm return", 400));
+    return next(new APIError("Trạng thái đơn hàng không hợp lệ", 400));
   }
 
   // Find the latest return for this order
-  const returnDoc = await Return.findOne({ where: { orderId: order.id }, order: [["createdAt", "DESC"]] });
-  if (!returnDoc) return next(new APIError("Return request not found for this order", 404));
+  const returnDoc = await Return.findOne({ where: { orderId: order.id }});
+  if (!returnDoc) return next(new APIError("Không tìm thấy yêu cầu trả hàng cho đơn hàng này", 404));
 
   const refundAmount = Number(returnDoc.refund_amount || 0);
-  if (refundAmount <= 0) return next(new APIError("No refund amount to process", 400));
+  if (refundAmount <= 0) return next(new APIError("Không có số tiền hoàn trả để xử lý", 400));
 
   const t = await sequelize.transaction();
+  let committed = false;
   try {
     const client = await Client.findByPk(order.clientId, { transaction: t });
     const store = await Store.findByPk(order.storeId, { transaction: t });
     if (!client || !store) {
       await t.rollback();
-      return next(new APIError("Client or Store not found", 404));
+      return next(new APIError("Không tìm thấy khách hàng hoặc cửa hàng", 404));
     }
 
     // credit client wallet
@@ -239,7 +236,7 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
       payment_method: "refund",
       type: TRANSACTION_TYPE.REFUND,
       status: "SUCCESS",
-      description: `Refund confirmed for return ${returnDoc.id} (order ${order.id})`,
+      description: `Hoàn trả xác nhận cho yêu cầu trả hàng ${returnDoc.id} (đơn hàng ${order.id})`,
     }, { transaction: t });
 
     // create transaction for store (debit)
@@ -250,7 +247,7 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
       payment_method: "refund",
       type: TRANSACTION_TYPE.PAY_ORDER,
       status: "SUCCESS",
-      description: `Refund deducted for return ${returnDoc.id} (order ${order.id})`,
+      description: `Hoàn trả trừ đi cho yêu cầu trả hàng ${returnDoc.id} (đơn hàng ${order.id})`,
     }, { transaction: t });
 
     // update order status to RETURN_CONFIRMED
@@ -258,18 +255,13 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
     await order.save({ transaction: t });
 
     await t.commit();
-
-    // reload return with associations for response
-    const createdReturn = await Return.findByPk(returnDoc.id, {
-      include: [
-        { model: ReturnImage, as: "ReturnImages" },
-        { model: ReturnItem, as: "ReturnItems" },
-      ],
-    });
-
-    return res.status(200).json({ status: "success" });
+    committed = true;
   } catch (err) {
-    await t.rollback();
+    if (!committed) {
+      try { await t.rollback(); } catch (e) { /* ignore */ }
+    }
     return next(err);
   }
+
+  return res.status(200).json({ status: "success" });
 });

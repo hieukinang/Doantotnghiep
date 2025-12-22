@@ -23,18 +23,18 @@ const isAuth = () => asyncHandler(async (req, res, next) => {
       token = req.cookies.token;
     }
     if (!token) {
-      return next(new APIError("Unauthorized, please login to get access", 401));
+      return next(new APIError("Không có token", 401));
     }
 
     const decoded = verifyToken(token);
     const userId = decoded && decoded.userId;
     if (!userId) {
-      return next(new APIError("Invalid token payload", 401));
+      return next(new APIError("Dữ liệu token không hợp lệ", 401));
     }
 
     const match = userId.match(/^[A-Za-z]+/);
     if (!match) {
-      return next(new APIError("Invalid userId format in token", 401));
+      return next(new APIError("Định dạng token không hợp lệ", 401));
     }
     const role = match[0];
 
@@ -53,16 +53,16 @@ const isAuth = () => asyncHandler(async (req, res, next) => {
         UserModel = Shipper;
         break;
       default:
-        return next(new APIError("Invalid user role", 401));
+        return next(new APIError("người dùng không hợp lệ", 401));
     }
 
     const currentUser = await UserModel.findByPk(userId);
     if (!currentUser) {
-      return next(new APIError("The user that belong to this token does no longer exist", 401));
+      return next(new APIError("Người dùng thuộc token này không còn tồn tại", 401));
     }
 
     if (currentUser.isPasswordChangedAfterJwtIat && currentUser.isPasswordChangedAfterJwtIat(decoded.iat)) {
-      return next(new APIError("User recently changed password, please log in again", 401));
+      return next(new APIError("Người dùng vừa thay đổi mật khẩu, vui lòng đăng nhập lại", 401));
     }
 
     req.user = currentUser;

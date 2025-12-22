@@ -3,7 +3,6 @@ import Client from "../model/clientModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
 import {
-  getAll,
   updateOne,
   deleteOne,
 } from "../utils/refactorControllers.utils.js";
@@ -24,7 +23,7 @@ export const getAllAddresses = asyncHandler(async (req, res, next) => {
 export const getMainAddress = asyncHandler(async (req, res, next) => {
   const mainAddress = await Address.findByPk(req.user.main_address);
   if (!mainAddress) {
-    return next(new APIError("Main address not found", 404));
+    return next(new APIError("Không tìm thấy địa chỉ chính", 404));
   }
   res.status(200).json({
     status: "success",

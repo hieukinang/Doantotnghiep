@@ -166,12 +166,12 @@ export const getProductsByCategoryName = asyncHandler(async (req, res, next) => 
     SELECT p.id, p.name, p.main_image, p.min_price, p.discount, p.status, p.storeId
     FROM products p
     JOIN categories c ON c.id = p.categoryId
-    WHERE LOWER(c.name) = LOWER(:name)
+    WHERE LOWER(c.name) = LOWER(:name) AND p.status = :activeStatus
     LIMIT 50
   `;
 
   const rows = await sequelize.query(sql, {
-    replacements: { name },
+    replacements: { name, activeStatus: PRODUCT_STATUS.ACTIVE },
     type: QueryTypes.SELECT,
   });
 

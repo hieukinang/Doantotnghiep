@@ -30,7 +30,7 @@ export const createCheckoutSessionStripe = asyncHandler(async (req, res, next) =
   const email = req.user?.email || "";
 
   if (!userId || !amount || isNaN(amount) || amount <= 0) {
-    return next(new APIError("Invalid user or amount", 400));
+    return next(new APIError("Dữ liệu không hợp lệ", 400));
   }
 
   let BASE_URL = "";
@@ -48,12 +48,12 @@ export const createCheckoutSessionStripe = asyncHandler(async (req, res, next) =
       BASE_URL = process.env.SHIPPER_URL;
       break;
     default:
-      return next(new APIError("Invalid user role", 400));
+      return next(new APIError("Vai trò người dùng không hợp lệ", 400));
   }
 
   console.log(BASE_URL);
 
-  // 4) Create stripe checkout session
+  // 4) Tạo phiên thanh toán stripe
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: [
@@ -62,8 +62,8 @@ export const createCheckoutSessionStripe = asyncHandler(async (req, res, next) =
           currency: "vnd",
           unit_amount: amount,
           product_data: {
-            name: `Top-up for ${username}`,
-            description: "Account Wallet Top-up",
+            name: `Nạp tiền cho ${username}`,
+            description: "Nạp tiền vào ví điện tử",
             images: ["https://cdn3d.iconscout.com/3d/premium/thumb/full-shopping-cart-5685678-4735048.png?f=webp"]
           }
         },
@@ -211,13 +211,13 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
         break;
       // Nếu có thêm role khác, thêm case ở đây
       default:
-        return res.status(400).send("Invalid user role");
+        return res.status(400).send("lỗi người dùng");
     }
 
     // Lấy user
     const user = await UserModel.findByPk(userId);
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).send("Không tìm thấy người dùng");
     }
 
     // Kiểm tra xem transaction này đã tạo chưa (tránh cộng ví 2 lần)
@@ -253,7 +253,6 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
 
 export const webhookCheckoutMoMo = asyncHandler(async (req, res, next) => {
 
-  console.log("MoMo Webhook called with query:", req.body);
   // Nhận dữ liệu từ MoMo (qua query)
   const {
     amount,
@@ -270,13 +269,13 @@ export const webhookCheckoutMoMo = asyncHandler(async (req, res, next) => {
   // Lấy userId từ requestId (ví dụ: CLIENT1762871773034)
   const userId = requestId;
   if (!userId) {
-    return res.status(400).json({ status: "fail", message: "Missing userId in requestId" });
+    return res.status(400).json({ status: "fail", message: "Không có user" });
   }
 
   // Tách role từ userId
   const match = userId.match(/^[A-Za-z]+/);
   if (!match) {
-    return res.status(400).json({ status: "fail", message: "Invalid userId format" });
+    return res.status(400).json({ status: "fail", message: "Lỗi không hợp lệ" });
   }
   const role = match[0];
 
@@ -296,13 +295,13 @@ export const webhookCheckoutMoMo = asyncHandler(async (req, res, next) => {
       UserModel = Shipper;
       break;
     default:
-      return res.status(400).json({ status: "fail", message: "Invalid user role" });
+      return res.status(400).json({ status: "fail", message: "Lỗi người dùng" });
   }
 
   // Lấy user
   const user = await UserModel.findByPk(userId);
   if (!user) {
-    return res.status(404).json({ status: "fail", message: "User not found" });
+    return res.status(404).json({ status: "fail", message: "Không tìm thấy người dùng" });
   }
 
   // Kiểm tra transaction đã tồn tại chưa (tránh cộng ví 2 lần)
@@ -353,14 +352,14 @@ export const getTransactionHistory = asyncHandler(async (req, res, next) => {
       if (isNaN(start) || isNaN(end)) {
         return res.status(400).json({
           status: "fail",
-          message: "Invalid date format. Use YYYY-MM-DD",
+          message: "Không hợp lệ. Định dạng ngày phải là YYYY-MM-DD",
         });
       }
 
     if (start >= end) {
       return res.status(400).json({
         status: "fail",
-        message: "startDate must be earlier than endDate",
+        message: "startDate phải nhỏ hơn endDate",
       });
     }
   }
@@ -406,31 +405,31 @@ export const withdrawWallet = asyncHandler(async (req, res, next) => {
   const { amount, password } = req.body;
 
   if (!amount || isNaN(amount) || amount <= 0) {
-    return next(new APIError("Invalid amount", 400));
+    return next(new APIError("Số tiền không hợp lệ", 400));
   }
   // Lấy user
   const user = await req.model.findByPk(userId);
   if (!user) {
-    return next(new APIError("User not found", 404));
+    return next(new APIError("Không tìm thấy người dùng", 404));
   }
 
   if (user.wallet < Number(amount)) {
-    return next(new APIError("Insufficient wallet balance", 400));
+    return next(new APIError("Số dư ví không đủ", 400));
   }
 
   // Yêu cầu password để xác thực
   if (!password) {
-    return next(new APIError("Password is required to withdraw", 400));
+    return next(new APIError("Yêu cầu mật khẩu để rút tiền", 400));
   }
 
   // Kiểm tra method isCorrectPassword có tồn tại và password có đúng không
   if (typeof user.isCorrectPassword !== "function") {
-    return next(new APIError("Password verification not available for this user", 400));
+    return next(new APIError("Xác thực mật khẩu không khả dụng cho người dùng này", 400));
   }
 
   const passwordMatches = await user.isCorrectPassword(password);
   if (!passwordMatches) {
-    return next(new APIError("Incorrect password", 401));
+    return next(new APIError("Mật khẩu không đúng", 401));
   }
 
   // Thực hiện cập nhật wallet và tạo Transaction trong 1 transaction DB
@@ -453,7 +452,7 @@ export const withdrawWallet = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      message: "Withdraw successful",
+      message: "Rút tiền thành công",
       newBalance: user.wallet
     });
   } catch (err) {
