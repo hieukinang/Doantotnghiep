@@ -671,7 +671,7 @@ const PlaceOrder = () => {
             product_variantIds: storeData.product_variantIds,
             storeId: storeId,
             coupon_ids: couponIds,
-            shipping_code_id: null,
+            shipping_code_id: appliedShippingCode?.shippingCodeId || null,
             quantities: storeData.quantities
           },
           shipping_address: shippingAddressString
@@ -719,6 +719,7 @@ const PlaceOrder = () => {
         localStorage.removeItem("buyNowItems");
         localStorage.removeItem("appliedStoreCoupons");
         localStorage.removeItem("appliedCartCoupon");
+        localStorage.removeItem("appliedShippingCode");
         navigate("/");
       } else {
         const failedOrders = results.filter(res => res.status !== "success");

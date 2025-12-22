@@ -43,6 +43,8 @@ const Dashboard = () => {
 
   // States cho thống kê thành viên mới trong ngày
   const [userDayType, setUserDayType] = useState('ALL')
+  const [userDayStartDate, setUserDayStartDate] = useState(today)
+  const [userDayEndDate, setUserDayEndDate] = useState(today)
   const [userDayData, setUserDayData] = useState([])
   const [loadingUserDay, setLoadingUserDay] = useState(false)
 
@@ -79,7 +81,7 @@ const Dashboard = () => {
         const results = await Promise.all(
           USER_TYPES.map(type =>
             axios.get(`${API_BASE}/statistics/admin/user/day`, {
-              params: { status: 'ACTIVE', type },
+              params: { status: 'ACTIVE', type, startDate: userDayStartDate, endDate: userDayEndDate },
               ...authHeaders
             })
           )
@@ -90,16 +92,9 @@ const Dashboard = () => {
           type
         }))
         setUserDayData(data)
-
-        // Trường hợp không truyền type (comment lại theo yêu cầu)
-        // const res = await axios.get(`${API_BASE}/statistics/admin/user/day`, {
-        //   params: { status: 'ACTIVE' },
-        //   ...authHeaders
-        // })
-        // setUserDayData(res.data)
       } else {
         const res = await axios.get(`${API_BASE}/statistics/admin/user/day`, {
-          params: { status: 'ACTIVE', type: userDayType },
+          params: { status: 'ACTIVE', type: userDayType, startDate: userDayStartDate, endDate: userDayEndDate },
           ...authHeaders
         })
         setUserDayData([{
@@ -191,7 +186,7 @@ const Dashboard = () => {
         const shortDate = dateStr ? format(new Date(dateStr), 'dd/MM') : dateStr
         return {
           name: shortDate,
-          'Đơn hàng': item.count || item.total || 0
+          'Đơn hàng': item.orders_count || item.total || 0
         }
       }) : []
       setOrderDayData(formattedData)
@@ -255,7 +250,7 @@ const Dashboard = () => {
     setLoadingRevenueYear(false)
   }
 
-  useEffect(() => { fetchUserDay() }, [userDayType])
+  useEffect(() => { fetchUserDay() }, [userDayType, userDayStartDate, userDayEndDate])
   useEffect(() => { fetchUserYear() }, [userYearType, userYear])
   useEffect(() => { fetchOrderDay() }, [orderStartDate, orderEndDate])
   useEffect(() => { fetchRevenueDay() }, [revenueStartDate, revenueEndDate])
@@ -281,16 +276,31 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <h3 className="text-lg font-semibold text-gray-700">Thành viên mới trong ngày</h3>
-          <select
-            value={userDayType}
-            onChange={(e) => setUserDayType(e.target.value)}
-            className="border rounded px-3 py-1.5 text-sm"
-          >
-            <option value="ALL">Tất cả</option>
-            {USER_TYPES.map(type => (
-              <option key={type} value={type}>{USER_TYPE_LABELS[type]}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={userDayStartDate}
+              onChange={(e) => setUserDayStartDate(e.target.value)}
+              className="border rounded px-3 py-1.5 text-sm"
+            />
+            <span className="text-gray-500">-</span>
+            <input
+              type="date"
+              value={userDayEndDate}
+              onChange={(e) => setUserDayEndDate(e.target.value)}
+              className="border rounded px-3 py-1.5 text-sm"
+            />
+            <select
+              value={userDayType}
+              onChange={(e) => setUserDayType(e.target.value)}
+              className="border rounded px-3 py-1.5 text-sm"
+            >
+              <option value="ALL">Tất cả</option>
+              {USER_TYPES.map(type => (
+                <option key={type} value={type}>{USER_TYPE_LABELS[type]}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="h-64">
           {loadingUserDay ? (

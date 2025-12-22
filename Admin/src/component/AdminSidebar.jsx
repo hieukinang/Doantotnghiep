@@ -26,7 +26,7 @@ const navItems = [
   { name: "Thêm danh mục", icon: CreateCategoryIcon, path: "/create-category" },
   { name: "Duyệt sản phẩm", icon: ApproveIcon, path: "/product-approval" },
   { name: "Khiếu nại", icon: ComplaintIcon, path: "/complaints" },
-  { name: "Vi phạm", icon: ViolationIcon, path: "/violations" },
+  // { name: "Vi phạm", icon: ViolationIcon, path: "/violations" },
   { name: "Ví Admin", icon: WalletIcon, path: "/wallet" },
   { name: "Quản lý Chat", icon: ChatIcon, path: "/chat-management" },
 ];
