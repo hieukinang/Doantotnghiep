@@ -13,21 +13,21 @@ export default function PaymentSuccess() {
     const redirectPath = sourceRef.current === "seller" ? "/seller/wallet" : "/wallet";
 
     return (
-        <div className="min-h-screen bg-gray-100 flex justify-center items-center px-4">
-            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
+        <div className="min-h-screen bg-gray-100 flex justify-center items-center px-3 md:px-4">
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-6 md:p-8 max-w-md w-full text-center">
 
-                <h1 className="text-3xl font-bold text-gray-800 mb-3">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-3">
                     Thanh toán thành công!
                 </h1>
 
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6 text-sm md:text-base">
                     Cảm ơn bạn! Giao dịch đã được xử lý thành công.
                     Ví của bạn sẽ được cập nhật ngay lập tức.
                 </p>
 
                 <Link
                     to={redirectPath}
-                    className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow transition"
+                    className="inline-block px-5 md:px-6 py-2.5 md:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg md:rounded-xl shadow transition text-sm md:text-base"
                 >
                     Về ví của tôi
                 </Link>

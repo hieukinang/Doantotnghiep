@@ -27,15 +27,15 @@ const TopSold = () => {
   }, []);
 
   return (
-    <div className="mx-[100px] mt-6">
+    <div className="mx-4 lg:mx-[100px] mt-4 md:mt-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Top bán chạy hôm nay</h2>
-        <Link to="/products" className="text-[#116AD1] text-sm hover:underline">
+        <h2 className="text-base md:text-xl font-semibold">Top bán chạy hôm nay</h2>
+        <Link to="/products" className="text-[#116AD1] text-xs md:text-sm hover:underline">
           Xem tất cả
         </Link>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+      <div className="mt-3 md:mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
         {products.map((p) => (
           <Link
             key={p.id || p._id}
@@ -55,21 +55,21 @@ const TopSold = () => {
             </div>
 
             <div className="p-2">
-              <div className="line-clamp-2 text-sm font-medium text-gray-800">
+              <div className="line-clamp-2 text-xs md:text-sm font-medium text-gray-800">
                 {p.name}
               </div>
 
               {p.min_price ? (
                 <>
-                  <div className="mt-1 text-xs text-gray-500 line-through">
+                  <div className="mt-1 text-xs text-gray-500 line-through hidden sm:block">
                     {formatPrice(p.min_price * 1.1)}₫
                   </div>
-                  <div className="mt-1 text-[#116AD1] font-semibold">
+                  <div className="mt-1 text-[#116AD1] font-semibold text-sm md:text-base">
                     {formatPrice(p.min_price)}₫
                   </div>
                 </>
               ) : (
-                <div className="mt-1 text-gray-400 text-sm">Liên hệ</div>
+                <div className="mt-1 text-gray-400 text-xs md:text-sm">Liên hệ</div>
               )}
 
               <div className="mt-1 text-xs text-gray-500">

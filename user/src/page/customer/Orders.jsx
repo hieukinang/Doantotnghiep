@@ -458,42 +458,145 @@ const Orders = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <main className="pt-32 px-5 flex-1">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1 pb-4">
         <div className="max-w-7xl mx-auto">
 
           {/* Dropdown lọc trạng thái */}
-          <div className="flex items-center gap-3 mb-2">
-            <label className="text-sm font-medium text-gray-700">Trạng thái:</label>
-            <select
-              value={activeStatus}
-              onChange={(e) => setActiveStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1] focus:border-transparent"
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <label className="text-xs md:text-sm font-medium text-gray-700 whitespace-nowrap">Trạng thái:</label>
+            <div className="relative">
+              <select
+                value={activeStatus}
+                onChange={(e) => setActiveStatus(e.target.value)}
+                className="appearance-none px-3 md:px-4 py-2 border border-gray-300 rounded-lg bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1] focus:border-transparent w-[160px] sm:w-[200px] pr-8 cursor-pointer"
+              >
+                {STATUS_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            {activeStatus !== "ALL" && (
+              <button
+                onClick={() => setActiveStatus("ALL")}
+                className="text-xs text-red-500 hover:text-red-700 underline"
+              >
+                Xóa bộ lọc
+              </button>
+            )}
           </div>
 
-          {/* Order table */}
-          <div className="mt-4 bg-white rounded-xl shadow-lg overflow-hidden border border-blue-100">
-            <table className="w-full text-sm table-fixed">
-              <thead>
-                <tr className="bg-gradient-to-r from-[#116AD1] to-[#1e88e5] text-white">
-                  <th className="px-5 py-4 w-[250px] text-left font-semibold">Đơn hàng</th>
-                  <th className="px-5 py-4 w-[130px] text-left font-semibold">Giá tiền</th>
-                  <th className="px-5 py-4 w-[150px] text-left font-semibold">Trạng thái</th>
-                  <th className="px-5 py-4 text-right font-semibold">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
+          {/* Order list - Mobile card view */}
+          <div className="mt-4 space-y-3 md:hidden">
+            {filteredOrders.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-lg p-8 text-center text-gray-400">
+                <div className="text-4xl mb-3">📦</div>
+                <div>Không có đơn hàng nào</div>
+              </div>
+            ) : (
+              filteredOrders.map((o) => (
+                <div key={o.id} className="bg-white rounded-xl shadow p-4 border border-blue-100">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="font-bold text-[#116AD1] text-sm">{o.id}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        📅 {o.date} • 📦 {o.items} sản phẩm
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium
+                      ${o.rawStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : ''}
+                      ${o.rawStatus === 'CONFIRMED' ? 'bg-cyan-100 text-cyan-700' : ''}
+                      ${o.rawStatus === 'IN_TRANSIT' ? 'bg-purple-100 text-purple-700' : ''}
+                      ${o.rawStatus === 'DELIVERED' ? 'bg-blue-100 text-blue-700' : ''}
+                      ${o.rawStatus === 'CLIENT_CONFIRMED' ? 'bg-green-100 text-green-700' : ''}
+                      ${o.rawStatus === 'CLIENT_NOT_CONFIRMED' ? 'bg-red-100 text-red-700' : ''}
+                      ${o.rawStatus === 'CANCELLED' ? 'bg-gray-100 text-gray-700' : ''}
+                      ${o.rawStatus === 'FAILED' ? 'bg-red-100 text-red-700' : ''}
+                      ${o.rawStatus === 'RETURNED' ? 'bg-orange-100 text-orange-700' : ''}
+                      ${o.rawStatus === 'RETURN_CONFIRMED' ? 'bg-teal-100 text-teal-700' : ''}
+                      ${o.rawStatus === 'RETURN_NOT_CONFIRMED' ? 'bg-pink-100 text-pink-700' : ''}
+                    `}>
+                      {o.status}
+                    </span>
+                  </div>
+                  <div className="font-bold text-[#116AD1] text-base mb-3">
+                    {o.total.toLocaleString("vi-VN")}₫
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {o.rawStatus === "CLIENT_CONFIRMED" && (
+                      <button
+                        onClick={() => openReasonModal(o.clientOrderId, "return")}
+                        className="text-[10px] px-2 py-1 bg-red-50 border border-red-200 rounded-lg text-red-600"
+                      >
+                        Đổi/Trả
+                      </button>
+                    )}
+                    {(o.rawStatus === "CONFIRMED" || o.rawStatus === "PENDING") && (
+                      <button
+                        onClick={() => openReasonModal(o.clientOrderId, "cancel")}
+                        className="text-[10px] px-2 py-1 bg-red-50 border border-red-200 rounded-lg text-red-600"
+                      >
+                        Hủy đơn
+                      </button>
+                    )}
+                    {o.rawStatus === "DELIVERED" && (
+                      <>
+                        <button
+                          onClick={() => handleConfirmReceived(o.clientOrderId, true)}
+                          className="text-[10px] px-2 py-1 bg-green-50 border border-green-200 rounded-lg text-green-600"
+                        >
+                          ✓ Đã nhận
+                        </button>
+                        <button
+                          onClick={() => handleConfirmReceived(o.clientOrderId, false)}
+                          className="text-[10px] px-2 py-1 bg-red-50 border border-red-200 rounded-lg text-red-600"
+                        >
+                          ✗ Chưa nhận
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => handleOpenReview(o)}
+                      className="text-[10px] px-2 py-1 bg-orange-50 border border-orange-200 rounded-lg text-orange-600"
+                    >
+                      Đánh giá
+                    </button>
+                    <button
+                      onClick={() => handleViewDetail(o)}
+                      className="text-[10px] px-2 py-1 bg-[#116AD1] text-white rounded-lg"
+                    >
+                      Chi tiết
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Order table - Desktop view */}
+          <div className="mt-4 bg-white rounded-xl shadow-lg overflow-hidden border border-blue-100 hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm table-fixed min-w-[600px]">
+                <thead>
+                  <tr className="bg-gradient-to-r from-[#116AD1] to-[#1e88e5] text-white">
+                    <th className="px-3 md:px-5 py-3 md:py-4 w-[200px] lg:w-[250px] text-left font-semibold text-xs md:text-sm">Đơn hàng</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 w-[100px] lg:w-[130px] text-left font-semibold text-xs md:text-sm">Giá tiền</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 w-[120px] lg:w-[150px] text-left font-semibold text-xs md:text-sm">Trạng thái</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-right font-semibold text-xs md:text-sm">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-16 text-gray-400">
-                      <div className="text-4xl mb-3">📦</div>
-                      <div>Không có đơn hàng nào</div>
+                    <td colSpan="4" className="text-center py-12 md:py-16 text-gray-400">
+                      <div className="text-3xl md:text-4xl mb-3">📦</div>
+                      <div className="text-sm md:text-base">Không có đơn hàng nào</div>
                     </td>
                   </tr>
                 ) : (
@@ -503,23 +606,23 @@ const Orders = () => {
                       className={`hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
                     >
                       {/* Cột 1: Đơn hàng */}
-                      <td className="px-5 py-4">
-                        <div className="font-bold text-[#116AD1] text-base">{o.id}</div>
-                        <div className="text-xs text-gray-500 mt-1">
+                      <td className="px-3 md:px-5 py-3 md:py-4">
+                        <div className="font-bold text-[#116AD1] text-sm md:text-base">{o.id}</div>
+                        <div className="text-[10px] md:text-xs text-gray-500 mt-1">
                           📅 {o.date} • 📦 {o.items} sản phẩm
                         </div>
                       </td>
 
                       {/* Cột 2: Giá tiền */}
-                      <td className="px-5 py-4">
-                        <div className="font-bold text-[#116AD1] text-base">
+                      <td className="px-3 md:px-5 py-3 md:py-4">
+                        <div className="font-bold text-[#116AD1] text-sm md:text-base">
                           {o.total.toLocaleString("vi-VN")}₫
                         </div>
                       </td>
 
                       {/* Cột 3: Trạng thái */}
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                      <td className="px-3 md:px-5 py-3 md:py-4">
+                        <span className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-medium
                           ${o.rawStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : ''}
                           ${o.rawStatus === 'CONFIRMED' ? 'bg-cyan-100 text-cyan-700' : ''}
                           ${o.rawStatus === 'IN_TRANSIT' ? 'bg-purple-100 text-purple-700' : ''}
@@ -537,12 +640,12 @@ const Orders = () => {
                       </td>
 
                       {/* Cột 4: Thao tác */}
-                      <td className="px-5 py-4">
-                        <div className="flex gap-2 flex-wrap justify-end">
+                      <td className="px-3 md:px-5 py-3 md:py-4">
+                        <div className="flex gap-1 md:gap-2 flex-wrap justify-end">
                           {o.rawStatus === "CLIENT_CONFIRMED" && (
                             <button
                               onClick={() => openReasonModal(o.clientOrderId, "return")}
-                              className="text-xs px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
+                              className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
                             >
                               Đổi/Trả
                             </button>
@@ -551,7 +654,7 @@ const Orders = () => {
                           {(o.rawStatus === "CONFIRMED" || o.rawStatus === "PENDING") && (
                             <button
                               onClick={() => openReasonModal(o.clientOrderId, "cancel")}
-                              className="text-xs px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
+                              className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
                             >
                               Hủy đơn
                             </button>
@@ -561,13 +664,13 @@ const Orders = () => {
                             <>
                               <button
                                 onClick={() => handleConfirmReceived(o.clientOrderId, true)}
-                                className="text-xs px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-green-600 hover:bg-green-100 transition-colors whitespace-nowrap"
+                                className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-green-50 border border-green-200 rounded-lg text-green-600 hover:bg-green-100 transition-colors whitespace-nowrap"
                               >
                                 ✓ Đã nhận
                               </button>
                               <button
                                 onClick={() => handleConfirmReceived(o.clientOrderId, false)}
-                                className="text-xs px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
+                                className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
                               >
                                 ✗ Chưa nhận
                               </button>
@@ -575,13 +678,13 @@ const Orders = () => {
                           )}
                           <button
                             onClick={() => handleOpenReview(o)}
-                            className="text-xs px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-600 hover:bg-orange-100 transition-colors whitespace-nowrap"
+                            className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-600 hover:bg-orange-100 transition-colors whitespace-nowrap"
                           >
                             Đánh giá
                           </button>
                           <button
                             onClick={() => handleViewDetail(o)}
-                            className="text-xs px-3 py-1.5 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] transition-colors whitespace-nowrap"
+                            className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] transition-colors whitespace-nowrap"
                           >
                             Chi tiết
                           </button>
@@ -592,12 +695,13 @@ const Orders = () => {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-4 md:mt-6 text-center">
             <Link
               to="/"
-              className="inline-block px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]"
+              className="inline-block px-5 md:px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa] text-sm md:text-base"
             >
               Tiếp tục mua sắm
             </Link>
@@ -609,33 +713,33 @@ const Orders = () => {
 
       {/* Modal Chi tiết đơn hàng */}
       {showModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-[#116AD1]">
+            <div className="flex justify-between items-center p-3 md:p-4 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-base md:text-lg font-semibold text-[#116AD1]">
                 Chi tiết đơn hàng
               </h2>
               <button
                 onClick={closeModal}
                 className="p-1 hover:bg-gray-100 rounded-full"
               >
-                <IoClose size={24} />
+                <IoClose size={20} className="md:w-6 md:h-6" />
               </button>
             </div>
 
-            <div className="p-5">
-              {/* Thông tin đơn hàng - 2 cột */}
-              <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="p-3 md:p-5">
+              {/* Thông tin đơn hàng - 2 cột trên desktop, 1 cột trên mobile */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-5">
                 {/* Cột trái - Trạng thái & thời gian & Phí vận chuyển */}
-                <div className="border rounded-lg p-4 space-y-2 text-sm">
+                <div className="border rounded-lg p-3 md:p-4 space-y-2 text-xs md:text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Trạng thái</span>
                     <span className="font-semibold text-[#116AD1]">{selectedOrder.status}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Mã đơn hàng</span>
-                    <span className="font-medium">{selectedOrder.id}</span>
+                    <span className="font-medium text-right break-all ml-2">{selectedOrder.id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Đặt hàng lúc</span>
@@ -654,16 +758,16 @@ const Orders = () => {
                 </div>
 
                 {/* Cột phải - Địa chỉ, Thanh toán, Tạm tính & Tổng tiền */}
-                <div className="border rounded-lg p-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
+                <div className="border rounded-lg p-3 md:p-4 space-y-2 text-xs md:text-sm">
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
                     <span className="text-gray-500">Địa chỉ</span>
-                    <span className="font-medium text-right max-w-[200px] truncate">
+                    <span className="font-medium sm:text-right sm:max-w-[200px] break-words">
                       {selectedOrder.shippingAddress || "Chưa có"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Thanh toán</span>
-                    <span className="font-medium">{selectedOrder.paymentMethod==='wallet'? "Thanh toán ngay bằng ví Kohi" : "Thanh toán khi nhận hàng"}</span>
+                    <span className="font-medium text-right">{selectedOrder.paymentMethod==='wallet'? "Ví Kohi" : "COD"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Tạm tính</span>
@@ -676,13 +780,13 @@ const Orders = () => {
                 </div>
               </div>
 
-              {/* Danh sách sản phẩm - 2 cột */}
-              <div className="border rounded-lg overflow-hidden mb-5">
-                <h3 className="font-semibold text-gray-700 p-3 bg-gray-50 border-b">
+              {/* Danh sách sản phẩm */}
+              <div className="border rounded-lg overflow-hidden mb-4 md:mb-5">
+                <h3 className="font-semibold text-gray-700 p-2 md:p-3 bg-gray-50 border-b text-sm md:text-base">
                   Sản phẩm ({selectedOrder.orderItems.length})
                 </h3>
                 {selectedOrder.orderItems.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2 p-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2 md:p-3">
                     {selectedOrder.orderItems.map((item, index) => {
                       const productImage = item.OrderItemProductVariant?.ProductVariantProduct?.main_image;
                       const productName = item.OrderItemProductVariant?.ProductVariantProduct?.name || "Sản phẩm";
@@ -691,14 +795,14 @@ const Orders = () => {
                           <img
                             src={productImage || "https://via.placeholder.com/60"}
                             alt={productName}
-                            className="w-14 h-14 object-cover rounded"
+                            className="w-12 h-12 md:w-14 md:h-14 object-cover rounded flex-shrink-0"
                           />
-                          <div className="ml-3 flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-800 text-sm line-clamp-1">
+                          <div className="ml-2 md:ml-3 flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-800 text-xs md:text-sm line-clamp-1">
                               {productName}
                             </h4>
-                            <p className="text-xs text-gray-500">x{item.quantity}</p>
-                            <p className="text-sm text-[#116AD1] font-semibold">
+                            <p className="text-[10px] md:text-xs text-gray-500">x{item.quantity}</p>
+                            <p className="text-xs md:text-sm text-[#116AD1] font-semibold">
                               {(item.price || 0).toLocaleString("vi-VN")}₫
                             </p>
                           </div>
@@ -707,12 +811,12 @@ const Orders = () => {
                     })}
                   </div>
                 ) : (
-                  <p className="p-4 text-gray-500 text-center">Không có sản phẩm</p>
+                  <p className="p-4 text-gray-500 text-center text-sm">Không có sản phẩm</p>
                 )}
               </div>
 
               {/* Nút hành động */}
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                 {selectedOrder.rawStatus === "DELIVERED" && (
                   <>
                     <button
@@ -720,7 +824,7 @@ const Orders = () => {
                         handleConfirmReceived(selectedOrder.clientOrderId, true);
                         closeModal();
                       }}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      className="px-3 md:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                     >
                       Đã nhận hàng
                     </button>
@@ -729,7 +833,7 @@ const Orders = () => {
                         handleConfirmReceived(selectedOrder.clientOrderId, false);
                         closeModal();
                       }}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      className="px-3 md:px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
                     >
                       Chưa nhận được
                     </button>
@@ -738,7 +842,7 @@ const Orders = () => {
                 {selectedOrder.rawStatus === "CLIENT_CONFIRMED" && (
                   <Link
                     to="/exchange-request"
-                    className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]"
+                    className="px-3 md:px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa] text-sm text-center"
                     onClick={closeModal}
                   >
                     Yêu cầu Trả hàng / Hoàn tiền
@@ -746,7 +850,7 @@ const Orders = () => {
                 )}
                 <button
                   onClick={closeModal}
-                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  className="px-3 md:px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm"
                 >
                   Đóng
                 </button>
@@ -758,26 +862,26 @@ const Orders = () => {
 
       {/* Modal Hủy đơn / Đổi trả */}
       {showReasonModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white">
-              <h2 className="text-lg font-semibold text-gray-800">
+            <div className="flex justify-between items-center p-3 md:p-4 border-b sticky top-0 bg-white">
+              <h2 className="text-base md:text-lg font-semibold text-gray-800">
                 {reasonModalType === "cancel" ? "Lý do hủy đơn hàng" : "Lý do đổi/trả hàng"}
               </h2>
               <button
                 onClick={closeReasonModal}
                 className="p-1 hover:bg-gray-100 rounded-full"
               >
-                <IoClose size={24} />
+                <IoClose size={20} className="md:w-6 md:h-6" />
               </button>
             </div>
 
-            <div className="p-4 space-y-3">
+            <div className="p-3 md:p-4 space-y-2 md:space-y-3">
               {(reasonModalType === "cancel" ? CANCEL_REASONS : RETURN_REASONS).map((reason, index) => (
                 <label
                   key={index}
-                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                  className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
                     selectedReason === reason ? "border-[#116AD1] bg-blue-50" : ""
                   }`}
                 >
@@ -789,19 +893,19 @@ const Orders = () => {
                     onChange={(e) => setSelectedReason(e.target.value)}
                     className="accent-[#116AD1]"
                   />
-                  <span className="text-sm text-gray-700">{reason}</span>
+                  <span className="text-xs md:text-sm text-gray-700">{reason}</span>
                 </label>
               ))}
 
               {/* Upload ảnh - chỉ hiển thị khi đổi/trả */}
               {reasonModalType === "return" && (
-                <div className="mt-4 pt-4 border-t">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
+                <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t">
+                  <p className="text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Tải ảnh minh họa (tối đa 3 ảnh)
                   </p>
                   <div className="flex gap-2 flex-wrap">
                     {returnImages.map((img, index) => (
-                      <div key={index} className="relative w-20 h-20">
+                      <div key={index} className="relative w-16 h-16 md:w-20 md:h-20">
                         <img
                           src={img.preview}
                           alt={`Preview ${index + 1}`}
@@ -809,14 +913,14 @@ const Orders = () => {
                         />
                         <button
                           onClick={() => removeImage(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[10px] md:text-xs hover:bg-red-600"
                         >
                           ✕
                         </button>
                       </div>
                     ))}
                     {returnImages.length < 3 && (
-                      <label className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-[#116AD1] hover:bg-gray-50">
+                      <label className="w-16 h-16 md:w-20 md:h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-[#116AD1] hover:bg-gray-50">
                         <input
                           type="file"
                           accept="image/*"
@@ -824,7 +928,7 @@ const Orders = () => {
                           onChange={handleImageUpload}
                           className="hidden"
                         />
-                        <span className="text-2xl text-gray-400">+</span>
+                        <span className="text-xl md:text-2xl text-gray-400">+</span>
                       </label>
                     )}
                   </div>
@@ -833,17 +937,17 @@ const Orders = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-3 p-4 border-t">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 p-3 md:p-4 border-t">
               <button
                 onClick={closeReasonModal}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                className="px-3 md:px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm"
               >
                 Hủy bỏ
               </button>
               <button
                 onClick={handleConfirmReason}
                 disabled={!selectedReason}
-                className={`px-4 py-2 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed ${
+                className={`px-3 md:px-4 py-2 text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed text-sm ${
                   reasonModalType === "cancel" 
                     ? "bg-red-600 hover:bg-red-700" 
                     : "bg-[#116AD1] hover:bg-[#0e57aa]"
@@ -858,18 +962,18 @@ const Orders = () => {
 
       {/* Modal Chọn sản phẩm để đánh giá */}
       {showProductSelector && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 md:p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-[#116AD1]">
+            <div className="flex justify-between items-center p-3 md:p-4 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-sm md:text-lg font-semibold text-[#116AD1]">
                 Chọn sản phẩm để đánh giá ({reviewedProducts.size}/{reviewOrderItems.length})
               </h2>
               <button onClick={closeReviewModal} className="p-1 hover:bg-gray-100 rounded-full">
-                <IoClose size={24} />
+                <IoClose size={20} className="md:w-6 md:h-6" />
               </button>
             </div>
 
-            <div className="p-5 space-y-3">
+            <div className="p-3 md:p-5 space-y-2 md:space-y-3">
               {reviewOrderItems.map((item, index) => {
                 const productId = item.OrderItemProductVariant?.productId;
                 const isReviewed = reviewedProducts.has(productId);
@@ -877,7 +981,7 @@ const Orders = () => {
                 return (
                   <div 
                     key={index} 
-                    className={`flex gap-3 p-4 border rounded-lg transition-all ${
+                    className={`flex gap-2 md:gap-3 p-3 md:p-4 border rounded-lg transition-all ${
                       isReviewed 
                         ? 'bg-green-50 border-green-200 opacity-60' 
                         : 'bg-white hover:bg-gray-50 border-gray-200 cursor-pointer'
@@ -887,21 +991,21 @@ const Orders = () => {
                     <img
                       src={item.image || "https://via.placeholder.com/80"}
                       alt={item.title}
-                      className="w-20 h-20 object-cover rounded border"
+                      className="w-16 h-16 md:w-20 md:h-20 object-cover rounded border flex-shrink-0"
                     />
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-800">{item.title}</h4>
-                      <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
-                      <p className="text-sm text-[#116AD1] font-semibold">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-800 text-xs md:text-base line-clamp-2">{item.title}</h4>
+                      <p className="text-[10px] md:text-sm text-gray-500">Số lượng: {item.quantity}</p>
+                      <p className="text-xs md:text-sm text-[#116AD1] font-semibold">
                         {(item.price || 0).toLocaleString("vi-VN")}₫
                       </p>
                     </div>
                     {isReviewed ? (
-                      <div className="self-center px-3 py-1 bg-green-500 text-white text-xs rounded-full">
+                      <div className="self-center px-2 md:px-3 py-1 bg-green-500 text-white text-[10px] md:text-xs rounded-full whitespace-nowrap">
                         ✓ Đã đánh giá
                       </div>
                     ) : (
-                      <div className="self-center px-3 py-1 bg-[#116AD1] text-white text-xs rounded-full hover:bg-[#0e57aa]">
+                      <div className="self-center px-2 md:px-3 py-1 bg-[#116AD1] text-white text-[10px] md:text-xs rounded-full hover:bg-[#0e57aa] whitespace-nowrap">
                         Đánh giá
                       </div>
                     )}
@@ -910,10 +1014,10 @@ const Orders = () => {
               })}
             </div>
 
-            <div className="flex justify-end gap-3 p-4 border-t sticky bottom-0 bg-white">
+            <div className="flex justify-end gap-2 md:gap-3 p-3 md:p-4 border-t sticky bottom-0 bg-white">
               <button
                 onClick={closeReviewModal}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                className="px-3 md:px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-xs md:text-sm"
               >
                 {reviewedProducts.size === reviewOrderItems.length ? 'Hoàn thành' : 'Đóng'}
               </button>

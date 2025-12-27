@@ -306,15 +306,15 @@ const Register = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="Logo" className="w-10 h-10" />
-          <span className="font-bold text-2xl">KOHI MALL</span>
+      <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-4 md:px-10 py-4 md:py-6">
+        <Link to="/" className="flex items-center gap-2 md:gap-3">
+          <img src={logo} alt="Logo" className="w-8 h-8 md:w-10 md:h-10" />
+          <span className="font-bold text-xl md:text-2xl">KOHI MALL</span>
         </Link>
-        <h1 className="text-2xl font-bold item-center text-center">ĐĂNG KÝ</h1>
+        <h1 className="text-lg md:text-2xl font-bold hidden sm:block">ĐĂNG KÝ</h1>
         <Link
           to="/contact"
-          className="cursor-pointer hover:underline text-base"
+          className="cursor-pointer hover:underline text-sm md:text-base"
         >
           Hỗ trợ
         </Link>
@@ -323,8 +323,8 @@ const Register = () => {
       {/* Container chính */}
       <main className="flex flex-1 mt-5 justify-center items-center px-4">
         <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
-          {/* Left side - Hình ảnh */}
-          <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-4">
+          {/* Left side - Hình ảnh - Ẩn trên mobile */}
+          <div className="hidden md:flex w-full md:w-1/2 items-center justify-center bg-white p-4">
             <img
               src={image}
               alt="Register"
@@ -333,15 +333,15 @@ const Register = () => {
           </div>
 
           {/* Right side - Form đăng ký */}
-          <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-8 border-t md:border-t-0 md:border-l border-gray-300">
-            <h2 className="text-2xl font-bold text-blue-600 mb-2">
+          <div className="w-full md:w-1/2 flex flex-col justify-center px-4 md:px-6 py-6 md:py-8 border-t md:border-t-0 md:border-l border-gray-300">
+            <h2 className="text-xl md:text-2xl font-bold text-blue-600 mb-2">
               Đăng ký tài khoản
             </h2>
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 mb-4 md:mb-6 text-sm md:text-base">
               Điền thông tin chi tiết bên dưới
             </p>
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-3 md:space-y-4" onSubmit={handleSubmit}>
               <div>
                 <input
                   type="text"
@@ -350,7 +350,7 @@ const Register = () => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Tên người dùng"
-                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 ${
+                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 text-sm md:text-base ${
                     errors.username
                       ? "border-red-500 focus:ring-red-500"
                       : "focus:ring-blue-500"
@@ -370,7 +370,7 @@ const Register = () => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Email (your@gmail.com)"
-                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 ${
+                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 text-sm md:text-base ${
                     errors.email
                       ? "border-red-500 focus:ring-red-500"
                       : "focus:ring-blue-500"
@@ -390,7 +390,7 @@ const Register = () => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Số điện thoại"
-                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 ${
+                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 text-sm md:text-base ${
                     errors.phone
                       ? "border-red-500 focus:ring-red-500"
                       : "focus:ring-blue-500"
@@ -410,7 +410,7 @@ const Register = () => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Mật khẩu"
-                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 ${
+                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 text-sm md:text-base ${
                     errors.password
                       ? "border-red-500 focus:ring-red-500"
                       : "focus:ring-blue-500"
@@ -430,7 +430,7 @@ const Register = () => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Xác nhận mật khẩu"
-                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 ${
+                  className={`w-full border rounded-md px-4 py-2 outline-none focus:ring-2 text-sm md:text-base ${
                     errors.confirmPassword
                       ? "border-red-500 focus:ring-red-500"
                       : "focus:ring-blue-500"
@@ -446,14 +446,14 @@ const Register = () => {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700 disabled:opacity-50"
+                className="w-full bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700 disabled:opacity-50 text-sm md:text-base"
               >
                 Đăng ký
               </button>
 
               <button
                 type="button"
-                className="w-full border flex items-center justify-center gap-2 py-2 rounded-md hover:bg-gray-100"
+                className="w-full border flex items-center justify-center gap-2 py-2 rounded-md hover:bg-gray-100 text-sm md:text-base"
               >
                 <img
                   src="https://www.svgrepo.com/show/355037/google.svg"
@@ -464,7 +464,7 @@ const Register = () => {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-4 md:mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Đã có tài khoản?{" "}
                 <Link

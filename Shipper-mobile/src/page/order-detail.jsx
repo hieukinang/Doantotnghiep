@@ -112,6 +112,40 @@ const OrderDetail = () => {
     }
   };
 
+  // Liên hệ cửa hàng
+  const handleContactStore = () => {
+    const storeId = order?.storeId || order?.OrderStore?.id;
+    const storeName = order?.OrderStore?.name || order?.store_name || "Cửa hàng";
+    
+    if (!storeId) {
+      Alert.alert("Lỗi", "Không tìm thấy thông tin cửa hàng");
+      return;
+    }
+
+    // Chuyển storeId sang string để so sánh chính xác
+    const storeIdStr = String(storeId);
+
+    // Kiểm tra xem đã có conversation với store này chưa
+    const existingConv = conversations.find(conv => 
+      conv.participants?.some(p => String(p.user_id) === storeIdStr)
+    );
+
+    if (existingConv) {
+      // Đã có conversation -> mở ChatRoom với conversationId
+      navigation.navigate("ChatRoom", {
+        conversationId: existingConv._id,
+        otherUser: { user_id: storeIdStr, username: storeName }
+      });
+    } else {
+      // Chưa có conversation -> mở ChatRoom với targetUserId
+      navigation.navigate("ChatRoom", {
+        conversationId: null,
+        targetUserId: storeIdStr,
+        otherUser: { user_id: storeIdStr, username: storeName }
+      });
+    }
+  };
+
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
     if (!showSidebar) setShowPopup(false);
@@ -306,15 +340,24 @@ const OrderDetail = () => {
           </View>
         </View>
 
-        {/* Nút liên hệ khách hàng - chỉ hiện khi đơn chưa hoàn thành */}
+        {/* Nút liên hệ khách hàng và cửa hàng - chỉ hiện khi đơn chưa hoàn thành */}
         {order.status !== "CLIENT_CONFIRMED" && order.status !== "DELIVERED" && (
           <>
-            <TouchableOpacity
-              style={styles.buttonChat}
-              onPress={handleContactCustomer}
-            >
-              <Text style={styles.buttonChatText}>💬 Liên hệ khách hàng</Text>
-            </TouchableOpacity>
+            <View style={styles.contactButtonRow}>
+              <TouchableOpacity
+                style={styles.buttonChatCustomer}
+                onPress={handleContactCustomer}
+              >
+                <Text style={styles.buttonChatText}>💬 Liên hệ khách hàng</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.buttonChatStore}
+                onPress={handleContactStore}
+              >
+                <Text style={styles.buttonChatStoreText}>🏪 Liên hệ cửa hàng</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Nút hành động */}
             <View style={styles.buttonRow}>
@@ -489,6 +532,32 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 12,
+  },
+  contactButtonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  buttonChatCustomer: {
+    flex: 1,
+    backgroundColor: "#E8F5E9",
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginRight: 6,
+  },
+  buttonChatStore: {
+    flex: 1,
+    backgroundColor: "#FFF3E0",
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginLeft: 6,
+  },
+  buttonChatStoreText: { 
+    color: "#E65100", 
+    fontWeight: "bold", 
+    fontSize: 15 
   },
   buttonDisabled: {
     opacity: 0.6,

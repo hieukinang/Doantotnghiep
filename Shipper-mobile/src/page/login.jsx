@@ -6,6 +6,7 @@ import logo from '../../assets/icon.png';
 import { useAuth } from '../shipper-context/auth-context'; // sửa đường dẫn cho đúng
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from '../shipper-context/config';
+import axiosInstance from '../shipper-context/axiosInstance'; // dùng cho ngrok tunnel
 import chatService from '../shipper-context/chatService';
 
 const Login = () => {
@@ -22,6 +23,7 @@ const Login = () => {
 
   const handleSubmit = async () => {
     try {
+      // === DÙNG KHI CHẠY LOCAL (IP LAN) ===
       const res = await axios.post(
         `${config.backendUrl}/shippers/login`,
         {
@@ -30,6 +32,16 @@ const Login = () => {
         },
         { headers: { "Content-Type": "application/json" } }
       );
+
+      // === DÙNG KHI CHẠY NGROK TUNNEL ===
+      // const res = await axiosInstance.post(
+      //   '/shippers/login',
+      //   {
+      //     emailOrPhone: formData.emailOrPhone,
+      //     password: formData.password,
+      //   },
+      //   { headers: { "Content-Type": "application/json" } }
+      // );
 
       console.log("LOGIN RESPONSE:", res.data);
 
@@ -45,22 +57,27 @@ const Login = () => {
 
         // lưu id vào AsyncStorage
         await AsyncStorage.setItem("shipperId", shipperId.toString());
+        console.log("Saved shipperId to AsyncStorage:", shipperId);
 
         // lưu vào context
         await signIn({ id: shipperId, token }, true);
+        console.log("SignIn completed");
 
         // Tạo chat account nếu chưa có (cho user cũ)
-        try {
-          const chatUserId = `SHIPPER${shipperId}`;
-          await chatService.createChatAccount(chatUserId, user.fullname || user.name || 'Shipper');
-          console.log("Chat account ensured:", chatUserId);
-        } catch (chatErr) {
-          // Ignore nếu đã tồn tại hoặc lỗi khác
-          console.log("Chat account check:", chatErr.response?.data?.message || chatErr.message);
-        }
+        // === TẠM TẮT KHI DÙNG NGROK (chat server chưa expose) ===
+        // try {
+        //   const chatUserId = shipperId; // shipperId đã có format SHIPPER... rồi
+        //   await chatService.createChatAccount(chatUserId, user.fullname || user.name || 'Shipper');
+        //   console.log("Chat account ensured:", chatUserId);
+        // } catch (chatErr) {
+        //   // Ignore nếu đã tồn tại hoặc lỗi khác
+        //   console.log("Chat account check:", chatErr.response?.data?.message || chatErr.message);
+        // }
 
+        console.log("About to navigate to MapScreen");
         Alert.alert("Success", "Đăng nhập thành công!");
         navigation.replace("MapScreen");
+        console.log("Navigation called");
       } else {
         Alert.alert("Error", res.data?.message || "Sai thông tin đăng nhập");
       }

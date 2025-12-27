@@ -41,13 +41,13 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 md:p-6">
       <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
-        {/* Illustration / left */}
+        {/* Illustration / left - Ẩn trên mobile */}
         <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-[#116AD1] to-[#0f64b8] p-8">
           <div className="text-white max-w-[320px]">
             <svg
-              className="w-20 h-20 mb-6"
+              className="w-16 h-16 md:w-20 md:h-20 mb-6"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -68,7 +68,7 @@ const ForgotPassword = () => {
               />
             </svg>
 
-            <h3 className="text-2xl font-semibold">Quên mật khẩu?</h3>
+            <h3 className="text-xl md:text-2xl font-semibold">Quên mật khẩu?</h3>
             <p className="mt-3 text-sm leading-relaxed">
               Nhập email liên kết với tài khoản của bạn. Chúng tôi sẽ gửi hướng
               dẫn để đặt lại mật khẩu vào email đó.
@@ -82,18 +82,18 @@ const ForgotPassword = () => {
         </div>
 
         {/* Form / right */}
-        <div className="p-8 md:p-10">
-          <h2 className="text-2xl font-semibold text-gray-800">
+        <div className="p-6 md:p-8 lg:p-10">
+          <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
             Đặt lại mật khẩu
           </h2>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-xs md:text-sm text-gray-500">
             Nhập email để nhận đường dẫn đặt lại mật khẩu.
           </p>
 
           {success ? (
             <div className="mt-6 rounded-lg border border-green-100 bg-green-50 p-4">
-              <h4 className="font-medium text-green-800">Đã gửi email</h4>
-              <p className="text-sm text-green-700 mt-1">
+              <h4 className="font-medium text-green-800 text-sm md:text-base">Đã gửi email</h4>
+              <p className="text-xs md:text-sm text-green-700 mt-1">
                 Vui lòng kiểm tra email{" "}
                 <span className="font-medium">{email}</span> để hoàn tất quá
                 trình đặt lại mật khẩu.
@@ -111,7 +111,7 @@ const ForgotPassword = () => {
             <form onSubmit={handleSubmit} className="mt-6">
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-xs md:text-sm font-medium text-gray-700"
               >
                 Email
               </label>
@@ -123,7 +123,7 @@ const ForgotPassword = () => {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full rounded-lg border px-4 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#116AD1] focus:border-transparent shadow-sm ${
+                  className={`block w-full rounded-lg border px-3 md:px-4 py-2.5 md:py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#116AD1] focus:border-transparent shadow-sm text-sm md:text-base ${
                     error ? "border-red-300" : "border-gray-200"
                   }`}
                   placeholder="you@gmail.com"
@@ -133,16 +133,16 @@ const ForgotPassword = () => {
               </div>
 
               {error && (
-                <p id="email-error" className="mt-2 text-sm text-red-600">
+                <p id="email-error" className="mt-2 text-xs md:text-sm text-red-600">
                   {error}
                 </p>
               )}
 
-              <div className="mt-6 flex items-center justify-between">
+              <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-medium text-white shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#116AD1] ${
+                  className={`w-full sm:w-auto inline-flex items-center justify-center rounded-lg px-6 py-2.5 md:py-3 text-sm font-medium text-white shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#116AD1] ${
                     loading ? "opacity-70 cursor-wait" : "bg-[#116AD1]"
                   }`}
                 >

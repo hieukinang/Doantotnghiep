@@ -155,53 +155,53 @@ export default function Wallet() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <Header />
-            <main className="pt-32 px-5 pb-10 flex-1">
-                <div className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8" style={{ height: '570px' }}>
+            <main className="pt-28 md:pt-32 px-3 md:px-5 pb-10 flex-1">
+                <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
 
                     {/* ===== CỘT THAO TÁC ===== */}
-                    <section className="bg-white p-6 rounded-xl shadow flex flex-col overflow-hidden">
+                    <section className="bg-white p-4 md:p-6 rounded-xl shadow flex flex-col overflow-hidden">
 
                         {/* TAB */}
                         <div className="flex gap-4 mb-4 border-b pb-2">
                             <button
-                                className={`pb-2 font-semibold ${tab === "deposit" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
+                                className={`pb-2 font-semibold text-sm md:text-base ${tab === "deposit" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
                                 onClick={() => setTab("deposit")}
                             >
                                 Nạp tiền
                             </button>
 
                             <button
-                                className={`pb-2 font-semibold ${tab === "withdraw" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
+                                className={`pb-2 font-semibold text-sm md:text-base ${tab === "withdraw" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500"}`}
                                 onClick={() => setTab("withdraw")}
                             >
                                 Rút tiền
                             </button>
                         </div>
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex-1 flex flex-col">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-5 flex-1 flex flex-col">
 
                             {/* Số dư */}
-                            <p className="text-gray-500 text-sm">Số dư khả dụng</p>
-                            <p className="text-3xl font-bold text-blue-600 mt-1">
+                            <p className="text-gray-500 text-xs md:text-sm">Số dư khả dụng</p>
+                            <p className="text-2xl md:text-3xl font-bold text-blue-600 mt-1">
                                 ₫ {wallet.toLocaleString()}
                             </p>
 
                             {/* Input số tiền */}
-                            <div className="mt-5">
+                            <div className="mt-4 md:mt-5">
                                 <input
                                     type="number"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                     placeholder="Nhập số tiền"
-                                    className="border border-blue-300 rounded-lg px-3 py-2 w-full"
+                                    className="border border-blue-300 rounded-lg px-3 py-2 w-full text-sm md:text-base"
                                     autoComplete="off"
                                 />
                             </div>
 
                             {/* Nếu đang ở tab nạp thì show phương thức */}
                             {tab === "deposit" && (
-                                <div className="mt-6">
-                                    <p className="font-medium mb-2">Chọn phương thức thanh toán:</p>
+                                <div className="mt-4 md:mt-6">
+                                    <p className="font-medium mb-2 text-sm md:text-base">Chọn phương thức thanh toán:</p>
 
                                     <label className="flex items-center gap-3 mb-3 cursor-pointer">
                                         <input
@@ -212,7 +212,7 @@ export default function Wallet() {
                                             onChange={() => setMethod("stripe")}
                                             className="w-4 h-4"
                                         />
-                                        <span className="font-medium">Nạp qua Stripe</span>
+                                        <span className="font-medium text-sm md:text-base">Nạp qua Stripe</span>
                                     </label>
 
                                     <label className="flex items-center gap-3 cursor-pointer">
@@ -224,22 +224,22 @@ export default function Wallet() {
                                             onChange={() => setMethod("momo")}
                                             className="w-4 h-4"
                                         />
-                                        <span className="font-medium">Nạp qua MoMo</span>
+                                        <span className="font-medium text-sm md:text-base">Nạp qua MoMo</span>
                                     </label>
                                 </div>
                             )}
                             {tab === "withdraw" && (
-                                <div className="mt-6">
+                                <div className="mt-4 md:mt-6">
                                     {!hasBankInfo ? (
                                         // Chưa có thông tin ngân hàng
-                                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                            <p className="font-medium text-yellow-800 mb-2">⚠️ Chưa có thông tin ngân hàng</p>
-                                            <p className="text-sm text-yellow-700 mb-3">
+                                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4">
+                                            <p className="font-medium text-yellow-800 mb-2 text-sm md:text-base">⚠️ Chưa có thông tin ngân hàng</p>
+                                            <p className="text-xs md:text-sm text-yellow-700 mb-3">
                                                 Vui lòng cập nhật thông tin ngân hàng trước khi rút tiền.
                                             </p>
                                             <Link
                                                 to="/update-profile"
-                                                className="inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm font-medium"
+                                                className="inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-xs md:text-sm font-medium"
                                             >
                                                 Cập nhật ngay
                                             </Link>
@@ -249,20 +249,20 @@ export default function Wallet() {
                                         <>
                                             {/* Hiển thị thông tin ngân hàng */}
                                             <div className="bg-gray-50 border rounded-lg p-3 mb-4">
-                                                <p className="text-sm text-gray-500 mb-1">Tài khoản nhận tiền</p>
-                                                <p className="font-medium">{clientUser.bank_name}</p>
-                                                <p className="text-sm">{clientUser.bank_account_number}</p>
-                                                <p className="text-sm text-gray-600">{clientUser.bank_account_holder_name}</p>
+                                                <p className="text-xs md:text-sm text-gray-500 mb-1">Tài khoản nhận tiền</p>
+                                                <p className="font-medium text-sm md:text-base">{clientUser.bank_name}</p>
+                                                <p className="text-xs md:text-sm">{clientUser.bank_account_number}</p>
+                                                <p className="text-xs md:text-sm text-gray-600">{clientUser.bank_account_holder_name}</p>
                                             </div>
 
-                                            <p className="font-medium mb-2">Xác nhận rút tiền</p>
+                                            <p className="font-medium mb-2 text-sm md:text-base">Xác nhận rút tiền</p>
                                             <div className="relative">
                                                 <input
                                                     type="text"
                                                     value={password}
                                                     onChange={(e) => setPassword(e.target.value)}
                                                     placeholder="Nhập mật khẩu tài khoản"
-                                                    className="border border-blue-300 rounded-lg px-3 py-2 w-full pr-10"
+                                                    className="border border-blue-300 rounded-lg px-3 py-2 w-full pr-10 text-sm md:text-base"
                                                     autoComplete="off"
                                                     style={{
                                                         WebkitTextSecurity: showPassword ? 'none' : 'disc',
@@ -289,7 +289,7 @@ export default function Wallet() {
                             <button
                                 onClick={tab === "deposit" ? handleTopUp : handleWithdraw}
                                 disabled={tab === "withdraw" && !hasBankInfo}
-                                className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow disabled:bg-gray-400 disabled:cursor-not-allowed text-sm md:text-base"
                             >
                                 {tab === "deposit" ? "Nạp tiền" : "Rút tiền"}
                             </button>
@@ -298,9 +298,9 @@ export default function Wallet() {
 
                     {/* ===== CỘT LỊCH SỬ ===== */}
                     <section className="bg-white p-4 rounded-xl shadow flex flex-col overflow-hidden">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="font-semibold text-lg">Lịch sử giao dịch</div>
-                            <div className="flex items-center gap-2 bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-200">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+                            <div className="font-semibold text-base md:text-lg">Lịch sử giao dịch</div>
+                            <div className="flex items-center gap-2 bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-200 flex-wrap">
                                 <span className="text-gray-500 text-xs">Từ</span>
                                 <input
                                     type="date"
@@ -320,22 +320,22 @@ export default function Wallet() {
                         </div>
 
                         {/* danh sách */}
-                        <div className="space-y-3 overflow-y-auto flex-1 pr-1">
+                        <div className="space-y-3 overflow-y-auto flex-1 pr-1 max-h-[400px] lg:max-h-none">
                             {history.map((item, i) => {
                                 const isDebit = item.type === "WITHDRAW" || item.type === "PAY_ORDER";
                                 return (
                                     <div key={i} className="p-3 border rounded-lg flex justify-between">
                                         <div>
-                                            <div className="font-medium">{item.description}</div>
+                                            <div className="font-medium text-sm md:text-base">{item.description}</div>
                                             <div className="text-gray-500 text-xs">{formatDateTime(item.updatedAt)}</div>
                                         </div>
 
                                         <div
-                                            className={
+                                            className={`text-sm md:text-base ${
                                                 isDebit
                                                     ? "text-red-600 font-semibold"
                                                     : "text-green-600 font-semibold"
-                                            }
+                                            }`}
                                         >
                                             {isDebit ? "- " : "+ "}
                                             ₫{Math.abs(item.amount).toLocaleString()}

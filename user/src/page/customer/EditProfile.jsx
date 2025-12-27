@@ -223,22 +223,22 @@ const EditProfile = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="pt-32 px-5 flex-1 pb-10">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg p-6 shadow">
-          <div className="font-semibold text-xl mb-6">Chỉnh sửa hồ sơ</div>
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1 pb-10">
+        <div className="max-w-4xl mx-auto bg-white rounded-lg p-4 md:p-6 shadow">
+          <div className="font-semibold text-lg md:text-xl mb-4 md:mb-6">Chỉnh sửa hồ sơ</div>
           
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* Avatar Section */}
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img 
                     src={imagePreview || "https://i.pravatar.cc/160"} 
                     alt="Avatar" 
-                    className="w-32 h-32 rounded-full object-cover border-2 border-gray-300"
+                    className="w-24 md:w-32 h-24 md:h-32 rounded-full object-cover border-2 border-gray-300"
                   />
                 </div>
-                <label className="mt-3 px-4 py-2 border rounded text-sm text-[#116AD1] border-[#116AD1] cursor-pointer hover:bg-[#116AD1] hover:text-white transition">
+                <label className="mt-3 px-3 md:px-4 py-2 border rounded text-xs md:text-sm text-[#116AD1] border-[#116AD1] cursor-pointer hover:bg-[#116AD1] hover:text-white transition">
                   Đổi ảnh
                   <input
                     type="file"
@@ -253,9 +253,9 @@ const EditProfile = () => {
               </div>
 
               {/* Form Fields */}
-              <div className="md:col-span-2 grid grid-cols-1 gap-4">
+              <div className="md:col-span-2 grid grid-cols-1 gap-3 md:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Tên người dùng *
                   </label>
                   <input
@@ -263,13 +263,13 @@ const EditProfile = () => {
                     name="username"
                     value={formData.username}
                     onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                    className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Email *
                   </label>
                   <input
@@ -277,13 +277,13 @@ const EditProfile = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                    className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Số điện thoại *
                   </label>
                   <input
@@ -291,43 +291,45 @@ const EditProfile = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                    className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ngày sinh
-                  </label>
-                  <input
-                    type="date"
-                    name="date_of_birth"
-                    value={formData.date_of_birth}
-                    onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      Ngày sinh
+                    </label>
+                    <input
+                      type="date"
+                      name="date_of_birth"
+                      value={formData.date_of_birth}
+                      onChange={handleInputChange}
+                      className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      Giới tính
+                    </label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                    >
+                      <option value="">Chọn giới tính</option>
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                      <option value="OTHER">Khác</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Giới tính
-                  </label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
-                  >
-                    <option value="">Chọn giới tính</option>
-                    <option value="MALE">Nam</option>
-                    <option value="FEMALE">Nữ</option>
-                    <option value="OTHER">Khác</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     Địa chỉ
                   </label>
                   <input
@@ -336,18 +338,18 @@ const EditProfile = () => {
                     value={formData.main_address}
                     onChange={handleInputChange}
                     placeholder="Nhập địa chỉ của bạn"
-                    className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                    className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                   />
                 </div>
 
                 {/* Password Change Section */}
-                <div className="border-t pt-4 mt-2">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                <div className="border-t pt-3 md:pt-4 mt-2">
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-3">
                     Đổi mật khẩu (để trống nếu không muốn đổi)
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                         Mật khẩu mới
                       </label>
                       <input
@@ -356,11 +358,11 @@ const EditProfile = () => {
                         value={passwordData.password}
                         onChange={handlePasswordChange}
                         placeholder="Nhập mật khẩu mới"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                        className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                         Xác nhận mật khẩu
                       </label>
                       <input
@@ -369,20 +371,20 @@ const EditProfile = () => {
                         value={passwordData.confirmPassword}
                         onChange={handlePasswordChange}
                         placeholder="Nhập lại mật khẩu mới"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                        className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Bank Information Section */}
-                <div className="border-t pt-4 mt-2">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                <div className="border-t pt-3 md:pt-4 mt-2">
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-3">
                     Thông tin ngân hàng
                   </h3>
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-3 md:gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                         Tên ngân hàng
                       </label>
                       <input
@@ -391,11 +393,11 @@ const EditProfile = () => {
                         value={formData.bank_name}
                         onChange={handleInputChange}
                         placeholder="VD: Vietcombank"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                        className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                         Số tài khoản
                       </label>
                       <input
@@ -404,11 +406,11 @@ const EditProfile = () => {
                         value={formData.bank_account_number}
                         onChange={handleInputChange}
                         placeholder="Nhập số tài khoản"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                        className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                         Tên chủ tài khoản
                       </label>
                       <input
@@ -417,24 +419,24 @@ const EditProfile = () => {
                         value={formData.bank_account_holder_name}
                         onChange={handleInputChange}
                         placeholder="Nhập tên chủ tài khoản"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                        className="w-full border rounded px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 pt-4 border-t">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0d5bb8] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0d5bb8] disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                   >
                     {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
                   </button>
                   <Link
                     to="/profile"
-                    className="px-6 py-2 border rounded hover:bg-gray-50"
+                    className="px-6 py-2 border rounded hover:bg-gray-50 text-center text-sm md:text-base"
                   >
                     Hủy
                   </Link>

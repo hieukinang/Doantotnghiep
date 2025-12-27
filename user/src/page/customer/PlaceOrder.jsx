@@ -734,21 +734,21 @@ const PlaceOrder = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="pt-32 px-5 flex-1">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* ===================== ĐỊA CHỈ NHẬN HÀNG ===================== */}
-            <div className="bg-white rounded-lg p-5 shadow">
-              <div className="font-semibold text-lg text-[#116AD1] border-b pb-2">
+            <div className="bg-white rounded-lg p-4 md:p-5 shadow">
+              <div className="font-semibold text-base md:text-lg text-[#116AD1] border-b pb-2">
                 🏠 Địa chỉ nhận hàng
               </div>
 
               {/* Hiển thị địa chỉ chính */}
               {mainAddress && !showAddressForm && !showAddressList ? (
-                <div className="mt-3 text-sm">
+                <div className="mt-3 text-xs md:text-sm">
                   <div className="font-medium">
                     {clientUser.username || "Người nhận"} • {clientUser.phone || "Số điện thoại"}{" "}
-                    <span className="text-xs text-green-600 border border-green-600 px-1 rounded ml-1">
+                    <span className="text-[10px] md:text-xs text-green-600 border border-green-600 px-1 rounded ml-1">
                       Mặc định
                     </span>
                   </div>
@@ -758,7 +758,7 @@ const PlaceOrder = () => {
                     {mainAddress.city && `, ${mainAddress.city}`}
                   </div>
                   <button
-                    className="mt-3 px-3 py-1 border rounded text-sm text-[#116AD1] border-[#116AD1] hover:bg-[#116AD1] hover:text-white transition-colors"
+                    className="mt-3 px-3 py-1 border rounded text-xs md:text-sm text-[#116AD1] border-[#116AD1] hover:bg-[#116AD1] hover:text-white transition-colors"
                     onClick={handleShowAddressList}
                   >
                     Đổi địa chỉ
@@ -768,10 +768,10 @@ const PlaceOrder = () => {
 
               {/* Hiển thị form thêm/sửa địa chỉ */}
               {showAddressForm && (
-                <div className="mt-3 space-y-3 text-sm">
+                <div className="mt-3 space-y-3 text-xs md:text-sm">
                   {mainAddress && (
                     <button
-                      className="text-sm text-red-500 underline mb-2"
+                      className="text-xs md:text-sm text-red-500 underline mb-2"
                       onClick={() => {
                         setShowAddressForm(false);
                         setEditingAddressId(null);
@@ -782,7 +782,7 @@ const PlaceOrder = () => {
                     </button>
                   )}
                   
-                  <div className="text-xs text-gray-500 mb-2">
+                  <div className="text-[10px] md:text-xs text-gray-500 mb-2">
                     Người nhận: <span className="font-medium">{clientUser.username || "Chưa có tên"}</span> • {clientUser.phone || "Chưa có SĐT"}
                   </div>
 
@@ -791,25 +791,25 @@ const PlaceOrder = () => {
                     placeholder="Tỉnh/Thành phố *"
                     value={formData.city}
                     onChange={handleAddressChange}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 text-sm"
                   />
                   <input
                     name="village"
                     placeholder="Quận/Huyện/Xã"
                     value={formData.village}
                     onChange={handleAddressChange}
-                    className="w-full border rounded px-3 py-2"
+                    className="w-full border rounded px-3 py-2 text-sm"
                   />
                   <textarea
                     name="detail_address"
                     placeholder="Địa chỉ chi tiết (Số nhà, tên đường) *"
                     value={formData.detail_address}
                     onChange={handleAddressChange}
-                    className="w-full border rounded px-3 py-2 min-h-[80px]"
+                    className="w-full border rounded px-3 py-2 min-h-[70px] md:min-h-[80px] text-sm"
                   />
                   <button
                     onClick={handleSaveAddress}
-                    className="mt-2 px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa] disabled:bg-gray-400"
+                    className="mt-2 px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa] disabled:bg-gray-400 text-sm"
                     disabled={!formData.city || !formData.detail_address}
                   >
                     {editingAddressId ? "Cập nhật địa chỉ" : "Lưu địa chỉ"}
@@ -820,12 +820,12 @@ const PlaceOrder = () => {
               {/* Hiển thị danh sách địa chỉ */}
               {showAddressList && (
                 <div className="mt-3 space-y-3">
-                  <div className="text-sm font-medium mb-2">Chọn địa chỉ giao hàng:</div>
-                  <div className="max-h-[300px] overflow-y-auto space-y-2">
+                  <div className="text-xs md:text-sm font-medium mb-2">Chọn địa chỉ giao hàng:</div>
+                  <div className="max-h-[250px] md:max-h-[300px] overflow-y-auto space-y-2">
                     {allAddresses.map((addr) => (
                       <div
                         key={addr.id}
-                        className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                        className={`border rounded-lg p-2 md:p-3 cursor-pointer transition-all ${
                           addr.id === mainAddress?.id
                             ? "border-green-500 bg-green-50"
                             : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
@@ -838,15 +838,15 @@ const PlaceOrder = () => {
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <div className="text-sm font-medium">
+                            <div className="text-xs md:text-sm font-medium">
                               {clientUser.full_name || "Người nhận"} • {clientUser.phone || "SĐT"}
                               {addr.id === mainAddress?.id && (
-                                <span className="ml-2 text-xs text-green-600 border border-green-600 px-1 rounded">
+                                <span className="ml-2 text-[10px] md:text-xs text-green-600 border border-green-600 px-1 rounded">
                                   Đang sử dụng
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-gray-600 mt-1">
+                            <div className="text-[10px] md:text-xs text-gray-600 mt-1">
                               {addr.detail_address}
                               {addr.village && `, ${addr.village}`}
                               {addr.city && `, ${addr.city}`}
@@ -860,7 +860,7 @@ const PlaceOrder = () => {
                               e.stopPropagation();
                               handleEditAddress(addr);
                             }}
-                            className="px-2 py-1 text-xs border border-blue-600 text-blue-600 rounded hover:bg-blue-600 hover:text-white transition-colors"
+                            className="px-2 py-1 text-[10px] md:text-xs border border-blue-600 text-blue-600 rounded hover:bg-blue-600 hover:text-white transition-colors"
                           >
                             Sửa
                           </button>
@@ -870,7 +870,7 @@ const PlaceOrder = () => {
                                 e.stopPropagation();
                                 handleDeleteAddress(addr.id);
                               }}
-                              className="px-2 py-1 text-xs border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition-colors"
+                              className="px-2 py-1 text-[10px] md:text-xs border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition-colors"
                             >
                               Xóa
                             </button>
@@ -880,7 +880,7 @@ const PlaceOrder = () => {
                     ))}
 
                     {allAddresses.length === 0 && (
-                      <p className="text-center text-gray-500 py-4 text-sm">
+                      <p className="text-center text-gray-500 py-4 text-xs md:text-sm">
                         Chưa có địa chỉ nào. Vui lòng thêm địa chỉ mới.
                       </p>
                     )}
@@ -888,7 +888,7 @@ const PlaceOrder = () => {
 
                   <button
                     onClick={handleShowAddressForm}
-                    className="w-full py-2 border-2 border-dashed border-[#116AD1] text-[#116AD1] rounded hover:bg-blue-50 transition-colors text-sm font-medium"
+                    className="w-full py-2 border-2 border-dashed border-[#116AD1] text-[#116AD1] rounded hover:bg-blue-50 transition-colors text-xs md:text-sm font-medium"
                   >
                     + Thêm địa chỉ mới
                   </button>
@@ -897,8 +897,8 @@ const PlaceOrder = () => {
             </div>
 
             {/* ===================== SẢN PHẨM ĐÃ CHỌN ===================== */}
-            <div className="bg-white rounded-lg p-5 shadow">
-              <div className="font-semibold text-lg border-b pb-2 mb-4">
+            <div className="bg-white rounded-lg p-4 md:p-5 shadow">
+              <div className="font-semibold text-base md:text-lg border-b pb-2 mb-4">
                 🛍️ Sản phẩm đã chọn
               </div>
               <div className="divide-y divide-gray-200">

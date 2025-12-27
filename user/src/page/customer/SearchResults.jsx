@@ -48,18 +48,18 @@ const SearchResults = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <main className="mx-[100px] pt-32 px-5 flex-1">
+      <main className="mx-4 lg:mx-[100px] pt-28 md:pt-32 px-3 md:px-5 flex-1">
         <div className="mx-auto">
           {/* Tiêu đề */}
-          <h1 className="text-2xl font-bold mb-6">
+          <h1 className="text-lg md:text-2xl font-bold mb-4 md:mb-6">
             Kết quả tìm kiếm cho: <span className="text-[#116AD1]">"{query}"</span>
           </h1>
 
           {/* Tabs */}
-          <div className="flex gap-4 mb-6 border-b">
+          <div className="flex gap-2 md:gap-4 mb-4 md:mb-6 border-b overflow-x-auto">
             <button
               onClick={() => setActiveTab("products")}
-              className={`pb-2 px-4 font-medium transition-colors ${
+              className={`pb-2 px-3 md:px-4 font-medium transition-colors text-sm md:text-base whitespace-nowrap ${
                 activeTab === "products"
                   ? "text-[#116AD1] border-b-2 border-[#116AD1]"
                   : "text-gray-500 hover:text-gray-700"
@@ -69,7 +69,7 @@ const SearchResults = () => {
             </button>
             <button
               onClick={() => setActiveTab("stores")}
-              className={`pb-2 px-4 font-medium transition-colors ${
+              className={`pb-2 px-3 md:px-4 font-medium transition-colors text-sm md:text-base whitespace-nowrap ${
                 activeTab === "stores"
                   ? "text-[#116AD1] border-b-2 border-[#116AD1]"
                   : "text-gray-500 hover:text-gray-700"
@@ -82,7 +82,7 @@ const SearchResults = () => {
           {/* Nội dung */}
           {loading ? (
             <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#116AD1]"></div>
+              <div className="animate-spin rounded-full h-10 md:h-12 w-10 md:w-12 border-b-2 border-[#116AD1]"></div>
             </div>
           ) : (
             <>
@@ -91,10 +91,10 @@ const SearchResults = () => {
                 <div>
                   {products.length === 0 ? (
                     <div className="text-center py-20">
-                      <p className="text-gray-500 text-lg">Không tìm thấy sản phẩm nào</p>
+                      <p className="text-gray-500 text-base md:text-lg">Không tìm thấy sản phẩm nào</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                       {products.map((product) => (
                         <Link
                           key={product.id}
@@ -105,7 +105,7 @@ const SearchResults = () => {
                             <img
                               src={product.main_image}
                               alt={product.name}
-                              className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="w-full h-36 md:h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                             {product.discount > 0 && (
                               <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
@@ -113,25 +113,25 @@ const SearchResults = () => {
                               </span>
                             )}
                           </div>
-                          <div className="p-3">
-                            <h3 className="text-sm font-medium line-clamp-2 h-10 mb-2">
+                          <div className="p-2 md:p-3">
+                            <h3 className="text-xs md:text-sm font-medium line-clamp-2 h-8 md:h-10 mb-2">
                               {product.name}
                             </h3>
                             <div className="flex items-center justify-between">
-                              <p className="text-[#116AD1] font-bold text-base">
+                              <p className="text-[#116AD1] font-bold text-sm md:text-base">
                                 ₫{product.min_price?.toLocaleString()}
                               </p>
                               {product.sold > 0 && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 hidden sm:block">
                                   Đã bán {product.sold}
                                 </p>
                               )}
                             </div>
                             {product.rating_average > 0 && (
                               <div className="flex items-center gap-1 mt-2">
-                                <span className="text-yellow-400">★</span>
+                                <span className="text-yellow-400 text-xs md:text-sm">★</span>
                                 <span className="text-xs text-gray-600">
-                                  {product.rating_average} ({product.review_numbers})
+                                  {product.rating_average}
                                 </span>
                               </div>
                             )}
@@ -148,32 +148,32 @@ const SearchResults = () => {
                 <div>
                   {stores.length === 0 ? (
                     <div className="text-center py-20">
-                      <p className="text-gray-500 text-lg">Không tìm thấy cửa hàng nào</p>
+                      <p className="text-gray-500 text-base md:text-lg">Không tìm thấy cửa hàng nào</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                       {stores.map((item) => {
                         const store = item.store;
                         return (
                           <Link
                             key={store.id}
                             to={`/store/${store.id}`}
-                            className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6"
+                            className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-4 md:p-6"
                           >
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3 md:gap-4">
                               <img
                                 src={store.image || "/default-store.png"}
                                 alt={store.name}
-                                className="w-20 h-20 object-cover rounded-full"
+                                className="w-14 md:w-20 h-14 md:h-20 object-cover rounded-full"
                               />
-                              <div className="flex-1">
-                                <h3 className="font-bold text-lg mb-1">{store.name}</h3>
-                                <p className="text-sm text-gray-500 line-clamp-1">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-base md:text-lg mb-1 truncate">{store.name}</h3>
+                                <p className="text-xs md:text-sm text-gray-500 line-clamp-1">
                                   {store.detail_address}, {store.village}, {store.city}
                                 </p>
                               </div>
                             </div>
-                            <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-2 text-center text-sm">
+                            <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t grid grid-cols-3 gap-2 text-center text-xs md:text-sm">
                               <div>
                                 <p className="text-gray-500">Sản phẩm</p>
                                 <p className="font-semibold">{store.number_of_products}</p>

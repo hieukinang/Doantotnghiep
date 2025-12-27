@@ -78,17 +78,17 @@ const CategoryPage = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <main className="pt-32 px-5 flex-1">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="grid grid-cols-12 gap-6">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
+        <div className="max-w-6xl mx-auto px-2 md:px-6 py-4 md:py-8">
+          <div className="grid grid-cols-12 gap-4 md:gap-6">
         {/* SIDEBAR */}
-            <div className="col-span-12 md:col-span-3 bg-white rounded-xl border p-4 h-fit">
-              <h2 className="text-lg font-semibold text-gray-800">
+            <div className="col-span-12 md:col-span-3 bg-white rounded-xl border p-3 md:p-4 h-fit">
+              <h2 className="text-base md:text-lg font-semibold text-gray-800">
                 {category?.name}
               </h2>
 
-              <div className="mt-6">
-                <div className="text-sm font-medium text-gray-700 mb-2">
+              <div className="mt-4 md:mt-6">
+                <div className="text-xs md:text-sm font-medium text-gray-700 mb-2">
                   Sắp xếp theo giá
                 </div>
 
@@ -99,7 +99,7 @@ const CategoryPage = () => {
                 ].map((opt) => (
                   <label
                     key={opt.value}
-                    className="flex items-center gap-2 text-sm text-gray-600 mb-2 cursor-pointer"
+                    className="flex items-center gap-2 text-xs md:text-sm text-gray-600 mb-2 cursor-pointer"
                   >
                     <input
                       type="checkbox"
@@ -115,8 +115,8 @@ const CategoryPage = () => {
                 ))}
               </div>
 
-              <div className="mt-6">
-                <div className="text-sm font-medium text-gray-700 mb-2">
+              <div className="mt-4 md:mt-6">
+                <div className="text-xs md:text-sm font-medium text-gray-700 mb-2">
                   Giảm giá
                 </div>
 
@@ -126,7 +126,7 @@ const CategoryPage = () => {
                 ].map((opt) => (
                   <label
                     key={opt.value}
-                    className="flex items-center gap-2 text-sm text-gray-600 mb-2 cursor-pointer"
+                    className="flex items-center gap-2 text-xs md:text-sm text-gray-600 mb-2 cursor-pointer"
                   >
                     <input
                       type="checkbox"
@@ -145,7 +145,7 @@ const CategoryPage = () => {
 
         {/* PRODUCTS */}
             <div className="col-span-12 md:col-span-9">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 {displayProducts.map((p) => (
                   <Link
                     key={p.id}
@@ -161,11 +161,11 @@ const CategoryPage = () => {
                     </div>
 
                     <div className="p-2">
-                      <div className="text-sm font-medium line-clamp-2 text-gray-800">
+                      <div className="text-xs md:text-sm font-medium line-clamp-2 text-gray-800">
                         {p.name}
                       </div>
 
-                      <div className="mt-1 text-[#116AD1] font-semibold">
+                      <div className="mt-1 text-[#116AD1] font-semibold text-sm md:text-base">
                         {formatPrice(p.min_price)}₫
                       </div>
 

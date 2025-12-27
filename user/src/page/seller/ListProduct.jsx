@@ -256,7 +256,7 @@ const ListProduct = () => {
                       {/* Xem chi tiết */}
                       <div className="relative group">
                         <button
-                          onClick={() => handleDetail(product)}
+                          onClick={() => navigate(`/seller/product/${product.id}`)}
                           className="p-2 rounded-full hover:bg-gray-200"
                         >
                           <img src={IconView} alt="Xem chi tiết" className="w-5 h-5" />

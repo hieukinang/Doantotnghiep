@@ -9,18 +9,18 @@ import appStore from '../assets/home/AppStore.svg';
 import qrcode from '../assets/home/QRCode.svg';
 const Footer = () => {
   return (
-    <footer className="bg-[#116AD1] text-white mt-20">
-      <div className="max-w-6xl mx-auto px-5 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+    <footer className="bg-[#116AD1] text-white mt-10 md:mt-20">
+      <div className="max-w-6xl mx-auto px-4 md:px-5 py-8 md:py-10 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8">
         {/* Exclusive */}
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Kohi Mall</h3>
-          <p className="mb-2">Theo dõi</p>
-          <p className="text-white/80 mb-4">Nhận 10% giảm giá cho đơn hàng đầu tiên của bạn</p>
+        <div className="col-span-2 sm:col-span-1">
+          <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Kohi Mall</h3>
+          <p className="mb-2 text-sm md:text-base">Theo dõi</p>
+          <p className="text-white/80 mb-3 md:mb-4 text-sm">Nhận 10% giảm giá cho đơn hàng đầu tiên của bạn</p>
           <div className="flex items-center bg-white rounded-md overflow-hidden w-full max-w-xs">
             <input
               type="email"
               placeholder="Enter your email"
-              className="px-3 py-2 flex-1 text-sm text-gray-800 outline-none"
+              className="px-3 py-2 flex-1 text-sm text-gray-800 outline-none min-w-0"
             />
             <button className="px-3 py-2 text-[#116AD1] font-semibold">→</button>
           </div>
@@ -28,16 +28,16 @@ const Footer = () => {
 
         {/* Support */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Hỗ trợ</h3>
-          <p className="text-white/80">km10 Nguyễn Trãi, Hà Đông, Hà Nội</p>
-          <p className="mb-2">kohimall@gmail.com</p>
-          <p>0123456789</p>
+          <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Hỗ trợ</h3>
+          <p className="text-white/80 text-sm">km10 Nguyễn Trãi, Hà Đông, Hà Nội</p>
+          <p className="mb-2 text-sm">kohimall@gmail.com</p>
+          <p className="text-sm">0123456789</p>
         </div>
 
         {/* Account */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Tài khoản</h3>
-          <ul className="space-y-2 text-white/90">
+          <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Tài khoản</h3>
+          <ul className="space-y-2 text-white/90 text-sm">
             <li><Link to="/profile" className="hover:underline">Tài khoản của tôi</Link></li>
             <li><Link to="/login" className="hover:underline">Đăng nhập / Đăng ký</Link></li>
             <li><Link to="/cart" className="hover:underline">Giỏ hàng</Link></li>
@@ -47,8 +47,8 @@ const Footer = () => {
 
         {/* Quick Link */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Liên kết nhanh</h3>
-          <ul className="space-y-2 text-white/90">
+          <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Liên kết nhanh</h3>
+          <ul className="space-y-2 text-white/90 text-sm">
             <li><Link to="/privacy-policy" className="hover:underline">Chính sách bảo mật</Link></li>
             <li><Link to="/terms-of-use" className="hover:underline">Điều khoản sử dụng</Link></li>
             <li><Link to="/faq" className="hover:underline">FAQ</Link></li>
@@ -57,14 +57,14 @@ const Footer = () => {
         </div>
 
         {/* Download App */}
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Tải App</h3>
+        <div className="col-span-2 sm:col-span-1">
+          <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Tải App</h3>
           <p className="text-xs text-white/80 mb-3">Nhận 10% giảm giá cho đơn hàng đầu tiên của bạn</p>
           <div className="flex items-center gap-3">
-            <img src={qrcode} className="w-20 h-20 bg-white rounded" />
+            <img src={qrcode} className="w-16 md:w-20 h-16 md:h-20 bg-white rounded" />
             <div className="flex flex-col gap-2">
-              <img src={googlePlay} className="w-30 h-10 bg-white rounded" />
-              <img src={appStore} className="w-30 h-10 bg-white rounded" />
+              <img src={googlePlay} className="w-24 md:w-30 h-8 md:h-10 bg-white rounded" />
+              <img src={appStore} className="w-24 md:w-30 h-8 md:h-10 bg-white rounded" />
             </div>
           </div>
           <div className="flex gap-4 mt-4 text-lg">
@@ -79,7 +79,7 @@ const Footer = () => {
       </div>
 
       <div className="border-t border-white/20">
-        <div className="max-w-6xl mx-auto px-5 py-4 text-center text-white/80 text-sm">
+        <div className="max-w-6xl mx-auto px-4 md:px-5 py-4 text-center text-white/80 text-xs md:text-sm">
           © Copyright Kohi Mall 2025. All right reserved
         </div>
       </div>

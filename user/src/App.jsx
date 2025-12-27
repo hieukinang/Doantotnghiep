@@ -45,6 +45,7 @@ import SellerHeader from "./component-seller-page/SellerHeader";
 import SellerSidebar from "./component-seller-page/SellerSidebar";
 import WalletSeller from "./page/seller/Wallet"
 import Chat from "./page/seller/Chat";
+import ProductDetailSeller from "./page/seller/ProductDetailSeller";
 
 import { ToastContainer } from "react-toastify";
 import ShopContextProvider from "./context/ShopContext";
@@ -140,6 +141,7 @@ function App() {
         >
           <Route path="/seller/orders" element={<OrdersSeller />} />
           <Route path="/seller/list-product" element={<ListProduct />} />
+          <Route path="/seller/product/:productId" element={<ProductDetailSeller />} />
           <Route path="/seller/add-product" element={<AddProduct />} />
           <Route path="/seller/add-coupon" element={<AddCoupon />} />
           {/* <Route path="/seller/update-product" element={<EditProduct />} /> */}

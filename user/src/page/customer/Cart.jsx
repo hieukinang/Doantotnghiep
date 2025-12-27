@@ -446,11 +446,11 @@ const Cart = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="pt-32 px-5 flex-1">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* ===================== GIỎ HÀNG ===================== */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow">
-            <div className="px-5 py-4 border-b font-semibold text-lg flex items-center gap-3">
+            <div className="px-3 md:px-5 py-3 md:py-4 border-b font-semibold text-base md:text-lg flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               Giỏ hàng của bạn
               {cartItems?.length > 0 && (
                 <label className="text-sm font-normal flex items-center">
@@ -466,7 +466,7 @@ const Cart = () => {
             </div>
 
             {!cartItems || cartItems.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
+              <div className="p-4 md:p-6 text-center text-gray-500 text-sm md:text-base">
                 🛒 Giỏ hàng trống.{" "}
                 <Link to="/" className="text-[#116AD1] underline">
                   Tiếp tục mua sắm
@@ -481,12 +481,12 @@ const Cart = () => {
                       }`}
                   >
                     {/* Header của Store */}
-                    <div className="px-5 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="px-3 md:px-5 py-2 md:py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">🏪</span>
+                          <span className="text-base md:text-lg">🏪</span>
                           <div>
-                            <h3 className="font-semibold text-gray-800 text-base">
+                            <h3 className="font-semibold text-gray-800 text-sm md:text-base">
                               {storeGroup.storeName}
                             </h3>
                             <p className="text-xs text-gray-600">
@@ -494,7 +494,7 @@ const Cart = () => {
                             </p>
                           </div>
                         </div>
-                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-[#116AD1] transition-colors">
+                        <label className="flex items-center gap-2 text-xs md:text-sm text-gray-700 cursor-pointer hover:text-[#116AD1] transition-colors">
                           <input
                             type="checkbox"
                             className="accent-[#116AD1] w-4 h-4"
@@ -506,18 +506,18 @@ const Cart = () => {
                       </div>
 
                       {/* Mã giảm giá của Store */}
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
                         {appliedStoreCoupons[storeGroup.storeId] ? (
-                          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
-                            <span className="text-sm font-semibold text-green-700">
+                          <div className="flex flex-wrap items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-2 md:px-3 py-1 md:py-1.5">
+                            <span className="text-xs md:text-sm font-semibold text-green-700">
                               🎉 {appliedStoreCoupons[storeGroup.storeId].code}
                             </span>
-                            <span className="text-sm text-red-600 font-medium">
+                            <span className="text-xs md:text-sm text-red-600 font-medium">
                               (-{format(appliedStoreCoupons[storeGroup.storeId].discountValue)}₫)
                             </span>
                             <button
                               onClick={() => removeStoreCoupon(storeGroup.storeId)}
-                              className="text-red-500 hover:text-red-700 text-sm font-bold ml-1"
+                              className="text-red-500 hover:text-red-700 text-xs md:text-sm font-bold ml-1"
                               title="Hủy mã"
                             >
                               ✕
@@ -526,9 +526,9 @@ const Cart = () => {
                         ) : (
                           <button
                             onClick={() => handleOpenStoreCouponModal(storeGroup.storeId)}
-                            className="text-blue-600 hover:text-blue-700 underline text-sm font-medium"
+                            className="text-blue-600 hover:text-blue-700 underline text-xs md:text-sm font-medium"
                           >
-                            📋 Chọn mã giảm giá của {storeGroup.storeName}
+                            📋 Chọn mã giảm giá
                           </button>
                         )}
                       </div>
@@ -549,91 +549,95 @@ const Cart = () => {
                         return (
                           <div
                             key={id}
-                            className="flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-start gap-3 md:gap-4 p-3 md:p-4 hover:bg-gray-50 transition-colors"
                           >
-                            <input
-                              type="checkbox"
-                              className="accent-[#116AD1] w-5 h-5 mt-1"
-                              checked={checkedItems.includes(id)}
-                              onChange={(e) => {
-                                if (e.target.checked)
-                                  setCheckedItems((prev) => [...prev, id]);
-                                else
-                                  setCheckedItems((prev) =>
-                                    prev.filter((x) => x !== id)
-                                  );
-                              }}
-                            />
-                            <img
-                              src={img}
-                              alt={name}
-                              className="w-20 h-20 rounded object-cover border"
-                            />
-
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-800">
-                                {name}
-                              </div>
-                              <div className="text-sm text-gray-500 flex flex-wrap gap-x-2">
-                                {variant?.options?.length > 0 ? (
-                                  variant.options
-                                    .filter(
-                                      (opt) =>
-                                        opt.value !== null &&
-                                        opt.value !== "" &&
-                                        opt.value !== undefined
-                                    )
-                                    .map((opt, i, arr) => (
-                                      <span key={i}>
-                                        {opt.name}:{" "}
-                                        <span className="font-medium">
-                                          {opt.value}
-                                        </span>
-                                        {i < arr.length - 1 && " | "}
-                                      </span>
-                                    ))
-                                ) : (
-                                  <span>Không có tùy chọn</span>
-                                )}
-                              </div>
-
-                              <div className="text-[#116AD1] font-semibold mt-1">
-                                {format(price)}₫
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                Phí vận chuyển: {format(shipping)}₫
-                              </div>
-                            </div>
-
-                            {/* Điều chỉnh số lượng */}
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => decrement(id)}
-                                className="w-8 h-8 border rounded hover:bg-gray-100 transition"
-                              >
-                                -
-                              </button>
+                            <div className="flex items-start gap-3 flex-1">
                               <input
-                                type="text"
-                                value={qty}
-                                onChange={(e) => handleQtyChange(id, e.target.value)}
-                                onBlur={(e) => handleQtyBlur(id, e.target.value)}
-                                className="w-12 text-center border rounded h-8"
+                                type="checkbox"
+                                className="accent-[#116AD1] w-4 md:w-5 h-4 md:h-5 mt-1 flex-shrink-0"
+                                checked={checkedItems.includes(id)}
+                                onChange={(e) => {
+                                  if (e.target.checked)
+                                    setCheckedItems((prev) => [...prev, id]);
+                                  else
+                                    setCheckedItems((prev) =>
+                                      prev.filter((x) => x !== id)
+                                    );
+                                }}
                               />
-                              <button
-                                onClick={() => increment(id)}
-                                className="w-8 h-8 border rounded hover:bg-gray-100 transition"
-                              >
-                                +
-                              </button>
+                              <img
+                                src={img}
+                                alt={name}
+                                className="w-16 h-16 md:w-20 md:h-20 rounded object-cover border flex-shrink-0"
+                              />
+
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-gray-800 text-sm md:text-base line-clamp-2">
+                                  {name}
+                                </div>
+                                <div className="text-xs md:text-sm text-gray-500 flex flex-wrap gap-x-2 mt-1">
+                                  {variant?.options?.length > 0 ? (
+                                    variant.options
+                                      .filter(
+                                        (opt) =>
+                                          opt.value !== null &&
+                                          opt.value !== "" &&
+                                          opt.value !== undefined
+                                      )
+                                      .map((opt, i, arr) => (
+                                        <span key={i}>
+                                          {opt.name}:{" "}
+                                          <span className="font-medium">
+                                            {opt.value}
+                                          </span>
+                                          {i < arr.length - 1 && " | "}
+                                        </span>
+                                      ))
+                                  ) : (
+                                    <span>Không có tùy chọn</span>
+                                  )}
+                                </div>
+
+                                <div className="text-[#116AD1] font-semibold mt-1 text-sm md:text-base">
+                                  {format(price)}₫
+                                </div>
+                                <div className="text-xs md:text-sm text-gray-500">
+                                  Phí vận chuyển: {format(shipping)}₫
+                                </div>
+                              </div>
                             </div>
 
-                            <button
-                              onClick={() => handleRemove(it.product_variantId)}
-                              className="px-3 py-2 text-sm rounded text-white bg-red-500 hover:bg-red-600 transition mt-1"
-                            >
-                              Xóa
-                            </button>
+                            {/* Điều chỉnh số lượng và nút xóa */}
+                            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 mt-2 sm:mt-0">
+                              <div className="flex items-center gap-1 md:gap-2">
+                                <button
+                                  onClick={() => decrement(id)}
+                                  className="w-7 h-7 md:w-8 md:h-8 border rounded hover:bg-gray-100 transition text-sm"
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="text"
+                                  value={qty}
+                                  onChange={(e) => handleQtyChange(id, e.target.value)}
+                                  onBlur={(e) => handleQtyBlur(id, e.target.value)}
+                                  className="w-10 md:w-12 text-center border rounded h-7 md:h-8 text-sm"
+                                />
+                                <button
+                                  onClick={() => increment(id)}
+                                  className="w-7 h-7 md:w-8 md:h-8 border rounded hover:bg-gray-100 transition text-sm"
+                                >
+                                  +
+                                </button>
+                              </div>
+
+                              <button
+                                onClick={() => handleRemove(it.product_variantId)}
+                                className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm rounded text-white bg-red-500 hover:bg-red-600 transition"
+                              >
+                                Xóa
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -645,12 +649,12 @@ const Cart = () => {
           </div>
 
           {/* ===================== TỔNG KẾT ===================== */}
-          <div className="bg-white rounded-lg shadow p-5 h-fit sticky top-24">
-            <h3 className="font-semibold text-lg mb-4 text-gray-800">
+          <div className="bg-white rounded-lg shadow p-4 md:p-5 h-fit sticky top-20 md:top-24">
+            <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4 text-gray-800">
               Tổng đơn hàng
             </h3>
 
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3 text-sm md:text-base">
               <div className="flex justify-between text-gray-700">
                 <span>Tạm tính</span>
                 <span className="font-semibold">{format(subtotal)}₫</span>
@@ -674,11 +678,11 @@ const Cart = () => {
                 </div>
               )}
 
-              <div className="h-px bg-gray-200 my-3" />
+              <div className="h-px bg-gray-200 my-2 md:my-3" />
 
-              <div className="flex justify-between text-lg">
+              <div className="flex justify-between text-base md:text-lg">
                 <span className="font-semibold">Tổng cộng</span>
-                <span className="text-[#116AD1] font-bold text-xl">
+                <span className="text-[#116AD1] font-bold text-lg md:text-xl">
                   {format(totalAmount)}₫
                 </span>
               </div>
@@ -686,7 +690,7 @@ const Cart = () => {
 
             <button
               onClick={handleCheckout}
-              className="mt-5 w-full text-center bg-[#116AD1] text-white py-3 rounded-lg hover:bg-[#0e57aa] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition"
+              className="mt-4 md:mt-5 w-full text-center bg-[#116AD1] text-white py-2.5 md:py-3 rounded-lg hover:bg-[#0e57aa] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition text-sm md:text-base"
               disabled={checkedItems.length === 0}
             >
               Đặt hàng ({checkedItems.length})
@@ -694,7 +698,7 @@ const Cart = () => {
 
             <Link
               to="/"
-              className="mt-3 block text-center border border-[#116AD1] text-[#116AD1] py-3 rounded-lg hover:bg-[#116AD1] hover:text-white font-medium transition"
+              className="mt-2 md:mt-3 block text-center border border-[#116AD1] text-[#116AD1] py-2.5 md:py-3 rounded-lg hover:bg-[#116AD1] hover:text-white font-medium transition text-sm md:text-base"
             >
               Tiếp tục mua sắm
             </Link>

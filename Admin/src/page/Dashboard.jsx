@@ -47,6 +47,7 @@ const Dashboard = () => {
   const [userDayEndDate, setUserDayEndDate] = useState(today)
   const [userDayData, setUserDayData] = useState([])
   const [loadingUserDay, setLoadingUserDay] = useState(false)
+  const [userTodayTotal, setUserTodayTotal] = useState(0) // Tổng thành viên mới hôm nay (chỉ ngày hiện tại)
 
   // States cho thống kê thành viên theo năm
   const [userYearType, setUserYearType] = useState('ALL')
@@ -76,30 +77,39 @@ const Dashboard = () => {
     setLoadingUserDay(true)
     try {
       const authHeaders = getAuthHeaders()
+      console.log('📅 Fetching user day with:', { startDate: userDayStartDate, endDate: userDayEndDate })
       if (userDayType === 'ALL') {
         // Gọi API 4 lần với 4 type
         const results = await Promise.all(
           USER_TYPES.map(type =>
             axios.get(`${API_BASE}/statistics/admin/user/day`, {
-              params: { status: 'ACTIVE', type, startDate: userDayStartDate, endDate: userDayEndDate },
+              params: { status: 'ACTIVE', type, startdate: userDayStartDate, enddate: userDayEndDate },
               ...authHeaders
             })
           )
         )
-        const data = USER_TYPES.map((type, index) => ({
-          name: USER_TYPE_LABELS[type],
-          value: results[index].data?.data?.total || 0,
-          type
-        }))
+        const data = USER_TYPES.map((type, index) => {
+          // Tính tổng count từ mảng daily
+          const daily = results[index].data?.data?.daily || []
+          const totalCount = daily.reduce((sum, d) => sum + (d.count || 0), 0)
+          return {
+            name: USER_TYPE_LABELS[type],
+            value: totalCount,
+            type
+          }
+        })
         setUserDayData(data)
       } else {
         const res = await axios.get(`${API_BASE}/statistics/admin/user/day`, {
-          params: { status: 'ACTIVE', type: userDayType, startDate: userDayStartDate, endDate: userDayEndDate },
+          params: { status: 'ACTIVE', type: userDayType, startdate: userDayStartDate, enddate: userDayEndDate },
           ...authHeaders
         })
+        // Tính tổng count từ mảng daily
+        const daily = res.data?.data?.daily || []
+        const totalCount = daily.reduce((sum, d) => sum + (d.count || 0), 0)
         setUserDayData([{
           name: USER_TYPE_LABELS[userDayType],
-          value: res.data?.data?.total || 0,
+          value: totalCount,
           type: userDayType
         }])
       }
@@ -107,6 +117,31 @@ const Dashboard = () => {
       console.error('Error fetching user day stats:', error)
     }
     setLoadingUserDay(false)
+  }
+
+  // Fetch thành viên mới hôm nay (chỉ ngày hiện tại - cho thống kê nhanh)
+  const fetchUserToday = async () => {
+    try {
+      const authHeaders = getAuthHeaders()
+      const results = await Promise.all(
+        USER_TYPES.map(type =>
+          axios.get(`${API_BASE}/statistics/admin/user/day`, {
+            params: { status: 'ACTIVE', type, startdate: today, enddate: today },
+            ...authHeaders
+          })
+        )
+      )
+      // Lấy count của ngày hiện tại từ mảng daily
+      let total = 0
+      results.forEach(res => {
+        const daily = res.data?.data?.daily || []
+        const todayData = daily.find(d => d.date === today)
+        total += todayData?.count || 0
+      })
+      setUserTodayTotal(total)
+    } catch (error) {
+      console.error('Error fetching user today stats:', error)
+    }
   }
 
   // Fetch thành viên theo năm
@@ -251,13 +286,14 @@ const Dashboard = () => {
   }
 
   useEffect(() => { fetchUserDay() }, [userDayType, userDayStartDate, userDayEndDate])
+  useEffect(() => { fetchUserToday() }, []) // Chỉ gọi 1 lần khi mount
   useEffect(() => { fetchUserYear() }, [userYearType, userYear])
   useEffect(() => { fetchOrderDay() }, [orderStartDate, orderEndDate])
   useEffect(() => { fetchRevenueDay() }, [revenueStartDate, revenueEndDate])
   useEffect(() => { fetchRevenueYear() }, [revenueYear])
 
 
-  // Tính tổng thành viên mới trong ngày
+  // Tính tổng thành viên mới trong ngày (theo filter)
   const totalUserDay = userDayData.reduce((sum, item) => sum + (item.value || 0), 0)
 
   return (
@@ -266,7 +302,7 @@ const Dashboard = () => {
 
       {/* Thống kê nhanh */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Stat label="Thành viên mới hôm nay" value={totalUserDay} color="text-blue-600" />
+        <Stat label="Thành viên mới hôm nay" value={userTodayTotal} color="text-blue-600" />
         <Stat label="Đơn hàng hôm nay" value={orderDayData.reduce((sum, item) => sum + (item['Đơn hàng'] || 0), 0)} color="text-green-600" />
         <Stat label="Doanh thu hôm nay" value={`${revenueDayData.reduce((sum, item) => sum + (item['Doanh thu'] || 0), 0).toLocaleString()}đ`} color="text-orange-600" />
         <Stat label="Doanh thu năm" value={`${revenueYearData.reduce((sum, item) => sum + (item['Doanh thu'] || 0), 0).toLocaleString()}đ`} color="text-purple-600" />

@@ -98,10 +98,10 @@ const Favorites = () => {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
-        <main className="pt-32 px-5 flex-1 flex items-center justify-center">
+        <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#116AD1] mx-auto mb-4"></div>
-            <p className="text-gray-500">Đang tải danh sách yêu thích...</p>
+            <div className="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-b-2 border-[#116AD1] mx-auto mb-4"></div>
+            <p className="text-gray-500 text-sm md:text-base">Đang tải danh sách yêu thích...</p>
           </div>
         </main>
         <Footer />
@@ -113,41 +113,41 @@ const Favorites = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <main className="pt-32 px-5 flex-1">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Sản phẩm yêu thích</h1>
-            <p className="text-gray-600 mt-1">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
+        <div className="max-w-6xl mx-auto px-2 md:px-6 py-4 md:py-8">
+          <div className="mb-4 md:mb-6">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Sản phẩm yêu thích</h1>
+            <p className="text-gray-600 mt-1 text-sm md:text-base">
               {favorites.length} sản phẩm trong danh sách yêu thích của bạn
             </p>
           </div>
 
           {favorites.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">💔</div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <div className="text-center py-12 md:py-16">
+              <div className="text-5xl md:text-6xl mb-4">💔</div>
+              <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
                 Chưa có sản phẩm yêu thích
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 text-sm md:text-base">
                 Hãy khám phá và thêm những sản phẩm bạn yêu thích vào danh sách này
               </p>
               <Link
                 to="/"
-                className="inline-block px-6 py-3 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] transition"
+                className="inline-block px-5 md:px-6 py-2.5 md:py-3 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] transition text-sm md:text-base"
               >
                 Khám phá sản phẩm
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-12 gap-6">
-              {/* SIDEBAR */}
-              <div className="col-span-12 md:col-span-3 bg-white rounded-xl border p-4 h-fit">
-                <h2 className="text-lg font-semibold text-gray-800">
+            <div className="grid grid-cols-12 gap-4 md:gap-6">
+              {/* SIDEBAR - Hidden on mobile, shown as dropdown or collapsible */}
+              <div className="col-span-12 md:col-span-3 bg-white rounded-xl border p-3 md:p-4 h-fit">
+                <h2 className="text-base md:text-lg font-semibold text-gray-800">
                   Bộ lọc
                 </h2>
 
-                <div className="mt-6">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
+                <div className="mt-4 md:mt-6">
+                  <div className="text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Sắp xếp theo giá
                   </div>
 
@@ -158,7 +158,7 @@ const Favorites = () => {
                   ].map((opt) => (
                     <label
                       key={opt.value}
-                      className="flex items-center gap-2 text-sm text-gray-600 mb-2 cursor-pointer"
+                      className="flex items-center gap-2 text-xs md:text-sm text-gray-600 mb-2 cursor-pointer"
                     >
                       <input
                         type="checkbox"
@@ -174,8 +174,8 @@ const Favorites = () => {
                   ))}
                 </div>
 
-                <div className="mt-6">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
+                <div className="mt-4 md:mt-6">
+                  <div className="text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Giảm giá
                   </div>
 
@@ -185,7 +185,7 @@ const Favorites = () => {
                   ].map((opt) => (
                     <label
                       key={opt.value}
-                      className="flex items-center gap-2 text-sm text-gray-600 mb-2 cursor-pointer"
+                      className="flex items-center gap-2 text-xs md:text-sm text-gray-600 mb-2 cursor-pointer"
                     >
                       <input
                         type="checkbox"
@@ -204,7 +204,7 @@ const Favorites = () => {
 
               {/* PRODUCTS */}
               <div className="col-span-12 md:col-span-9">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
                   {displayFavorites.map((fav) => {
                     const product = fav.FavoriteProduct;
                     if (!product) return null;
@@ -212,7 +212,7 @@ const Favorites = () => {
                     return (
                       <div
                         key={fav.id}
-                        className="bg-white rounded-xl overflow-hidden border hover:shadow-lg transition relative group"
+                        className="bg-white rounded-lg md:rounded-xl overflow-hidden border hover:shadow-lg transition relative group"
                       >
 
                         <Link to={`/product/${product.id}`}>
@@ -224,37 +224,32 @@ const Favorites = () => {
                             />
                           </div>
 
-                          <div className="p-3">
-                            <div className="text-sm font-medium line-clamp-2 text-gray-800 mb-2">
+                          <div className="p-2 md:p-3">
+                            <div className="text-xs md:text-sm font-medium line-clamp-2 text-gray-800 mb-1 md:mb-2">
                               {product.name}
                             </div>
 
-                            <div className="text-xs text-gray-500 line-clamp-2 mb-2">
+                            <div className="text-[10px] md:text-xs text-gray-500 line-clamp-2 mb-1 md:mb-2 hidden sm:block">
                               {product.description}
                             </div>
 
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="text-[#116AD1] font-semibold">
+                            <div className="flex items-center justify-between mb-1 md:mb-2">
+                              <div className="text-[#116AD1] font-semibold text-xs md:text-sm">
                                 {formatPrice(product.min_price)}₫
                               </div>
                               {product.discount > 0 && (
-                                <div className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">
+                                <div className="bg-red-100 text-red-600 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded">
                                   -{product.discount}%
                                 </div>
                               )}
                             </div>
 
-                            <div className="flex items-center justify-between text-xs text-gray-500">
+                            <div className="flex items-center justify-between text-[10px] md:text-xs text-gray-500">
                               <span>Đã bán {product.sold?.toLocaleString("vi-VN") || 0}</span>
                               <div className="flex items-center gap-1">
                                 <span>⭐</span>
                                 <span>{product.rating_average || 0}</span>
-                                <span>({product.review_numbers || 0})</span>
                               </div>
-                            </div>
-
-                            <div className="text-xs text-gray-500 mt-1">
-                              Xuất xứ: {product.origin}
                             </div>
                           </div>
                         </Link>

@@ -9,5 +9,6 @@ stripe listen --forward-to localhost:5000/api/webhook
 ngrok http 5000
 
 
-nếu ko chạy đc mobile npx expo start --tunnel
+nếu ko chạy đc mobile npx expo start --tunnel  + ngrok http 5000
+
 npx expo start -c

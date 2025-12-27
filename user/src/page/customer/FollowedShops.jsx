@@ -136,48 +136,48 @@ const FollowedShops = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <main className="pt-32 px-5 flex-1">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
         <div className="max-w-6xl mx-auto">
 
-          <h1 className="text-2xl font-bold text-gray-800">Shop đang theo dõi</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">Shop đang theo dõi</h1>
+          <p className="text-gray-500 mt-1 text-sm md:text-base">
             Danh sách các shop bạn đã follow.
           </p>
 
           {/* GRID LIST */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+          <div className="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-7">
             {currentItems.length === 0 && (
-              <div className="text-gray-500">Bạn chưa theo dõi shop nào.</div>
+              <div className="text-gray-500 text-sm md:text-base">Bạn chưa theo dõi shop nào.</div>
             )}
 
             {currentItems.map((store) => (
               <div
                 key={store.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer p-5 border border-gray-100 hover:-translate-y-1"
+                className="bg-white rounded-lg md:rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer p-4 md:p-5 border border-gray-100 hover:-translate-y-1"
               >
                 <div onClick={() => navigate(`/store/${store.id}`)}>
                   {/* ... (Phần hiển thị thông tin shop) ... */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 md:gap-4">
                     <div className="relative">
                       <img
                         src={store.image}
                         alt={store.name}
-                        className="h-16 w-16 rounded-full object-cover border-2 border-white shadow ring-2 ring-blue-100"
+                        className="h-12 w-12 md:h-16 md:w-16 rounded-full object-cover border-2 border-white shadow ring-2 ring-blue-100"
                       />
                     </div>
 
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-800">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base md:text-lg font-semibold text-gray-800 truncate">
                         {store.name}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs md:text-sm text-gray-500">
                         {store.followers} người theo dõi
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between mt-3 md:mt-4 pt-3 border-t border-gray-100">
                   <MessageButton
                     userId={store.id}
                     userType="STORE"
@@ -188,7 +188,7 @@ const FollowedShops = () => {
 
                   <button
                     onClick={() => handleUnfollow(store.id)}
-                    className="px-4 py-1.5 text-sm rounded-lg border border-red-500 text-red-500 hover:bg-red-50 transition"
+                    className="px-3 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-lg border border-red-500 text-red-500 hover:bg-red-50 transition"
                   >
                     Hủy theo dõi
                   </button>
@@ -198,11 +198,11 @@ const FollowedShops = () => {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-10 flex justify-center items-center gap-2">
+            <div className="mt-8 md:mt-10 flex justify-center items-center gap-1 md:gap-2 flex-wrap">
               {/* ... (Các nút phân trang) ... */}
               <button
                 onClick={() => goToPage(currentPage - 1)}
-                className={`px-3 py-1.5 border rounded-lg text-sm ${
+                className={`px-2 md:px-3 py-1 md:py-1.5 border rounded-lg text-xs md:text-sm ${
                   currentPage === 1
                     ? "text-gray-400 border-gray-200 cursor-not-allowed"
                     : "text-gray-700 border-gray-300 hover:bg-gray-100"
@@ -215,7 +215,7 @@ const FollowedShops = () => {
                 <button
                   key={i}
                   onClick={() => goToPage(i + 1)}
-                  className={`px-3 py-1.5 rounded-lg text-sm border ${
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm border ${
                     currentPage === i + 1
                       ? "bg-blue-600 text-white border-blue-600"
                       : "text-gray-700 border-gray-300 hover:bg-gray-100"
@@ -227,7 +227,7 @@ const FollowedShops = () => {
 
               <button
                 onClick={() => goToPage(currentPage + 1)}
-                className={`px-3 py-1.5 border rounded-lg text-sm ${
+                className={`px-2 md:px-3 py-1 md:py-1.5 border rounded-lg text-xs md:text-sm ${
                   currentPage === totalPages
                     ? "text-gray-400 border-gray-200 cursor-not-allowed"
                     : "text-gray-700 border-gray-300 hover:bg-gray-100"

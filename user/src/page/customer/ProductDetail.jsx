@@ -468,8 +468,8 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="pt-32 px-5 flex-1">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
 
           {/* Ảnh sản phẩm */}
           <div>
@@ -483,11 +483,11 @@ const ProductDetail = () => {
                 <>
                   <button
                     onClick={() => setActive(prev => prev === 0 ? gallery.length - 1 : prev - 1)}
-                    className="absolute top-1/2 left-3 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50"
+                    className="absolute top-1/2 left-2 md:left-3 -translate-y-1/2 bg-black/30 text-white p-1.5 md:p-2 rounded-full hover:bg-black/50"
                   >‹</button>
                   <button
                     onClick={() => setActive(prev => (prev + 1) % gallery.length)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50"
+                    className="absolute top-1/2 right-2 md:right-3 -translate-y-1/2 bg-black/30 text-white p-1.5 md:p-2 rounded-full hover:bg-black/50"
                   >›</button>
                 </>
               )}
@@ -499,7 +499,7 @@ const ProductDetail = () => {
                   <button
                     key={i}
                     onClick={() => setActive(i)}
-                    className={`w-3 h-3 rounded-full ${i === active ? "bg-[#116AD1]" : "bg-gray-300"}`}
+                    className={`w-2.5 md:w-3 h-2.5 md:h-3 rounded-full ${i === active ? "bg-[#116AD1]" : "bg-gray-300"}`}
                   />
                 ))}
               </div>
@@ -507,10 +507,10 @@ const ProductDetail = () => {
           </div>
 
           {/* Chi tiết sản phẩm */}
-          <div className="bg-white rounded-lg p-5 shadow">
+          <div className="bg-white rounded-lg p-4 md:p-5 shadow">
             {/* Tiêu đề và icon yêu thích */}
             <div className="flex items-start justify-between gap-3">
-              <h1 className="text-xl font-semibold flex-1">{product.name}</h1>
+              <h1 className="text-lg md:text-xl font-semibold flex-1">{product.name}</h1>
               <button
                 onClick={handleToggleFavorite}
                 disabled={favoriteLoading}
@@ -519,7 +519,7 @@ const ProductDetail = () => {
                 }`}
               >
                 <svg
-                  className={`w-7 h-7 ${
+                  className={`w-6 md:w-7 h-6 md:h-7 ${
                     isFavorite
                       ? "fill-red-500 stroke-red-500"
                       : "fill-none stroke-gray-400 hover:stroke-red-500"
@@ -537,25 +537,25 @@ const ProductDetail = () => {
 
             </div>
 
-            <div className="mt-2 text-sm text-gray-500">
+            <div className="mt-2 text-xs md:text-sm text-gray-500">
               ⭐ {avgRating || "Chưa có"} • {reviews.length} đánh giá • Đã bán {product.sold || 0} • Kho: {selectedVariantStock}
             </div>
             {product.shipping_free && (
-              <div className="mt-3 bg-[#116AD1]/10 text-[#116AD1] inline-block px-3 py-1 rounded">
+              <div className="mt-3 bg-[#116AD1]/10 text-[#116AD1] inline-block px-3 py-1 rounded text-sm">
                 Miễn phí vận chuyển
               </div>
             )}
 
-            <div className="mt-4 text-2xl font-bold text-[#116AD1]">
+            <div className="mt-4 text-xl md:text-2xl font-bold text-[#116AD1]">
               {selectedVariantPrice.toLocaleString()}₫
             </div>
 
             {/* Hiển thị ProductVariants nếu có */}
             {Object.values(variantAttributes).length > 0 && (
-              <div className="mt-6 space-y-4">
+              <div className="mt-4 md:mt-6 space-y-3 md:space-y-4">
                 {Object.values(variantAttributes).map((attr, idx) => (
                   <div key={idx}>
-                    <h3 className="font-medium mb-2">{attr.name}</h3>
+                    <h3 className="font-medium mb-2 text-sm md:text-base">{attr.name}</h3>
                     <div className="flex gap-2 flex-wrap">
                       {attr.options
                         .filter(opt => opt !== null)
@@ -563,7 +563,7 @@ const ProductDetail = () => {
                           <button
                             key={i}
                             onClick={() => handleOptionChange(attr.name, opt)}
-                            className={`px-3 py-1 border rounded ${selectedOptions[attr.name] === opt
+                            className={`px-2 md:px-3 py-1 border rounded text-sm ${selectedOptions[attr.name] === opt
                               ? "bg-[#116AD1] text-white border-[#116AD1]"
                               : "border-gray-300 text-gray-700 hover:bg-gray-100"
                               }`}
@@ -578,53 +578,53 @@ const ProductDetail = () => {
             )}
 
             {/* Thêm giỏ hàng + Mua ngay */}
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-4 md:mt-6 flex flex-wrap items-center gap-2 md:gap-3">
               <input
                 type="number"
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-16 border rounded px-2 py-1"
+                className="w-14 md:w-16 border rounded px-2 py-1 text-sm md:text-base"
               />
               <button
                 onClick={handleAddToCart}
-                className="px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-[#116AD1]/5"
+                className="px-3 md:px-4 py-2 border border-[#116AD1] text-[#116AD1] rounded hover:bg-[#116AD1]/5 text-sm md:text-base"
               >
-                Thêm vào giỏ hàng
+                Thêm vào giỏ
               </button>
               <button
                 onClick={handleBuyNow}
-                className="px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa]"
+                className="px-3 md:px-4 py-2 bg-[#116AD1] text-white rounded hover:bg-[#0e57aa] text-sm md:text-base"
               >
                 Mua ngay
               </button>
             </div>
 
-            <div className="mt-6">
-              <h3 className="font-semibold">Mô tả sản phẩm</h3>
-              <p className="mt-2 text-sm text-gray-700 leading-6 whitespace-pre-line">
+            <div className="mt-4 md:mt-6">
+              <h3 className="font-semibold text-sm md:text-base">Mô tả sản phẩm</h3>
+              <p className="mt-2 text-xs md:text-sm text-gray-700 leading-6 whitespace-pre-line">
                 {product.description || "Chưa có mô tả cho sản phẩm này."}
               </p>
             </div>
 
             <div
               onClick={() => setShowReviews(!showReviews)}
-              className="mt-4 text-[#116AD1] font-medium cursor-pointer hover:underline"
+              className="mt-4 text-[#116AD1] font-medium cursor-pointer hover:underline text-sm md:text-base"
             >
               Đánh giá ({reviews.length})
             </div>
 
             {showReviews && (
-              <div className="mt-6 space-y-6">
+              <div className="mt-4 md:mt-6 space-y-4 md:space-y-6">
                 {reviews.length === 0 && (
-                  <p className="text-gray-500">Chưa có đánh giá nào</p>
+                  <p className="text-gray-500 text-sm">Chưa có đánh giá nào</p>
                 )}
 
                 {/* FILTER RATING */}
                 <div className="flex gap-2 flex-wrap mb-4">
                   <button
                     onClick={handleClearFilter}
-                    className={`px-3 py-1 border rounded text-sm
+                    className={`px-2 md:px-3 py-1 border rounded text-xs md:text-sm
                       ${selectedRating === null
                         ? "bg-[#116AD1] text-white border-[#116AD1]"
                         : "border-gray-300 hover:bg-gray-100"
@@ -637,7 +637,7 @@ const ProductDetail = () => {
                     <button
                       key={star}
                       onClick={() => handleFilterRating(star)}
-                      className={`px-3 py-1 border rounded text-sm
+                      className={`px-2 md:px-3 py-1 border rounded text-xs md:text-sm
                         ${selectedRating === star
                           ? "bg-[#116AD1] text-white border-[#116AD1]"
                           : "border-gray-300 hover:bg-gray-100"
@@ -649,36 +649,36 @@ const ProductDetail = () => {
                 </div>
                 
                 {reviews.map((rv) => (
-                  <div key={rv.id} className="border-b pb-5">
+                  <div key={rv.id} className="border-b pb-4 md:pb-5">
                     {/* User */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                       <img
                         src={rv.ReviewClient?.image}
                         alt={rv.ReviewClient?.username}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-8 md:w-10 h-8 md:h-10 rounded-full object-cover"
                       />
                       <div>
-                        <p className="font-medium text-gray-800">
+                        <p className="font-medium text-gray-800 text-sm md:text-base">
                           {rv.ReviewClient?.username}
                         </p>
-                        <div className="text-[#f59e0b] text-sm">
+                        <div className="text-[#f59e0b] text-xs md:text-sm">
                           {"⭐".repeat(rv.rating)}
                         </div>
                       </div>
                     </div>
 
                     {/* Nội dung */}
-                    <p className="mt-3 text-sm text-gray-700">{rv.text}</p>
+                    <p className="mt-2 md:mt-3 text-xs md:text-sm text-gray-700">{rv.text}</p>
 
                     {/* Ảnh */}
                     {rv.ReviewImages?.length > 0 && (
-                      <div className="mt-3 flex gap-2 flex-wrap">
+                      <div className="mt-2 md:mt-3 flex gap-2 flex-wrap">
                         {rv.ReviewImages.map((img) => (
                           <img
                             key={img.id}
                             src={img.url}
                             alt="review"
-                            className="w-20 h-20 rounded object-cover border"
+                            className="w-16 md:w-20 h-16 md:h-20 rounded object-cover border"
                           />
                         ))}
                       </div>
@@ -696,19 +696,19 @@ const ProductDetail = () => {
 
             {/* Thông tin cửa hàng và nút nhắn tin */}
             {storeInfo && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+              <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-2 md:gap-3">
                     {storeInfo.image && (
                       <img 
                         src={storeInfo.image.startsWith('http') ? storeInfo.image : `${backendURL}/${storeInfo.image}`}
                         alt={storeInfo.name}
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-10 md:w-12 h-10 md:h-12 rounded-full object-cover"
                       />
                     )}
                     <div>
-                      <h4 className="font-semibold text-gray-800">{storeInfo.name}</h4>
-                      <p className="text-sm text-gray-500">Cửa hàng</p>
+                      <h4 className="font-semibold text-gray-800 text-sm md:text-base">{storeInfo.name}</h4>
+                      <p className="text-xs md:text-sm text-gray-500">Cửa hàng</p>
                     </div>
                   </div>
                   <MessageButton

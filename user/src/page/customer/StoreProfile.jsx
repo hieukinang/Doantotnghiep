@@ -136,7 +136,7 @@ const StoreProfile = () => {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
-        <main className="pt-32 px-5 flex-1 flex items-center justify-center">
+        <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1 flex items-center justify-center">
           <div className="text-gray-500">Đang tải thông tin...</div>
         </main>
         <Footer />
@@ -148,7 +148,7 @@ const StoreProfile = () => {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
-        <main className="pt-32 px-5 flex-1 flex items-center justify-center">
+        <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1 flex items-center justify-center">
           <div className="text-red-500">{error || "Không tìm thấy cửa hàng"}</div>
         </main>
         <Footer />
@@ -159,11 +159,11 @@ const StoreProfile = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="pt-32 px-5 flex-1">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-4">
+          <div className="bg-white rounded-lg shadow p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3 md:gap-4">
                 {store.image ? (
                   <img
                     src={
@@ -174,16 +174,16 @@ const StoreProfile = () => {
                         : `${backendURL.replace('/api', '')}/${store.image}`
                     }
                     alt={store.name}
-                    className="w-24 h-24 rounded-full object-cover"
+                    className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-400">
+                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center text-2xl md:text-3xl text-gray-400">
                     {store.name.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800">{store.name}</h1>
-                  <p className="text-gray-500 mt-1">Cửa hàng</p>
+                  <h1 className="text-lg md:text-2xl font-bold text-gray-800">{store.name}</h1>
+                  <p className="text-gray-500 text-sm md:text-base mt-1">Cửa hàng</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ const StoreProfile = () => {
                 <button
                   onClick={handleFollowToggle}
                   disabled={followLoading}
-                  className={`px-4 py-2 rounded ${
+                  className={`px-3 md:px-4 py-2 rounded text-sm md:text-base ${
                     isFollowing ? "bg-red-500 text-white" : "bg-blue-500 text-white"
                   }`}
                 >
@@ -208,7 +208,7 @@ const StoreProfile = () => {
                 </button>
               </div>
             </div>
-            <div className="border-t border-gray-200 pt-6 space-y-4">
+            <div className="border-t border-gray-200 pt-4 md:pt-6 space-y-3 md:space-y-4 text-sm md:text-base">
               {store.description && (
                 <div>
                   <span className="text-sm font-medium text-gray-600">Mô tả:</span>
@@ -216,42 +216,42 @@ const StoreProfile = () => {
                 </div>
               )}
               {store.email && (
-                <div>
+                <div className="flex flex-col sm:flex-row sm:items-center">
                   <span className="text-sm font-medium text-gray-600">Email:</span>
-                  <span className="ml-2 text-gray-800">{store.email}</span>
+                  <span className="sm:ml-2 text-gray-800 break-all">{store.email}</span>
                 </div>
               )}
               {store.phone && (
-                <div>
+                <div className="flex flex-col sm:flex-row sm:items-center">
                   <span className="text-sm font-medium text-gray-600">Số điện thoại:</span>
-                  <span className="ml-2 text-gray-800">{store.phone}</span>
+                  <span className="sm:ml-2 text-gray-800">{store.phone}</span>
                 </div>
               )}
               {store.address && (
-                <div>
+                <div className="flex flex-col sm:flex-row sm:items-start">
                   <span className="text-sm font-medium text-gray-600">Địa chỉ:</span>
-                  <span className="ml-2 text-gray-800">{store.address}</span>
+                  <span className="sm:ml-2 text-gray-800">{store.address}</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Danh sách sản phẩm */}
-          <div className="mt-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
+          <div className="mt-6 md:mt-8">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4">
               Sản phẩm của cửa hàng
             </h2>
             
             {productsLoading ? (
-              <div className="text-center p-8 text-gray-500">
+              <div className="text-center p-6 md:p-8 text-gray-500 text-sm md:text-base">
                 Đang tải sản phẩm...
               </div>
             ) : products.length === 0 ? (
-              <div className="text-center p-8 text-gray-500 bg-white rounded-lg shadow">
+              <div className="text-center p-6 md:p-8 text-gray-500 bg-white rounded-lg shadow text-sm md:text-base">
                 Cửa hàng chưa có sản phẩm nào
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
                 {products.map((product) => {
                   const productImage = product.main_image 
                     ? (product.main_image.startsWith("http") 
@@ -292,43 +292,43 @@ const StoreProfile = () => {
                       </div>
 
                       {/* Thông tin sản phẩm */}
-                      <div className="p-2">
-                        <div className="line-clamp-2 text-sm font-medium text-gray-800 min-h-[2.5rem]">
+                      <div className="p-1.5 md:p-2">
+                        <div className="line-clamp-2 text-xs md:text-sm font-medium text-gray-800 min-h-[2rem] md:min-h-[2.5rem]">
                           {product.name}
                         </div>
 
                         {minPrice > 0 ? (
                           <>
                             {discountPercent > 0 && (
-                              <div className="mt-1 text-xs text-gray-500 line-through">
+                              <div className="mt-1 text-[10px] md:text-xs text-gray-500 line-through">
                                 {formatPrice(originalPrice)}₫
                               </div>
                             )}
-                            <div className="mt-1 text-[#116AD1] font-semibold text-sm">
+                            <div className="mt-1 text-[#116AD1] font-semibold text-xs md:text-sm">
                               {formatPrice(minPrice)}₫
                             </div>
                             {discountPercent > 0 && (
-                              <div className="mt-1 text-xs text-red-500 font-medium">
+                              <div className="mt-1 text-[10px] md:text-xs text-red-500 font-medium">
                                 -{discountPercent}%
                               </div>
                             )}
                           </>
                         ) : (
-                          <div className="mt-1 text-gray-400 text-sm">Liên hệ</div>
+                          <div className="mt-1 text-gray-400 text-xs md:text-sm">Liên hệ</div>
                         )}
 
-                        <div className="mt-1 text-xs text-gray-500">
+                        <div className="mt-1 text-[10px] md:text-xs text-gray-500">
                           Đã bán {product.sold ? formatPrice(product.sold) : "0"}
                         </div>
 
                         {product.rating_average && (
                           <div className="mt-1 flex items-center gap-1">
-                            <span className="text-yellow-400">⭐</span>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-yellow-400 text-xs">⭐</span>
+                            <span className="text-[10px] md:text-xs text-gray-600">
                               {product.rating_average.toFixed(1)}
                             </span>
                             {product.review_numbers && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-[10px] md:text-xs text-gray-500">
                                 ({product.review_numbers})
                               </span>
                             )}

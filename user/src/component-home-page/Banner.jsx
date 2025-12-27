@@ -54,19 +54,19 @@ const Banner = () => {
       : current - 1;
 
   return (
-    <section className="w-full h-[300px] md:h-[350px] lg:h-[400px]">
-      <div className="mx-[100px] h-full">
+    <section className="w-full h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] xl:h-[400px]">
+      <div className="mx-4 lg:mx-[100px] h-full">
         {/* Banner wrapper */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 h-full overflow-hidden">
           {/* Banner trượt bên trái */}
           <div
-            className="relative col-span-2 rounded-lg overflow-hidden bg-gray-200 flex[0.6] h-full"
+            className="relative col-span-1 md:col-span-2 rounded-lg overflow-hidden bg-gray-200 h-full"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
             {/* Track ảnh */}
             <div
-              className={`h-[1] flex ${
+              className={`h-full flex ${
                 allowTransition
                   ? "transition-transform duration-700 ease-in-out"
                   : ""
@@ -89,13 +89,13 @@ const Banner = () => {
               src={left}
               alt="Previous"
               onClick={prev}
-              className="absolute left-3 top-1/3 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow z-10 cursor-pointer"
+              className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center shadow z-10 cursor-pointer"
             />
             <img
               src={right}
               alt="Next"
               onClick={next}
-              className="absolute right-3 top-1/3 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow z-10 cursor-pointer"
+              className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center shadow z-10 cursor-pointer"
             />
 
             {/* Dots */}
@@ -105,10 +105,10 @@ const Banner = () => {
                   key={i}
                   type="button"
                   onClick={() => setCurrent(i + 1)}
-                  className={`h-2 rounded-full transition-all ${
+                  className={`h-1.5 md:h-2 rounded-full transition-all ${
                     i === activeDot
-                      ? "w-5 bg-white"
-                      : "w-2 bg-white/60 hover:bg-white/80"
+                      ? "w-4 md:w-5 bg-white"
+                      : "w-1.5 md:w-2 bg-white/60 hover:bg-white/80"
                   }`}
                   aria-label={`Go to slide ${i + 1}`}
                 />
@@ -116,8 +116,8 @@ const Banner = () => {
             </div>
           </div>
 
-          {/* 2 ảnh nhỏ bên phải */}
-          <div className="flex flex-col h-full gap-2">
+          {/* 2 ảnh nhỏ bên phải - Ẩn trên mobile */}
+          <div className="hidden md:flex flex-col h-full gap-2">
             <div className="flex-[0.6] rounded-xl overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop"

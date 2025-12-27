@@ -18,7 +18,7 @@ const Home = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="pt-32 px-5 flex-1">
+      <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
         <Banner />
 
         {/* Danh mục */}

@@ -231,25 +231,22 @@ const RegisterToSeller = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="w-full bg-[#116AD1] text-white flex items-center justify-between px-10 py-6">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="Logo" className="w-10 h-10" />
-          <span className="font-bold text-2xl">KOHI MALL</span>
+      <header className="w-full bg-[#116AD1] text-white flex flex-col sm:flex-row items-center justify-between px-4 md:px-10 py-4 md:py-6 gap-2 sm:gap-0">
+        <Link to="/" className="flex items-center gap-2 md:gap-3">
+          <img src={logo} alt="Logo" className="w-8 h-8 md:w-10 md:h-10" />
+          <span className="font-bold text-xl md:text-2xl">KOHI MALL</span>
         </Link>
-        <h1 className="text-xl font-semibold">ĐĂNG KÝ LÀ NGƯỜI BÁN</h1>
-        <Link to="/contact" className="cursor-pointer hover:underline text-sm">
+        <h1 className="text-base md:text-xl font-semibold text-center">ĐĂNG KÝ LÀ NGƯỜI BÁN</h1>
+        <Link to="/contact" className="cursor-pointer hover:underline text-xs md:text-sm">
           Hỗ trợ?
         </Link>
       </header>
 
       {/* Form container */}
-      {/* Đã sửa p-10 thành p-6 để giảm padding ngoài */}
-      <div className="flex flex-1 justify-center items-center p-6 bg-gray-100">
-        {/* Đã sửa max-w-4xl thành max-w-5xl để form rộng hơn */}
-        <div className="w-full max-w-5xl bg-white shadow-lg rounded-lg p-8">
+      <div className="flex flex-1 justify-center items-center p-3 md:p-6 bg-gray-100">
+        <div className="w-full max-w-5xl bg-white shadow-lg rounded-lg p-4 md:p-8">
 
-          {/* Đã sửa gap-4 thành gap-3 để giảm khoảng cách giữa các ô nhập */}
-          <form className="grid grid-cols-2 gap-3" onSubmit={handleSubmit}>
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-3" onSubmit={handleSubmit}>
 
             {/* Đã thêm size="small" cho tất cả các TextField để giảm chiều cao */}
             <div>
@@ -472,7 +469,7 @@ const RegisterToSeller = () => {
             />
 
             {/* Button submit spanning 2 columns */}
-            <div className="col-span-2 flex justify-end gap-4 mt-4">
+            <div className="col-span-1 md:col-span-2 flex flex-col sm:flex-row justify-end gap-3 md:gap-4 mt-4">
               <Button
                 component={Link}
                 to="/seller/login"
