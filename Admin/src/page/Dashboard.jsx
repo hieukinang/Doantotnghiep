@@ -311,7 +311,7 @@ const Dashboard = () => {
       {/* Biểu đồ thành viên mới trong ngày */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
-          <h3 className="text-lg font-semibold text-gray-700">Thành viên mới trong ngày</h3>
+          <h3 className="text-lg font-semibold text-gray-700">Thành viên mới</h3>
           <div className="flex items-center gap-2">
             <input
               type="date"
