@@ -60,17 +60,23 @@ const AddCoupon = () => {
 
         try {
             await createCouponStore(formData);
-            toast.success("Tạo mã giảm giá thành công!");
             setFormData({ code: "", description: "", discount: "", quantity: "", expire: null });
             fetchCoupons();
         } catch (error) {
             console.error(error);
-            toast.error("Có lỗi xảy ra!");
+            // Kiểm tra errors array từ response
+            const errors = error.response?.data?.errors || [];
+            const firstError = errors[0]?.msg || error.response?.data?.message || "";
+            
+            if (firstError.includes("Coupon code must be unique") || firstError.includes("unique")) {
+                toast.error("Tên mã giảm giá đã tồn tại!");
+            } else {
+                toast.error(firstError || "Có lỗi xảy ra!");
+            }
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Bạn có chắc muốn xóa mã giảm giá này?")) return;
         try {
             await axios.delete(`${backendURL}/coupons/store/${id}`, {
                 headers: { Authorization: `Bearer ${sellerToken}` },

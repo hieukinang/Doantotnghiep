@@ -17,6 +17,8 @@ const CreateCoupon = () => {
   });
 
   const [typeCode, setTypeCode] = useState("product");
+  const [activeTab, setActiveTab] = useState("product");
+  const [searchTerm, setSearchTerm] = useState("");
   const [coupons, setCoupons] = useState([]);
   const [shippingCodes, setShippingCodes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -80,8 +82,16 @@ const CreateCoupon = () => {
       setFormData({ code: "", description: "", discount: "", quantity: "", expire: null });
       fetchCoupons();
     } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra!");
+      console.log("xxxzzz");
+        const msg = error.response?.data?.errors?.[0]?.msg;
+
+        if (msg ==="Coupon code must be unique") {
+          console.log("xxxzzzvclassda");
+
+          toast.error("Tên mã giảm giá đã tồn tại");
+        } else {
+          toast.error("Có lỗi xảy ra!");
+        }
     }
   };
 
@@ -106,6 +116,15 @@ const CreateCoupon = () => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleString("vi-VN");
   };
+
+  // Filter coupons by search term (chỉ theo tên/code)
+  const filteredCoupons = coupons.filter((item) =>
+    item.code?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredShippingCodes = shippingCodes.filter((item) =>
+    item.code?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-6 mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -198,24 +217,55 @@ const CreateCoupon = () => {
       </div>
 
       {/* Danh sách */}
-      <div className="bg-white shadow rounded-lg p-5">
+      <div className="bg-white shadow rounded-lg p-5 h-[520px] flex flex-col">
         <h2 className="text-lg font-semibold mb-4">Danh sách mã giảm giá</h2>
+
+        {/* Search */}
+        <div className="mb-3">
+          <input
+            type="text"
+            placeholder="Tìm kiếm mã giảm giá..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full border p-2 rounded text-sm"
+          />
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b mb-4">
+          <button
+            onClick={() => setActiveTab("product")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "product"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Mã sản phẩm ({filteredCoupons.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("shipping")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "shipping"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Mã vận chuyển ({filteredShippingCodes.length})
+          </button>
+        </div>
 
         {loading ? (
           <p className="text-gray-500 text-center py-8">Đang tải...</p>
         ) : (
-          <div className="space-y-4 max-h-[550px] overflow-y-auto">
-            {/* Mã giảm giá sản phẩm */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                Mã giảm giá sản phẩm ({coupons.length})
-              </h3>
-              {coupons.length === 0 ? (
-                <p className="text-gray-400 text-sm pl-4">Chưa có mã nào</p>
-              ) : (
-                <div className="space-y-2">
-                  {coupons.map((item) => (
+          <div className="flex-1 overflow-y-auto">
+            {/* Tab Mã giảm giá sản phẩm */}
+            {activeTab === "product" && (
+              <div className="space-y-2">
+                {filteredCoupons.length === 0 ? (
+                  <p className="text-gray-400 text-sm text-center py-4">Không tìm thấy mã nào</p>
+                ) : (
+                  filteredCoupons.map((item) => (
                     <div key={item.id} className="border rounded-lg p-3 hover:bg-gray-50">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -234,22 +284,18 @@ const CreateCoupon = () => {
                         <button onClick={() => handleDelete(item.id, "product")} className="p-1.5 text-red-600 hover:bg-red-50 rounded">🗑️</button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
 
-            {/* Mã giảm giá vận chuyển */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                Mã giảm giá vận chuyển ({shippingCodes.length})
-              </h3>
-              {shippingCodes.length === 0 ? (
-                <p className="text-gray-400 text-sm pl-4">Chưa có mã nào</p>
-              ) : (
-                <div className="space-y-2">
-                  {shippingCodes.map((item) => (
+            {/* Tab Mã giảm giá vận chuyển */}
+            {activeTab === "shipping" && (
+              <div className="space-y-2">
+                {filteredShippingCodes.length === 0 ? (
+                  <p className="text-gray-400 text-sm text-center py-4">Không tìm thấy mã nào</p>
+                ) : (
+                  filteredShippingCodes.map((item) => (
                     <div key={item.id} className="border rounded-lg p-3 hover:bg-gray-50">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -268,10 +314,10 @@ const CreateCoupon = () => {
                         <button onClick={() => handleDelete(item.id, "shipping")} className="p-1.5 text-red-600 hover:bg-red-50 rounded">🗑️</button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

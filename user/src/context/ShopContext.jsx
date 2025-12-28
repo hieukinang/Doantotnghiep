@@ -331,14 +331,16 @@ const ShopContextProvider = ({ children }) => {
       if (res.data.status === "success") {
         toast.success("Thêm mã giảm giá thành công!");
         return res.data;
-      } else {
-        toast.error(res.data.message || "Thêm mã giảm giá thất bại!");
-        return null;
-      }
+      } 
     } catch (error) {
-      console.error("❌ Lỗi khi tạo mã giảm giá:", error);
-      toast.error("Không thể thêm mã giảm giá!");
-      return null;
+      const errors = error.response?.data?.errors || [];
+      const firstError = errors[0]?.msg || error.response?.data?.message || "";
+      
+      if (firstError.includes("Coupon code must be unique") || firstError.includes("unique")) {
+          toast.error("Tên mã giảm giá đã tồn tại!");
+      } else {
+          toast.error(firstError || "Có lỗi xảy ra!");
+      }
     }
   };
 
