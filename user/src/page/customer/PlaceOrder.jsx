@@ -588,8 +588,8 @@ const PlaceOrder = () => {
   const shippingDiscount = appliedShippingCode?.discountValue || 0;
   totalShippingFee = Math.max(0, totalShippingFee - shippingDiscount);
 
-  // 4. Tổng thanh toán cuối cùng
-  const totalPayment = productSubtotal - totalDiscountValue + totalShippingFee;
+  // 4. Tổng thanh toán cuối cùng (không được âm)
+  const totalPayment = Math.max(0, productSubtotal - totalDiscountValue + totalShippingFee);
 
   // ==================== NHÓM SẢN PHẨM THEO STORE ====================
   const groupItemsByStore = () => {

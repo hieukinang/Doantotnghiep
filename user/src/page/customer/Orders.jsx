@@ -89,14 +89,16 @@ const Orders = () => {
     const statusUI = STATUS_MAP[o.status] || "Đang xử lý";
     // Tính tổng số lượng sản phẩm (tổng quantity của tất cả OrderItems)
     const totalQuantity = (o.OrderItems || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
-    // Tính tạm tính (tổng price * quantity của tất cả OrderItems)
-    const subtotal = (o.OrderItems || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+    // Tạm tính = total_price (giá sản phẩm đã trừ giảm giá)
+    const subtotal = o.total_price || 0;
+    // Tổng tiền = total_price + shipping_fee
+    const totalWithShipping = (o.total_price || 0) + (o.shipping_fee || 0);
     return {
       id: o.orderCode || `${o.id}`,
       rawStatus: o.status,
       status: statusUI,
-      total: o.total_price || 0,
-      subtotal: subtotal,
+      total: totalWithShipping, // Hiển thị ở cột giá tiền
+      subtotal: subtotal, // Tạm tính trong modal
       items: totalQuantity,
       date: o.createdAt
         ? new Date(o.createdAt).toLocaleDateString("vi-VN")
@@ -752,8 +754,8 @@ const Orders = () => {
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Phí vận chuyển</span>
-                    <span className="font-medium">{selectedOrder.shippingFee.toLocaleString("vi-VN")}₫</span>
+                    <span className="text-gray-500">Thanh toán</span>
+                    <span className="font-medium text-right">{selectedOrder.paymentMethod==='wallet'? "Ví Kohi" : "COD"}</span>
                   </div>
                 </div>
 
@@ -766,15 +768,15 @@ const Orders = () => {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Thanh toán</span>
-                    <span className="font-medium text-right">{selectedOrder.paymentMethod==='wallet'? "Ví Kohi" : "COD"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tạm tính</span>
+                    <span className="text-gray-500">Tạm tính tiền hàng</span>
                     <span className="font-medium">{selectedOrder.subtotal.toLocaleString("vi-VN")}₫</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Tổng tiền</span>
+                    <span className="text-gray-500">Phí vận chuyển</span>
+                    <span className="font-medium">{selectedOrder.shippingFee.toLocaleString("vi-VN")}₫</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 mt-1">
+                    <span className="text-gray-700 font-medium">Tổng tiền</span>
                     <span className="font-bold text-[#116AD1]">{selectedOrder.total.toLocaleString("vi-VN")}₫</span>
                   </div>
                 </div>

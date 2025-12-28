@@ -195,7 +195,6 @@ const EditProfile = () => {
         
         // Navigate back to profile
         setTimeout(() => {
-          navigate('/profile')
         }, 1000)
       } else {
         toast.error(res.data?.message || 'Cập nhật hồ sơ thất bại')
