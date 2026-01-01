@@ -43,7 +43,7 @@ export const resizeShippingImage = asyncHandler(async (req, res, next) => {
   next();
 });
 
-// @ desc middleware to filter orders for the logged user
+// @ desc   GET Orders by Client
 // @access  Protected
 export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
@@ -428,7 +428,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     const qty = quantities && quantities.length > 0 ? parseInt(quantities[idx], 10) : 1;
     if (!qty || qty <= 0) return next(new APIError(`Số lượng không hợp lệ cho biến thể ${vId}.`, 400));
     if (variant.stock_quantity != null && variant.stock_quantity < qty) {
-      return next(new APIError(`Không đủ tồn kho cho biến thể ${vId}.`, 400));
+      return next(new APIError(`Không đủ tồn kho cho lựa chọn ${vId}.`, 400));
     }
     items.push({ variant, product, quantity: qty });
   }
@@ -438,15 +438,15 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
   if (couponIds.length > 0) {
     for (const cid of couponIds) {
       const coupon = await Coupon.findByPk(cid);
-      if (!coupon) return next(new APIError(`No coupon match with id: ${cid}`, 404));
+      if (!coupon) return next(new APIError(`Không tìm thấy mã giảm giá với id: ${cid}`, 404));
       if (coupon.quantity != null && coupon.quantity <= 0) {
-        return next(new APIError(`Coupon ${cid} is no longer available`, 400));
+        return next(new APIError(`Mã giảm giá ${cid} không còn lượt sử dụng`, 400));
       }
       if (coupon.expire) {
         const exp = new Date(coupon.expire);
         const today = new Date();
         if (exp < new Date(today.toDateString())) {
-          return next(new APIError(`Coupon ${cid} has expired`, 400));
+          return next(new APIError(`Mã giảm giá ${cid} đã hết hạn`, 400));
         }
       }
       // restriction: admin coupon has storeId == null; store coupon must match storeId
@@ -735,9 +735,12 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
         image: it.product ? it.product.main_image : null,
         product_variantId: it.variant.id,
       });
-      if (it.variant.stock_quantity != null) {
-        await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
-      }
+
+      // Không trừ quantity của option
+
+      // if (it.variant.stock_quantity != null) {
+      //   await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
+      // }
     }
     await OrderItem.bulkCreate(orderItemsPayload, { transaction: t });
 

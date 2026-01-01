@@ -169,7 +169,7 @@ export const updateCartItemQuantity = asyncHandler(async (req, res, next) => {
   // 1. Kiểm tra Cart của user
   const cart = await Cart.findOne({ where: { clientId: req.user.id } });
   if (!cart) {
-    return next(new APIError("There is no cart match this user", 404));
+    return next(new APIError("Không tìm thấy giỏ hàng của người dùng", 404));
   }
 
   // 2. Kiểm tra CartItem tồn tại trong Cart
@@ -179,7 +179,7 @@ export const updateCartItemQuantity = asyncHandler(async (req, res, next) => {
   if (!cartItem) {
     return next(
       new APIError(
-        `There is no cart item match this product_variantId: ${product_variantId} in your cart`,
+        `Không tìm thấy mục giỏ hàng với product_variantId: ${product_variantId} trong giỏ hàng của bạn`,
         404
       )
     );
