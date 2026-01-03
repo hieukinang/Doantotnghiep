@@ -2,13 +2,14 @@ import Product from "../model/productModel.js";
 import {
   getAll,
   getOne,
-  updateOne,
   deleteOne,
 } from "../utils/refactorControllers.utils.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import {uploadMixOfImages} from "../middleware/imgUpload.middleware.js";
 import sharp from "sharp";
 import Fuse from "fuse.js";
+
+import { Op } from "sequelize";
 
 import ProductImage from "../model/productImageModel.js";
 import ProductVariant from "../model/productVariantModel.js";
@@ -109,7 +110,6 @@ export const createProduct = asyncHandler(async (req, res, next) => {
 // @access  Public
 export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
   const storeId = req.user.id;
-
   if (!storeId) {
     return res.status(400).json({
       status: "fail",
@@ -117,12 +117,31 @@ export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
     });
   }
 
+  // Lấy các query filter
+  const { name, status, sortBy } = req.query;
+  const where = { storeId };
+  if (name && name.trim()) {
+    // Tìm gần đúng tên (không phân biệt hoa thường)
+    where.name = { [Op.like]: `%${name.trim()}%` }; // Sử dụng Op.iLike
+  }
+  if (status && status.trim()) {
+    where.status = status;
+  }
+
+  // Sắp xếp
+  let order = [["createdAt", "DESC"]];
+  if (sortBy && sortBy.trim()) {
+    // sortBy: field_ASC, field_DESC
+    const [field, direction] = sortBy.split("_");
+    if (field && direction && ["ASC", "DESC"].includes(direction.toUpperCase())) {
+      order = [[field, direction.toUpperCase()]];
+    }
+  }
+
   const products = await Product.findAll({
-    where: {
-      storeId,
-    },
+    where,
     include: [{ model: ProductImage, as: "ProductImages" }],
-    order: [["createdAt", "DESC"]],
+    order,
   });
 
   res.status(200).json({
@@ -134,12 +153,44 @@ export const getAllProductsByStore = asyncHandler(async (req, res, next) => {
   });
 });
 
-export const getAllProductsForAdmin = getAll(Product, {
-  include: [
-    { model: ProductImage, as: "ProductImages" },
-    { model: ProductVariant, as: "ProductVariants" }
-  ],
-  order: [["createdAt", "DESC"]],
+export const getAllProductsForAdmin = asyncHandler(async (req, res, next) => {
+  // Lấy các query filter
+  const { name, status, sortBy } = req.query;
+  const where = {};
+  if (name && name.trim()) {
+    // Tìm gần đúng tên (không phân biệt hoa thường)
+    where.name = { [Op.like]: `%${name.trim()}%` };
+  }
+  if (status && status.trim()) {
+    where.status = status;
+  }
+
+  // Sắp xếp
+  let order = [["createdAt", "DESC"]];
+  if (sortBy && sortBy.trim()) {
+    // sortBy: field_ASC, field_DESC
+    const [field, direction] = sortBy.split("_");
+    if (field && direction && ["ASC", "DESC"].includes(direction.toUpperCase())) {
+      order = [[field, direction.toUpperCase()]];
+    }
+  }
+
+  const products = await Product.findAll({
+    where,
+    include: [
+      { model: ProductImage, as: "ProductImages" },
+      { model: ProductVariant, as: "ProductVariants" }
+    ],
+    order,
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: products.length,
+    data: {
+      products,
+    },
+  });
 });
 
 export const getAllProductsForClient = asyncHandler(async (req, res, next) => {

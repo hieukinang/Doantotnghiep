@@ -932,7 +932,7 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
       return next(new APIError("Không tìm thấy shipper.", 404));
     }
 
-    const shippingFee = 13000;
+    const shippingFee = 20000;
     const orderTotal = Number(order.total_price || 0);
 
     // Luôn cộng shippingFee vào ví shipper, không quan tâm payment_method
