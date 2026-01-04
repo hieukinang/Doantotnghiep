@@ -157,13 +157,13 @@ export const createCheckoutSessionMomo = asyncHandler(async (req, res, next) => 
         // Trả dữ liệu MoMo về cho client
         res.status(200).json(data);
       } catch (err) {
-        res.status(500).json({ status: "fail", message: "MoMo response parse error", error: err.message });
+        res.status(500).json({ status: "fail", message: "Lỗi phản hồi", error: err.message });
       }
     });
   });
 
   req2.on('error', (e) => {
-    res.status(500).json({ status: "fail", message: `problem with request: ${e.message}` });
+    res.status(500).json({ status: "fail", message: `Lỗi yêu cầu: ${e.message}` });
   });
 
   req2.write(requestBody);
@@ -185,7 +185,7 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).send(`Lỗi Webhook: ${err.message}`);
   }
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
@@ -193,6 +193,9 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
     const userId = session.metadata.userId;
     const role = session.metadata.role; // "CLIENT" hoặc "ADMIN"
     const amount = Number(session.metadata.amount);
+
+    console.log(amount);
+    console.log(userId);
 
     // chọn đúng model theo role
     let UserModel;
@@ -223,10 +226,7 @@ export const webhookCheckout = asyncHandler(async (req, res, next) => {
     // Kiểm tra xem transaction này đã tạo chưa (tránh cộng ví 2 lần)
     const exists = await Transaction.findOne({
       where: {
-        user_id: userId,
-        amount: amount,
-        type: TRANSACTION_TYPE.TOP_UP,
-        status: "SUCCESS"
+        createdAt: new Date(session.created * 1000),
       }
     });
 
@@ -263,7 +263,7 @@ export const webhookCheckoutMoMo = asyncHandler(async (req, res, next) => {
 
   // Chỉ xử lý khi thanh toán thành công (resultCode === '0')
   if (resultCode != 0) {
-    return res.status(400).json({ status: "fail", message: "MoMo payment not successful", resultCode, messageMoMo: message });
+    return res.status(400).json({ status: "fail", message: "Thanh toán Momo không thành công", resultCode, messageMoMo: message });
   }
 
   // Lấy userId từ requestId (ví dụ: CLIENT1762871773034)
