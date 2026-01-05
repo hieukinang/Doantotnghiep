@@ -8,6 +8,7 @@ import {
   updateOne,
   deleteOne,
 } from "../utils/refactorControllers.utils.js";
+import { Op } from "sequelize";
 
 export const createCouponforAdmin = createOne(Coupon);
 
@@ -32,7 +33,7 @@ export const createCouponforStore = asyncHandler(async (req, res, next) => {
 });
 
 export const getAllCouponsForAdmin = getAll(Coupon, {
-  where: { storeId: null }
+  where: { storeId: null, createdAt: { [Op.lte]: new Date() } }
 });
 
 export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
@@ -40,7 +41,7 @@ export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
   if (!storeId) return next(new APIError("Authentication required", 401));
 
   const coupons = await Coupon.findAll({
-    where: { storeId },
+    where: { storeId, createdAt: { [Op.lte]: new Date() } },
     order: [["createdAt", "DESC"]],
   });
 
@@ -54,7 +55,7 @@ export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
 export const getCouponByCode = asyncHandler(async (req, res, next) => {
   try {
     const { code } = req.query;
-    const coupon = await Coupon.findOne({ where: { code } });
+    const coupon = await Coupon.findOne({ where: { code, createdAt: { [Op.lte]: new Date() } } });
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
     }
