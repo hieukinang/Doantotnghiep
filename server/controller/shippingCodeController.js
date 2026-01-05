@@ -30,7 +30,7 @@ export const createShippingCode = asyncHandler(async (req, res, next) => {
 // @route GET /api/shipping-codes
 // @access Admin
 export const getAllShippingCodes = asyncHandler(async (req, res, next) => {
-  const codes = await ShippingCode.findAll({ order: [["createdAt", "DESC"]] });
+  const codes = await ShippingCode.findAll({ order: [["createdAt", "DESC"]], expire: { [Op.gt]: new Date() } });
   res.status(200).json({ status: "success", results: codes.length, data: { codes } });
 });
 
