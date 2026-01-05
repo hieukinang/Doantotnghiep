@@ -33,7 +33,7 @@ export const createCouponforStore = asyncHandler(async (req, res, next) => {
 });
 
 export const getAllCouponsForAdmin = getAll(Coupon, {
-  where: { storeId: null, expire: { [Op.gt]: new Date() } }
+  where: { storeId: null, expire: { [Op.lte]: new Date() } }
 });
 
 export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
@@ -41,7 +41,7 @@ export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
   if (!storeId) return next(new APIError("Authentication required", 401));
 
   const coupons = await Coupon.findAll({
-    where: { storeId, createdAt: { [Op.lte]: new Date() } },
+    where: { storeId, expire: { [Op.gt]: new Date() } },
     order: [["createdAt", "DESC"]],
   });
 
@@ -70,7 +70,7 @@ export const getAllStoreCoupon = asyncHandler(async (req, res, next) => {
   if (!storeId) return next(new APIError("storeId is required", 400));
 
   const coupons = await Coupon.findAll({
-    where: { storeId },
+    where: { storeId, expire: { [Op.gt]: new Date() } },
     order: [["discount", "DESC"]],
   });
 
