@@ -33,7 +33,7 @@ export const createCouponforStore = asyncHandler(async (req, res, next) => {
 });
 
 export const getAllCouponsForAdmin = getAll(Coupon, {
-  where: { storeId: null, createdAt: { [Op.lte]: new Date() } }
+  where: { storeId: null, expire: { [Op.gt]: new Date() } }
 });
 
 export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
@@ -55,7 +55,7 @@ export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
 export const getCouponByCode = asyncHandler(async (req, res, next) => {
   try {
     const { code } = req.query;
-    const coupon = await Coupon.findOne({ where: { code, createdAt: { [Op.lte]: new Date() } } });
+    const coupon = await Coupon.findOne({ where: { code, expire: { [Op.gt]: new Date() } } });
     if (!coupon) {
       return res.status(404).json({ message: "Coupon not found" });
     }
