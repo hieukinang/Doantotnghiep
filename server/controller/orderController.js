@@ -820,16 +820,14 @@ export const cancelOrderByClient = asyncHandler(async (req, res, next) => {
   // Thực hiện cập nhật trong 1 transaction để atomic
   const t = await sequelize.transaction();
   try {
-    // Nếu đơn hàng đang CONFIRMED thì hoàn lại tồn kho cho từng ProductVariant
-    if (order.status === ORDER_STATUS.CONFIRMED) {
-      for (const item of order.OrderItems) {
-        const variant = item.OrderItemProductVariant;
-        if (variant && typeof item.quantity === "number") {
-          await variant.increment("stock_quantity", { by: item.quantity, transaction: t });
-        }
+    // Nếu đơn hàng đang CONFIRMED và  thì hoàn lại tồn kho cho từng ProductVariant
+    for (const item of order.OrderItems) {
+      const variant = item.OrderItemProductVariant;
+      if (variant && typeof item.quantity === "number") {
+        await variant.increment("stock_quantity", { by: item.quantity, transaction: t });
       }
     }
-
+    
     // Nếu đơn hàng được thanh toán bằng ví, hoàn tiền lại vào ví của client và tạo Transaction
     if (order.payment_method === PAYMENT_METHODS.WALLET) {
       const client = await Client.findByPk(order.clientId, { transaction: t, lock: t.LOCK.UPDATE });
