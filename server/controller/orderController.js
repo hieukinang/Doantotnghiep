@@ -270,20 +270,20 @@ export const confirmOrderByStore = asyncHandler(async (req, res, next) => {
     });
     if (!orderWithItems) {
       await t.rollback();
-      return next(new APIError("Order not found", 404));
+      return next(new APIError("Không tìm thấy đơn hàng", 404));
     }
     // Trừ tồn kho cho từng variant
-    for (const item of orderWithItems.OrderItems) {
-      const variant = item.OrderItemProductVariant;
-      if (variant && typeof item.quantity === "number") {
-        if (variant.stock_quantity != null && variant.stock_quantity >= item.quantity) {
-          await variant.decrement("stock_quantity", { by: item.quantity, transaction: t });
-        } else {
-          await t.rollback();
-          return next(new APIError(`Không đủ tồn kho cho biến thể ${variant.id}.`, 400));
-        }
-      }
-    }
+    // for (const item of orderWithItems.OrderItems) {
+    //   const variant = item.OrderItemProductVariant;
+    //   if (variant && typeof item.quantity === "number") {
+    //     if (variant.stock_quantity != null && variant.stock_quantity >= item.quantity) {
+    //       await variant.decrement("stock_quantity", { by: item.quantity, transaction: t });
+    //     } else {
+    //       await t.rollback();
+    //       return next(new APIError(`Không đủ tồn kho cho biến thể ${variant.id}.`, 400));
+    //     }
+    //   }
+    // }
     orderWithItems.status = ORDER_STATUS.CONFIRMED;
     await orderWithItems.save({ transaction: t });
     await t.commit();
@@ -367,7 +367,7 @@ export const shipperReceiveOrder = asyncHandler(async (req, res, next) => {
 // @route   POST /api/orders/checkout-cash
 // @access  Protected
 export const createCashOrder = asyncHandler(async (req, res, next) => {
-  // New payload shape: products is an object
+  
   let { products, shipping_address } = req.body;
 
   if (!products) {
@@ -386,7 +386,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
   const storeId = products.storeId || products.store_id || null;
   const couponIds = products.coupon_ids || [];
   const shipping_code_id = products.shipping_code_id || null;
-  // quantities is an array parallel to variantIds
+  // số lượng sản phẩm là một array
   const quantities = products.quantities || products.quantities || [];
 
   if (!Array.isArray(variantIds) || variantIds.length === 0) {
@@ -395,7 +395,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
   if (!storeId) {
     return next(new APIError("Thiếu thông tin cửa hàng.", 400));
   }
-  // If quantities provided, must be an array with same length as variantIds and all positive integers
+  // Nếu số lượng được cung cấp, phải là một mảng có cùng độ dài với variantIds và tất cả là số nguyên dương
   if (quantities && quantities.length > 0) {
     if (!Array.isArray(quantities) || quantities.length !== variantIds.length) {
       return next(new APIError("Số lượng phải là mảng và có cùng độ dài với danh sách sản phẩm.", 400));
@@ -412,7 +412,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     return next(new APIError("Chỉ được sử dụng tối đa 2 mã giảm giá cho mỗi đơn hàng.", 400));
   }
 
-  // Fetch variants and ensure they belong to the provided store
+  // Xác thực các option sản phẩm thuộc cửa hàng và tồn kho đủ
   const items = [];
   for (let idx = 0; idx < variantIds.length; idx++) {
     const vId = variantIds[idx];
@@ -433,7 +433,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     items.push({ variant, product, quantity: qty });
   }
 
-  // Validate coupons: <=2, if 2 => one admin (storeId=null) and one store coupon (storeId == storeId param)
+  // Validate coupons: <=2, if 2 => một từ hệ thống (storeId=null) và một mã của cửa hàng (storeId == storeId param)
   const coupons = [];
   if (couponIds.length > 0) {
     for (const cid of couponIds) {
@@ -449,7 +449,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
           return next(new APIError(`Mã giảm giá ${cid} đã hết hạn`, 400));
         }
       }
-      // restriction: admin coupon has storeId == null; store coupon must match storeId
+      // restriction: coupon hệ thống có storeId == null; coupon cửa hàng phải khớp với storeId
       if (coupon.storeId !== null && coupon.storeId !== storeId) {
         return next(new APIError(`Mã giảm giá ${cid} không áp dụng cho cửa hàng ${storeId}.`, 400));
       }
@@ -465,7 +465,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // Shipping fee and shipping code discount (fixed)
+  // Shipping fee và shipping code discount (fixed)
   const BASE_SHIPPING_FEE = 30000;
   let shippingDiscount = 0;
   let shippingCodeDoc = null;
@@ -485,7 +485,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     shippingDiscount = Number(shippingCodeDoc.discount || 0);
   }
 
-  // Compute subtotal and fixed coupon discount
+  // tính tổng đơn hàng
   let subtotal = 0;
   for (const it of items) {
     const price = parseFloat(it.variant.price || 0);
@@ -523,10 +523,10 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
         image: it.product ? it.product.main_image : null,
         product_variantId: it.variant.id,
       });
-      // Bỏ logic trừ tồn kho
-      // if (it.variant.stock_quantity != null) {
-      //   await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
-      // }
+      // logic trừ tồn kho
+      if (it.variant.stock_quantity != null) {
+        await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
+      }
     }
     await OrderItem.bulkCreate(orderItemsPayload, { transaction: t });
 
@@ -614,7 +614,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
     return next(new APIError("Bạn chỉ có thể cung cấp tối đa 2 mã giảm giá", 400));
   }
 
-  // Fetch variants
+  // Validate variants
   const items = [];
   for (let idx = 0; idx < variantIds.length; idx++) {
     const vId = variantIds[idx];
@@ -685,7 +685,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
     shippingDiscount = Number(shippingCodeDoc.discount || 0);
   }
 
-  // Subtotal & discounts
+  // tính tổng đơn hàng
   let subtotal = 0;
   for (const it of items) {
     const price = parseFloat(it.variant.price || 0);
@@ -708,7 +708,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
 
   const t = await sequelize.transaction();
   try {
-    // Create order
+    // Tạo đơn hàng
     const order = await Order.create(
       {
         payment_method: PAYMENT_METHODS.WALLET,
@@ -723,7 +723,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
       { transaction: t }
     );
 
-    // Order items & stock updates
+    // Update Order items & stock
     const orderItemsPayload = [];
     for (const it of items) {
       const unitPrice = parseFloat(it.variant.price || 0);
@@ -736,28 +736,27 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
         product_variantId: it.variant.id,
       });
 
-      // Không trừ quantity của option
-
-      // if (it.variant.stock_quantity != null) {
-      //   await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
-      // }
+      // logic trừ tồn kho
+      if (it.variant.stock_quantity != null) {
+        await it.variant.decrement("stock_quantity", { by: it.quantity, transaction: t });
+      }
     }
     await OrderItem.bulkCreate(orderItemsPayload, { transaction: t });
 
-    // Decrement coupons
+    // Giảm số lượng coupon
     for (const c of coupons) {
       await c.decrement("quantity", { by: 1, transaction: t });
     }
-    // Decrement shipping code quantity if used
+    // Giảm số lượng mã vận chuyển nếu có sử dụng
     if (shippingCodeDoc) {
       await shippingCodeDoc.decrement("quantity", { by: 1, transaction: t });
     }
 
-    // Deduct client wallet
+    // Trừ tiền trong ví của khách hàng
     client.wallet = currentBalance - total_due;
     await client.save({ transaction: t });
 
-    // Record transaction
+    // Ghi nhận giao dịch
     await Transaction.create({
       user_id: client.id,
       amount: -total_due,

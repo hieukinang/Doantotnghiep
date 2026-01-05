@@ -307,11 +307,7 @@ export const webhookCheckoutMoMo = asyncHandler(async (req, res, next) => {
   // Kiểm tra transaction đã tồn tại chưa (tránh cộng ví 2 lần)
   const exists = await Transaction.findOne({
     where: {
-      user_id: userId,
-      amount: amount,
-      type: TRANSACTION_TYPE.TOP_UP,
-      status: "SUCCESS",
-      payment_method: "momo"
+      createdAt: new Date() // MoMo không cung cấp timestamp chính xác, dùng thời gian hiện tại để kiểm tra
     }
   });
 
