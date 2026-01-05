@@ -33,7 +33,7 @@ export const createCouponforStore = asyncHandler(async (req, res, next) => {
 });
 
 export const getAllCouponsForAdmin = getAll(Coupon, {
-  where: { storeId: null, expire: { [Op.lte]: new Date() } }
+  where: { storeId: null, expire: { [Op.gt]: new Date() } }
 });
 
 export const getAllCouponsForStore = asyncHandler(async (req, res, next) => {
