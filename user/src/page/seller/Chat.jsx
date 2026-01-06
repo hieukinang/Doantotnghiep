@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
 import ChatService from '../../services/chatService';
 import { getChatSocket } from '../../services/chatSocket';
 import {
@@ -29,7 +30,7 @@ const Chat = () => {
 
       if (!userId) {
         console.error('Cannot get userId from token');
-        alert('Không thể xác thực. Vui lòng đăng nhập lại.');
+        toast.error('Không thể xác thực. Vui lòng đăng nhập lại.');
         return;
       }
 
@@ -160,7 +161,7 @@ const Chat = () => {
         error.message ||
         "Không thể tải danh sách cuộc trò chuyện";
 
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -195,7 +196,7 @@ const Chat = () => {
       setTimeout(() => fetchMessages(conversationId), 500);
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Không thể gửi tin nhắn');
+      toast.error('Không thể gửi tin nhắn');
     } finally {
       setSending(false);
     }
@@ -218,13 +219,13 @@ const Chat = () => {
       }
     } catch (error) {
       console.error('Error deleting conversation:', error);
-      alert('Không thể xóa cuộc trò chuyện');
+      toast.error('Không thể xóa cuộc trò chuyện');
     }
   };
 
   const handleChatWithSystem = async () => {
     try {
-      const systemUserId = 'ADMIN1765353220494';
+      const systemUserId = 'ADMIN1766313158298';
       const conversation = await ChatService.createDirectConversation(
         systemUserId
       );
@@ -239,7 +240,7 @@ const Chat = () => {
       }
     } catch (error) {
       console.error('Error creating system conversation:', error);
-      alert('Không thể mở cuộc trò chuyện với hệ thống');
+      toast.error('Không thể mở cuộc trò chuyện với hệ thống');
     }
   };
 
@@ -265,8 +266,6 @@ const Chat = () => {
     const otherParticipant = conversation.participants.find(
       (p) => p.user_id !== currentUserId
     );
-
-    console.log(otherParticipant?.role, "dsdcscdsacdsa")
 
     if (!otherParticipant) {
       return "Cuộc trò chuyện";

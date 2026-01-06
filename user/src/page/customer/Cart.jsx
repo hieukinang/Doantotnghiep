@@ -4,6 +4,7 @@ import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import { ShopContext } from "../../context/ShopContext";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const format = (v) => (v ? v.toLocaleString("vi-VN") : "0");
 
@@ -197,7 +198,7 @@ const Cart = () => {
   // ==================== ĐẶT HÀNG ====================
   const handleCheckout = () => {
     if (checkedItems.length === 0) {
-      alert("Vui lòng chọn ít nhất một sản phẩm để đặt hàng!");
+      toast.warning("Vui lòng chọn ít nhất một sản phẩm để đặt hàng!");
       return;
     }
     navigate("/place-order");
@@ -322,7 +323,7 @@ const Cart = () => {
 
   const applyCoupon = async (code) => {
     if (!selectedStoreId || !clientToken) {
-      alert("Lỗi: Không đủ thông tin để áp dụng mã giảm giá!");
+      toast.error("Lỗi: Không đủ thông tin để áp dụng mã giảm giá!");
       return;
     }
 
@@ -338,7 +339,7 @@ const Cart = () => {
       });
 
       if (storeItems.length === 0) {
-        alert("Không tìm thấy sản phẩm của cửa hàng này!");
+        toast.error("Không tìm thấy sản phẩm của cửa hàng này!");
         return;
       }
 
@@ -373,10 +374,10 @@ const Cart = () => {
           discountValue,
         });
 
-        alert("Áp dụng mã giảm giá thành công cho toàn bộ cửa hàng!");
+        toast.success("Áp dụng mã giảm giá thành công cho toàn bộ cửa hàng!");
         handleCloseModal();
       } else {
-        alert(
+        toast.error(
           "Áp dụng mã giảm giá thất bại: " +
           (res.data.message || "Lỗi không xác định")
         );
@@ -385,7 +386,7 @@ const Cart = () => {
       console.error("❌ Lỗi áp mã:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể áp dụng mã giảm giá!";
-      alert(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -398,7 +399,7 @@ const Cart = () => {
       return newState;
     });
 
-    alert("Đã loại bỏ mã giảm giá!");
+    toast.success("Đã loại bỏ mã giảm giá!");
   };
 
   const handleCloseModal = () => {

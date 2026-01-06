@@ -208,7 +208,7 @@ const AddProduct = () => {
 
   const submitVariantsToServer = async () => {
     if (!createdProductId) {
-      alert("Chưa có sản phẩm để tạo biến thể!");
+      toast.warning("Chưa có sản phẩm để tạo biến thể!");
       return;
     }
 

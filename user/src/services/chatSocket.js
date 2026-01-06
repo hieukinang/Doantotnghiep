@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 import chatService from './chatService';
 
 const CHAT_SOCKET_URL =
-  import.meta.env.VITE_CHAT_SOCKET_URL || 'http://127.0.0.1:3000/api';
+  import.meta.env.VITE_CHAT_SOCKET_URL || 'http://127.0.0.1:3000';
 
 let socket = null;
 let currentToken = null; // Lưu token hiện tại để so sánh
@@ -34,13 +34,23 @@ export function getChatSocket() {
   }
 
   currentToken = token;
+  console.log('🔌 Đang kết nối socket tới:', CHAT_SOCKET_URL);
+  
   socket = io(CHAT_SOCKET_URL, {
     auth: { token },
     transports: ['websocket'],
   });
 
+  socket.on('connect', () => {
+    console.log('✅ Socket connected successfully! ID:', socket.id);
+  });
+
   socket.on('connect_error', (err) => {
-    console.error('Chat socket connect error:', err?.message || err);
+    console.error('❌ Chat socket connect error:', err?.message || err);
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('🔴 Socket disconnected:', reason);
   });
 
   return socket;

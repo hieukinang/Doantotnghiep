@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import SellerLayout from "../../component-seller-page/SellerLayout";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -37,7 +38,7 @@ const EditProduct = () => {
           origin: data.origin || "",
         });
       } catch (error) {
-        alert("Không tìm thấy sản phẩm!");
+        toast.error("Không tìm thấy sản phẩm!");
         navigate("/seller/list-product");
       }
     };
@@ -81,10 +82,10 @@ const EditProduct = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      alert("Cập nhật sản phẩm thành công!");
+      toast.success("Cập nhật sản phẩm thành công!");
       navigate("/seller/list-product");
     } catch (error) {
-      alert("Có lỗi khi cập nhật sản phẩm!");
+      toast.error("Có lỗi khi cập nhật sản phẩm!");
     }
   };
 
