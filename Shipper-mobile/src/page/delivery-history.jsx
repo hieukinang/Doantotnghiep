@@ -12,14 +12,14 @@ import config from '../shipper-context/config';
 const HEADER_HEIGHT = 80;
 
 const STATUS_MAP = {
-  PENDING: 'Chờ xử lý',
-  CONFIRMED: 'Đã xác nhận',
+  PENDING: 'Đã giao',
+  CONFIRMED: 'Đã giao',
   IN_TRANSIT: 'Đang giao',
   DELIVERED: 'Đã giao',
-  CLIENT_CONFIRMED: 'Hoàn thành',
-  CANCELLED: 'Đã hủy',
-  FAILED: 'Thất bại',
-  RETURNED: 'Trả hàng',
+  CLIENT_CONFIRMED: 'Đã giao',
+  CANCELLED: 'Đã giao',
+  FAILED: 'Đã giao',
+  RETURNED: 'Đã giao',
 };
 
 const DeliveryHistory = () => {

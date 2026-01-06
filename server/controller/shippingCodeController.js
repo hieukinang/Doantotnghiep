@@ -1,7 +1,7 @@
 import ShippingCode from "../model/shippingCodeModel.js";
 import asyncHandler from "../utils/asyncHandler.utils.js";
 import APIError from "../utils/apiError.utils.js";
-
+import { Op } from "sequelize";
 // @desc Create a shipping code (Admin)
 // @route POST /api/shipping-codes
 // @access Admin
@@ -30,7 +30,10 @@ export const createShippingCode = asyncHandler(async (req, res, next) => {
 // @route GET /api/shipping-codes
 // @access Admin
 export const getAllShippingCodes = asyncHandler(async (req, res, next) => {
-  const codes = await ShippingCode.findAll({ order: [["createdAt", "DESC"]], expire: { [Op.gt]: new Date() } });
+  const codes = await ShippingCode.findAll({
+      where: { expire: { [Op.gt]: new Date() } },
+      order: [["createdAt", "DESC"]],
+    });
   res.status(200).json({ status: "success", results: codes.length, data: { codes } });
 });
 

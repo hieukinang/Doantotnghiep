@@ -17,8 +17,7 @@ const ProductApproval = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       // backend returns { status, results, data: { products } }
-      console.log(res.data.data.docs);
-      setProducts(res.data?.data?.docs || []);
+      setProducts(res.data?.data?.products || []);
     } catch (err) {
       console.error(err);
       setError("Không thể tải danh sách sản phẩm");

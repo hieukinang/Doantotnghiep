@@ -23,7 +23,7 @@ const statusOptions = ["Tất cả", ...Object.keys(STATUS_MAP)];
 const ITEMS_PER_PAGE = 10;
 
 // Các trạng thái được phép xem đánh giá
-const REVIEWABLE_STATUSES = ["CONFIRMED", "DELIVERED", "CLIENT_CONFIRMED"];
+const REVIEWABLE_STATUSES = ["CLIENT_CONFIRMED","RETURNED","RETURN_CONFIRMED"];
 
 const OrdersSeller = () => {
   const [statusFilter, setStatusFilter] = useState("Tất cả");

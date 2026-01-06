@@ -7,6 +7,35 @@ import config from '../shipper-context/config';
 import { useAuth } from '../shipper-context/auth-context';
 import Sidebar from '../component/sidebar';
 
+// Map trạng thái đơn hàng
+const STATUS_MAP = {
+    PENDING: 'Đã giao',
+    CONFIRMED: 'Đã giao',
+    IN_TRANSIT: 'Đang giao',
+    DELIVERED: 'Đã giao',
+    CLIENT_CONFIRMED: 'Đã giao',
+    CANCELLED: 'Đã giao',
+    FAILED: 'Đã giao',
+    RETURNED: 'Đã giao',
+};
+
+// Hàm lấy màu theo trạng thái
+const getStatusColor = (status) => {
+    switch (status) {
+        case 'DELIVERED':
+        case 'CLIENT_CONFIRMED':
+            return '#22C55E'; // Xanh lá
+        case 'IN_TRANSIT':
+            return '#116AD1'; // Xanh dương
+        case 'CANCELLED':
+        case 'FAILED':
+            return '#EF4444'; // Đỏ
+        case 'RETURNED':
+            return '#F59E0B'; // Cam
+        default:
+            return '#6B7280'; // Xám
+    }
+};
 
 export default function TakeanOrder() {
     const [orderCode, setOrderCode] = useState('');
@@ -213,8 +242,10 @@ export default function TakeanOrder() {
                             <View key={order.id} style={styles.orderCard}>
                                 <View style={styles.orderHeader}>
                                     <Text style={styles.orderId}>#{order.id}</Text>
-                                    <View style={styles.statusBadge}>
-                                        <Text style={styles.statusText}>Đang giao</Text>
+                                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+                                        <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+                                            {STATUS_MAP[order.status] || order.status || 'Đang giao'}
+                                        </Text>
                                     </View>
                                 </View>
                                 {/* Thông tin người nhận */}

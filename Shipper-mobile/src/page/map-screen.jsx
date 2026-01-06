@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Image,
   Modal,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,6 +28,36 @@ import { disconnectChatSocket } from '../shipper-context/chatConfig';
 
 const MIN_HEIGHT = 300;
 const MAX_HEIGHT = 500;
+
+// Map trạng thái đơn hàng
+const STATUS_MAP = {
+  PENDING: 'Đã giao',
+  CONFIRMED: 'Đã giao',
+  IN_TRANSIT: 'Đang giao',
+  DELIVERED: 'Đã giao',
+  CLIENT_CONFIRMED: 'Đã giao',
+  CANCELLED: 'Đã giao',
+  FAILED: 'Đã giao',
+  RETURNED: 'Đã giao',
+};
+
+// Hàm lấy màu theo trạng thái
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'DELIVERED':
+    case 'CLIENT_CONFIRMED':
+      return '#22C55E'; // Xanh lá
+    case 'IN_TRANSIT':
+      return '#116AD1'; // Xanh dương
+    case 'CANCELLED':
+    case 'FAILED':
+      return '#EF4444'; // Đỏ
+    case 'RETURNED':
+      return '#F59E0B'; // Cam
+    default:
+      return '#6B7280'; // Xám
+  }
+};
 
 const LOCATIONIQ_API_KEY = 'pk.9d04aa17eed0056b2789ebb797f03cf8';
 
@@ -346,38 +376,42 @@ const MapScreen = () => {
 
 
   // Lấy token và fetch orders
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        setShipperToken(token);
+  const fetchOrders = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      setShipperToken(token);
 
-        if (!token) return console.warn("Chưa có token");
+      if (!token) return console.warn("Chưa có token");
 
-        // Gọi API với status=IN_TRANSIT
-        const res = await axios.get(`${config.backendUrl}/orders/shipper?page=1&status=IN_TRANSIT`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      // Gọi API với status=IN_TRANSIT
+      const res = await axios.get(`${config.backendUrl}/orders/shipper?page=1&status=IN_TRANSIT`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        if (res.data.status === "success") {
-          setOrders(res.data.data.orders || []);
-        } else {
-          console.warn('Không lấy được đơn hàng:', res.data.message);
-        }
-      } catch (err) {
-        if (err.response) {
-          console.error('Lỗi response:', {
-            status: err.response.status,
-            data: err.response.data,
-          });
-        } else {
-          console.error('Lỗi khi setup request:', err.message);
-        }
-        console.error('Full error object:', err.toJSON ? err.toJSON() : err);
+      if (res.data.status === "success") {
+        setOrders(res.data.data.orders || []);
+      } else {
+        console.warn('Không lấy được đơn hàng:', res.data.message);
       }
-    };
-    fetchOrders();
-  }, []);
+    } catch (err) {
+      if (err.response) {
+        console.error('Lỗi response:', {
+          status: err.response.status,
+          data: err.response.data,
+        });
+      } else {
+        console.error('Lỗi khi setup request:', err.message);
+      }
+      console.error('Full error object:', err.toJSON ? err.toJSON() : err);
+    }
+  };
+
+  // Fetch orders khi màn hình được focus (bao gồm cả khi quay lại)
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrders();
+    }, [])
+  );
 
 
   return (
@@ -470,8 +504,10 @@ const MapScreen = () => {
               >
                 <View style={styles.orderHeader}>
                   <Text style={styles.orderId}>#{order.id}</Text>
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>Đang giao</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+                    <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+                      {STATUS_MAP[order.status] || order.status || 'Đang giao'}
+                    </Text>
                   </View>
                 </View>
                 

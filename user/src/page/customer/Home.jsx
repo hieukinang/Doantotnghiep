@@ -8,7 +8,7 @@ import DealsToday from "../../component-home-page/DealsToday";
 import TopSold from "../../component-home-page/TopSold";
 import TopDiscount from "../../component-home-page/TopDiscount";
 import RanDom from "../../component-home-page/RandomProduct";
-import SystemChatBox from "../../component-home-page/SystemChatBox";
+import ChatBox from "../../component-home-page/ChatBox";
 // import Suggestions from "../../component-home-page/Suggestions";
 
 
@@ -38,7 +38,7 @@ const Home = () => {
       </main>
       <Footer />
       {/* Chat với hệ thống - Floating button */}
-      <SystemChatBox />
+      <ChatBox />
     </div>
   );
 };

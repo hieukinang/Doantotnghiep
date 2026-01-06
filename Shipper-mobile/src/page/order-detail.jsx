@@ -18,14 +18,14 @@ import config from "../shipper-context/config";
 import { useChat } from "../shipper-context/ChatContext";
 
 const STATUS_MAP = {
-  PENDING: "Chờ xử lý",
-  CONFIRMED: "Đã xác nhận",
+  PENDING: "Đã giao",
+  CONFIRMED: "Đã giao",
   IN_TRANSIT: "Đang giao",
   DELIVERED: "Đã giao",
-  CLIENT_CONFIRMED: "Hoàn thành",
-  CANCELLED: "Đã hủy",
-  FAILED: "Thất bại",
-  RETURNED: "Trả hàng",
+  CLIENT_CONFIRMED: "Đã giao",
+  CANCELLED: "Đã giao",
+  FAILED: "Đã giao",
+  RETURNED: "Đã giao",
 };
 
 const OrderDetail = () => {
@@ -163,17 +163,18 @@ const OrderDetail = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "CLIENT_CONFIRMED":
-        return "#22C55E";
       case "DELIVERED":
-        return "#3B82F6";
+      case "CLIENT_CONFIRMED":
+        return "#22C55E"; // Xanh lá
       case "IN_TRANSIT":
-        return "#F59E0B";
+        return "#116AD1"; // Xanh dương
       case "CANCELLED":
       case "FAILED":
-        return "#EF4444";
+        return "#EF4444"; // Đỏ
+      case "RETURNED":
+        return "#F59E0B"; // Cam
       default:
-        return "#6B7280";
+        return "#6B7280"; // Xám
     }
   };
 

@@ -582,11 +582,15 @@ const PlaceOrder = () => {
     }
   });
 
-  let totalShippingFee = Array.from(storeShippingMap.values()).reduce((sum, fee) => sum + fee, 0);
+  // Phí ship gốc (trước khi giảm)
+  const originalShippingFee = Array.from(storeShippingMap.values()).reduce((sum, fee) => sum + fee, 0);
   
-  // Giảm phí ship từ shipping code
-  const shippingDiscount = appliedShippingCode?.discountValue || 0;
-  totalShippingFee = Math.max(0, totalShippingFee - shippingDiscount);
+  // Giảm phí ship từ shipping code (chỉ giảm tối đa bằng phí ship gốc)
+  const shippingCodeValue = appliedShippingCode?.discountValue || 0;
+  const shippingDiscount = Math.min(shippingCodeValue, originalShippingFee);
+  
+  // Phí ship sau khi giảm
+  const totalShippingFee = originalShippingFee - shippingDiscount;
 
   // 4. Tổng thanh toán cuối cùng (không được âm)
   const totalPayment = Math.max(0, productSubtotal - totalDiscountValue + totalShippingFee);
@@ -1029,7 +1033,7 @@ const PlaceOrder = () => {
             {/* ===================== MÃ GIẢM GIÁ ===================== */}
             <div className="bg-white rounded-lg p-5 shadow">
               <div className="font-semibold text-lg border-b pb-2 mb-4">
-                🏷️ Mã giảm giá hệ thống
+                Mã giảm giá hệ thống
               </div>
 
               <div className="space-y-4">
@@ -1102,7 +1106,7 @@ const PlaceOrder = () => {
             {/* ===================== PHƯƠNG THỨC THANH TOÁN ===================== */}
             <div className="bg-white rounded-lg p-5 shadow">
               <div className="font-semibold text-lg border-b pb-2">
-                💳 Phương thức thanh toán
+                Phương thức thanh toán
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                 <label className={`flex items-center gap-2 border rounded px-3 py-2 cursor-pointer hover:border-[#116AD1] ${paymentMethod === "COD" ? "border-[#116AD1] bg-blue-50" : ""}`}>
@@ -1132,7 +1136,7 @@ const PlaceOrder = () => {
           {/* ===================== TỔNG KẾT THANH TOÁN ===================== */}
           <div className="bg-white rounded-lg shadow p-5 h-fit">
             <div className="font-semibold text-lg border-b pb-2 mb-3">
-              💰 Chi tiết thanh toán
+              Chi tiết thanh toán
             </div>
 
             {/* Tạm tính */}

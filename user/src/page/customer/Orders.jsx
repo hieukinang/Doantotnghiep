@@ -668,22 +668,24 @@ const Orders = () => {
                                 onClick={() => handleConfirmReceived(o.clientOrderId, true)}
                                 className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-green-50 border border-green-200 rounded-lg text-green-600 hover:bg-green-100 transition-colors whitespace-nowrap"
                               >
-                                ✓ Đã nhận
+                               Đã nhận
                               </button>
                               <button
                                 onClick={() => handleConfirmReceived(o.clientOrderId, false)}
                                 className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 hover:bg-red-100 transition-colors whitespace-nowrap"
                               >
-                                ✗ Chưa nhận
+                                 Chưa nhận
                               </button>
                             </>
                           )}
-                          <button
-                            onClick={() => handleOpenReview(o)}
-                            className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-600 hover:bg-orange-100 transition-colors whitespace-nowrap"
-                          >
-                            Đánh giá
-                          </button>
+                          {(o.rawStatus === "CLIENT_CONFIRMED" || o.rawStatus === "RETURNED" || o.rawStatus === "RETURN_CONFIRMED" || o.rawStatus === "RETURN_NOT_CONFIRMED") && (
+                            <button
+                              onClick={() => handleOpenReview(o)}
+                              className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-600 hover:bg-orange-100 transition-colors whitespace-nowrap"
+                            >
+                              Đánh giá
+                            </button>
+                          )}
                           <button
                             onClick={() => handleViewDetail(o)}
                             className="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] transition-colors whitespace-nowrap"
