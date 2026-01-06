@@ -85,7 +85,7 @@ const ProductDetail = () => {
   const handleToggleFavorite = async () => {
     const clientToken = localStorage.getItem("clientToken");
     
-    console.log("🔥 Toggle favorite clicked", { 
+    console.log("Toggle favorite clicked", { 
       productId: product?.id, 
       currentIsFavorite: isFavorite,
       hasToken: !!clientToken 
@@ -98,7 +98,7 @@ const ProductDetail = () => {
     }
 
     if (!product?.id) {
-      console.log("❌ No product ID");
+      console.log("No product ID");
       return;
     }
 
@@ -112,18 +112,18 @@ const ProductDetail = () => {
       };
 
       if (!isFavorite) {
-        // 👉 THÊM YÊU THÍCH
-        console.log("➕ Adding to favorites:", product.id);
+        //THÊM YÊU THÍCH
+        console.log("Adding to favorites:", product.id);
         await axios.post(
           `${backendURL}/favorites/${product.id}`,
           {},
           config
         );
         setIsFavorite(true);
-        toast.success("Đã thêm vào danh sách yêu thích ❤️");
+        toast.success("Đã thêm vào danh sách yêu thích");
       } else {
-        // 👉 BỎ YÊU THÍCH
-        console.log("➖ Removing from favorites:", product.id);
+        //BỎ YÊU THÍCH
+        console.log("Removing from favorites:", product.id);
         await axios.delete(
           `${backendURL}/favorites/${product.id}`,
           config
@@ -132,8 +132,8 @@ const ProductDetail = () => {
         toast.success("Đã bỏ khỏi danh sách yêu thích");
       }
     } catch (err) {
-      console.error("❌ Error toggling favorite:", err);
-      console.error("❌ Error response:", err.response?.data);
+      console.error("Error toggling favorite:", err);
+      console.error("Error response:", err.response?.data);
       
       if (err.response?.status === 429) {
         toast.error("Server đang quá tải, vui lòng khởi động lại server backend");
@@ -328,7 +328,7 @@ const ProductDetail = () => {
     });
 
     if (matched) {
-      console.log("✅ Matched variant:", matched.id, matched);
+      console.log("Matched variant:", matched.id, matched);
       setSelectedVariantPrice(matched.price || 0);
       setSelectedVariantId(matched.id);
       setSelectedVariantStock(matched.stock_quantity || 0);
@@ -367,7 +367,7 @@ const ProductDetail = () => {
       
       // Fetch lại giỏ hàng để cập nhật số lượng trên header
       await fetchMyCart();
-      toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng 🛒`);
+      toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng`);
     } catch (err) {
       console.error("Lỗi khi thêm giỏ hàng:", err.response?.data || err.message);
       const errorMsg = err.response?.data?.errors?.[0]?.message 

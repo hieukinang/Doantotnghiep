@@ -18,6 +18,8 @@ const Chat = () => {
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const previousMessagesLengthRef = useRef(0);
+  const isUserScrollingRef = useRef(false);
 
   useEffect(() => {
     // Tự động tạo user trong chat system nếu chưa có
@@ -121,8 +123,26 @@ const Chat = () => {
   }, [selectedConversation]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > previousMessagesLengthRef.current && !isUserScrollingRef.current) {
+      scrollToBottom();
+    }
+    previousMessagesLengthRef.current = messages.length;
   }, [messages]);
+
+  // Theo dõi khi user scroll
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      isUserScrollingRef.current = !isAtBottom;
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [selectedConversation]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -158,6 +178,8 @@ const Chat = () => {
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
     setMessages([]);
+    isUserScrollingRef.current = false;
+    previousMessagesLengthRef.current = 0;
   };
 
   const sendMessage = async (e) => {
@@ -169,7 +191,7 @@ const Chat = () => {
       const conversationId = selectedConversation._id || selectedConversation.id;
       await ChatService.sendMessage(conversationId, newMessage.trim());
       setNewMessage('');
-      // Refresh messages
+      isUserScrollingRef.current = false;
       setTimeout(() => fetchMessages(conversationId), 500);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -202,7 +224,7 @@ const Chat = () => {
 
   const handleChatWithSystem = async () => {
     try {
-      const systemUserId = 'ADMIN1766313158298';
+      const systemUserId = 'ADMIN1765353220494';
       const conversation = await ChatService.createDirectConversation(
         systemUserId
       );
@@ -234,30 +256,49 @@ const Chat = () => {
   };
 
   const getConversationTitle = (conversation) => {
+    const currentUserId = localStorage.getItem("storeId");
 
-    // Direct conversation - lấy tên của participant khác
-    const currentUserId = localStorage.getItem('userId');
-    const otherParticipant = conversation.participants?.find(
-      (p) =>
-        (typeof p.user_id === "string" ? p.user_id : p.user_id?.user_id) !==
-        currentUserId
-    );
-
-    if (otherParticipant) {
-      const userId =
-        typeof otherParticipant.user_id === "string"
-          ? otherParticipant.user_id
-          : otherParticipant.user_id?.user_id;
-
-      // Kiểm tra nếu là SYSTEM
-      if (userId === 'ADMIN' || userId?.includes('ADMIN')) {
-        return 'Hệ thống';
-      }
-
-      return otherParticipant.username || userId || 'Người dùng';
+    if (!conversation?.participants?.length) {
+      return "Cuộc trò chuyện";
     }
 
-    return 'Cuộc trò chuyện';
+    const otherParticipant = conversation.participants.find(
+      (p) => p.user_id !== currentUserId
+    );
+
+    console.log(otherParticipant?.role, "dsdcscdsacdsa")
+
+    if (!otherParticipant) {
+      return "Cuộc trò chuyện";
+    }
+
+    if (otherParticipant.role === "ADMIN") {
+      return "Hệ thống";
+    }
+
+    return otherParticipant.username || "Người dùng";
+  };
+
+  const getOtherParticipantName = (conversation) => {
+    const currentUserId = localStorage.getItem("storeId");
+
+    if (!conversation?.participants?.length) {
+      return "Cuộc trò chuyện";
+    }
+
+    const otherParticipant = conversation.participants.find(
+      (p) => p.user_id !== currentUserId
+    );
+
+    if (!otherParticipant) {
+      return "Cuộc trò chuyện";
+    }
+
+    if (otherParticipant.role === "ADMIN") {
+      return "Hệ thống";
+    }
+
+    return otherParticipant.username || "Người dùng";
   };
 
   const getLastMessagePreview = (conversation) => {
@@ -276,8 +317,8 @@ const Chat = () => {
         {/* Sidebar - Danh sách conversations */}
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+            <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
             <button
               onClick={fetchConversations}
               className="p-2 hover:bg-gray-100 rounded transition"
@@ -288,7 +329,7 @@ const Chat = () => {
           </div>
 
           {/* Nút chat với hệ thống */}
-          <div className="p-3 border-b border-gray-100">
+          <div className="p-3 border-b border-gray-100 flex-shrink-0">
             <button
               onClick={handleChatWithSystem}
               className="w-full text-sm px-3 py-2 rounded-lg bg-[#116AD1] text-white hover:bg-[#0d5ba8] transition"
@@ -355,19 +396,19 @@ const Chat = () => {
         <div className="flex-1 flex flex-col bg-white">
           {selectedConversation ? (
             <>
-              {/* Header */}
-              <div className="p-4 border-b border-gray-200 bg-[#116AD1] text-white">
+              {/* Header - Cố định */}
+              <div className="p-4 border-b border-gray-200 bg-[#116AD1] text-white flex-shrink-0">
                 <h2 className="text-lg font-semibold">
                   {getConversationTitle(selectedConversation)}
                 </h2>
                 <p className="text-sm opacity-90">
                   {selectedConversation.type === 'group' 
                     ? `${selectedConversation.participants?.length || 0} thành viên`
-                    : 'Cuộc trò chuyện trực tiếp'}
+                    : getOtherParticipantName(selectedConversation)}
                 </p>
               </div>
 
-              {/* Messages */}
+              {/* Messages - Có scroll riêng */}
               <div
                 ref={messagesContainerRef}
                 className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
@@ -378,47 +419,36 @@ const Chat = () => {
                   </div>
                 ) : (
                   messages.map((message) => {
-                    let senderId =
-                      typeof message.sender_id === 'object'
-                        ? message.sender_id?.user_id
-                        : message.sender_id;
-                    if (!senderId && message.sender?.user_id) {
-                      senderId = message.sender.user_id;
-                    }
-                    const isSystem =
-                      senderId === 'SYSTEM' || senderId?.includes('SYSTEM');
-                    const isAdmin = senderId?.includes('ADMIN');
+                    const currentUserId = localStorage.getItem("storeId");
+
+                    const sender = message.sender;
+                    const senderUserId = sender?.user_id;
+                    const senderName = sender?.username;
+                    const senderRole = sender?.role;
+
+                    const isMe = senderUserId?.endsWith(currentUserId);
+                    const isAdmin = senderRole === "ADMIN";
 
                     return (
                       <div
-                        key={message._id || message.id}
-                        className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
+                        key={message._id}
+                        className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                       >
                         <div
                           className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                            isAdmin
-                              ? 'bg-[#116AD1] text-white'
-                              : isSystem
-                              ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                              : 'bg-white text-gray-800 border border-gray-200'
+                            isMe
+                              ? "bg-[#116AD1] text-white"
+                              : isAdmin
+                              ? "bg-gray-200 text-gray-900"
+                              : "bg-white text-gray-800 border border-gray-200"
                           }`}
                         >
                           <div className="text-xs font-semibold mb-1 opacity-80">
-                            {isAdmin ? 'Admin' : isSystem ? 'Hệ thống' : senderId || 'Người dùng'}
+                            {isMe ? "Bạn" : senderName}
                           </div>
+
                           <div className="text-sm">{message.content}</div>
-                          {message.attachments && message.attachments.length > 0 && (
-                              <div className="mt-2 space-y-1">
-                                {message.attachments.map((url, idx) => (
-                                  <img
-                                    key={idx}
-                                    src={url}
-                                    alt={`Attachment ${idx + 1}`}
-                                    className="max-w-full h-auto rounded"
-                                  />
-                                ))}
-                              </div>
-                            )}
+
                           <div className="text-xs mt-1 opacity-70">
                             {formatTime(message.sent_at || message.createdAt)}
                           </div>
@@ -430,8 +460,8 @@ const Chat = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input */}
-              <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 bg-white">
+              {/* Input - Cố định */}
+              <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
                 <div className="flex gap-2">
                   <input
                     type="text"

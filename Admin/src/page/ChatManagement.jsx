@@ -326,7 +326,7 @@ const ChatManagement = () => {
       return username || userId || "Người dùng";
     }
 
-    return "Cuộc trò chuyện";
+    return "User";
   };
 
   const getLastMessagePreview = (conversation) => {

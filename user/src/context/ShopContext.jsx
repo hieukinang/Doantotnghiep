@@ -210,12 +210,11 @@ const ShopContextProvider = ({ children }) => {
       console.warn("⚠️ Lỗi khi logout:", error);
     } finally {
       // Clear tất cả localStorage
-      localStorage.clear();
+      localStorage.removeItem("clientToken");
+      localStorage.removeItem("clientUser");
+      localStorage.removeItem("clientUsername");
+      localStorage.removeItem("UserId");
       
-      setClientToken(null);
-      setClientUsername(null);
-      setClientUser(null);
-      setIsLoggedIn(false);
       toast.info("Đã đăng xuất");
       
       // Reload page để reset hoàn toàn state
