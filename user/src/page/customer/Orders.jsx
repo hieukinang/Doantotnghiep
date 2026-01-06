@@ -1065,12 +1065,12 @@ const Orders = () => {
                   <div className="border rounded-lg p-4 bg-gray-50">
                     <div className="flex gap-3 mb-4">
                       <img
-                        src={item.image || "https://via.placeholder.com/80"}
+                        src={item.OrderItemProductVariant.ProductVariantProduct?.main_image}
                         alt={item.title}
                         className="w-20 h-20 object-cover rounded border"
                       />
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-800">{item.title}</h4>
+                        <h4 className="font-semibold text-gray-800">{item.OrderItemProductVariant.ProductVariantProduct?.name}</h4>
                         <p className="text-sm text-gray-500">Số lượng: {item.quantity}</p>
                         <p className="text-sm text-[#116AD1] font-semibold">
                           {(item.price || 0).toLocaleString("vi-VN")}₫

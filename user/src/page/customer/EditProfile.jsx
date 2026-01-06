@@ -434,7 +434,7 @@ const EditProfile = () => {
                     {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
                   </button>
                   <Link
-                    to="/profile"
+                    to="/"
                     className="px-6 py-2 border rounded hover:bg-gray-50 text-center text-sm md:text-base"
                   >
                     Hủy

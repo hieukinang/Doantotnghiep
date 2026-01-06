@@ -6,7 +6,8 @@ import {
   Chat as ChatIcon,
   Send as SendIcon,
   Delete as DeleteIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  AttachFile as AttachFileIcon
 } from '@mui/icons-material';
 
 const Chat = () => {
@@ -16,7 +17,8 @@ const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState('');
-  const [socket, setSocket] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [_socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const previousMessagesLengthRef = useRef(0);
@@ -26,7 +28,7 @@ const Chat = () => {
     // Tự động tạo user trong chat system nếu chưa có
     const initAdminUser = async () => {
       const userId = localStorage.getItem('storeId');
-      const username = localStorage.getItem("storeName") || "Store";
+      const _username = localStorage.getItem("storeName") || "Store";
 
       if (!userId) {
         console.error('Cannot get userId from token');
@@ -179,19 +181,26 @@ const Chat = () => {
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
     setMessages([]);
+    setAttachments([]);
     isUserScrollingRef.current = false;
     previousMessagesLengthRef.current = 0;
   };
 
+  const handleAttachmentChange = (e) => {
+    const files = Array.from(e.target.files);
+    setAttachments(files);
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || sending || !selectedConversation) return;
+    if ((!newMessage.trim() && attachments.length === 0) || sending || !selectedConversation) return;
 
     setSending(true);
     try {
       const conversationId = selectedConversation._id || selectedConversation.id;
-      await ChatService.sendMessage(conversationId, newMessage.trim());
+      await ChatService.sendMessage(conversationId, newMessage.trim(), attachments);
       setNewMessage('');
+      setAttachments([]);
       isUserScrollingRef.current = false;
       setTimeout(() => fetchMessages(conversationId), 500);
     } catch (error) {
@@ -448,6 +457,21 @@ const Chat = () => {
 
                           <div className="text-sm">{message.content}</div>
 
+                          {message.attachments &&
+                            message.attachments.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {message.attachments.map((url, idx) => (
+                                  <img
+                                    key={idx}
+                                    src={url}
+                                    alt={`Attachment ${idx + 1}`}
+                                    className="max-w-full h-auto rounded cursor-pointer"
+                                    onClick={() => window.open(url, "_blank")}
+                                  />
+                                ))}
+                              </div>
+                            )}
+
                           <div className="text-xs mt-1 opacity-70">
                             {formatTime(message.sent_at || message.createdAt)}
                           </div>
@@ -461,7 +485,32 @@ const Chat = () => {
 
               {/* Input - Cố định */}
               <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
-                <div className="flex gap-2">
+                {/* Hiển thị file đính kèm đã chọn */}
+                {attachments.length > 0 && (
+                  <div className="mb-2 text-sm text-gray-600">
+                    <strong>File đính kèm:</strong> {attachments.map(f => f.name).join(', ')}
+                    <button 
+                      type="button" 
+                      onClick={() => setAttachments([])} 
+                      className="ml-2 text-red-500 hover:text-red-700 font-bold"
+                    >
+                      (Xóa)
+                    </button>
+                  </div>
+                )}
+                <div className="flex gap-2 items-center">
+                  {/* Button đính kèm file */}
+                  <label className="cursor-pointer bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300 transition" title="Đính kèm file">
+                    <AttachFileIcon style={{ fontSize: 20 }} />
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleAttachmentChange}
+                      className="hidden"
+                      disabled={sending}
+                    />
+                  </label>
+
                   <input
                     type="text"
                     value={newMessage}
@@ -472,7 +521,7 @@ const Chat = () => {
                   />
                   <button
                     type="submit"
-                    disabled={!newMessage.trim() || sending}
+                    disabled={(!newMessage.trim() && attachments.length === 0) || sending}
                     className="bg-[#116AD1] text-white px-4 py-2 rounded-lg hover:bg-[#0d5ba8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     <SendIcon style={{ fontSize: 20 }} />
