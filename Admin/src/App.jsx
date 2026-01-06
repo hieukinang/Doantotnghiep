@@ -107,7 +107,7 @@ function App() {
         />
         <Route path="/profile-detail" element={<ProfileDetail />} />
         <Route path="/chat-management" element={<ChatManagement />} />
-        <Route path="/wallet" element={<Wallet />} />
+        {/* <Route path="/wallet" element={<Wallet />} /> */}
         <Route path="/payment-success" element={<PaymentSuccess />} />
       </Route>
     </Routes>

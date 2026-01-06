@@ -18,7 +18,11 @@ class ChatService {
   }
 
   getToken(){
-    return localStorage.getItem('clientToken');
+    // Kiểm tra URL để chọn đúng token
+    const isSeller = window.location.href.includes('/seller');
+    return isSeller 
+      ? localStorage.getItem('sellerToken') 
+      : localStorage.getItem('clientToken');
   }
 
   // Cache để tránh tạo user nhiều lần

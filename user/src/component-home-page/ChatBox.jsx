@@ -28,7 +28,10 @@ const ChatBox = () => {
   const currentUsername = isSellerPage 
     ? (localStorage.getItem('storeName') || 'Store') 
     : (clientUsername || 'User');
-  const currentUserId = localStorage.getItem('userId');
+  // Seller dùng storeId, Client dùng userId
+  const currentUserId = isSellerPage 
+    ? localStorage.getItem('storeId') 
+    : localStorage.getItem('userId');
 
   // Set token khi thay đổi
   useEffect(() => {
@@ -258,14 +261,21 @@ const ChatBox = () => {
 
 // Component ChatWindow inline (không có header và close button riêng)
 const ChatWindowInline = ({ conversationId, otherUser, isSystemChat = false }) => {
-  const { clientToken } = useContext(ShopContext);
+  const { clientToken, sellerToken } = useContext(ShopContext);
+  const location = useLocation();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [sending, setSending] = useState(false);
   const messagesEndRef = React.useRef(null);
   const fileInputRef = React.useRef(null);
-  const currentUserId = localStorage.getItem('userId');
+  
+  // Seller dùng storeId, Client dùng userId
+  const isSellerPage = location.pathname.startsWith('/seller');
+  const currentUserId = isSellerPage 
+    ? localStorage.getItem('storeId') 
+    : localStorage.getItem('userId');
+  const currentToken = isSellerPage ? (sellerToken || clientToken) : (clientToken || sellerToken);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -276,12 +286,12 @@ const ChatWindowInline = ({ conversationId, otherUser, isSystemChat = false }) =
   }, [messages]);
 
   useEffect(() => {
-    if (conversationId && clientToken) {
+    if (conversationId && currentToken) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 5000);
       return () => clearInterval(interval);
     }
-  }, [conversationId, clientToken]);
+  }, [conversationId, currentToken]);
 
   const fetchMessages = async () => {
     if (!conversationId) return;

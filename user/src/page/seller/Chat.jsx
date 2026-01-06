@@ -44,7 +44,7 @@ const Chat = () => {
     console.log(token);
     if (!token) return;
 
-    const s = getChatSocket(token);
+    const s = getChatSocket();
     if (!s) return;
 
     setSocket(s);

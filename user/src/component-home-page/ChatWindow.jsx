@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import chatService from '../services/chatService';
 import { getChatSocket } from '../services/chatSocket';
@@ -6,7 +7,8 @@ import { Chat as ChatIcon, Close as CloseIcon, Send as SendIcon, AttachFile as A
 import { toast } from 'react-toastify';
 
 const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }) => {
-  const { clientToken } = useContext(ShopContext);
+  const { clientToken, sellerToken } = useContext(ShopContext);
+  const location = useLocation();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -15,7 +17,13 @@ const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  const currentUserId = localStorage.getItem('userId');
+  
+  // Seller dùng storeId, Client dùng userId
+  const isSellerPage = location.pathname.startsWith('/seller');
+  const currentUserId = isSellerPage 
+    ? localStorage.getItem('storeId') 
+    : localStorage.getItem('userId');
+  const currentToken = isSellerPage ? (sellerToken || clientToken) : (clientToken || sellerToken);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,7 +35,7 @@ const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }
 
   // Socket realtime messages
   useEffect(() => {
-    if (!clientToken || !conversationId) return;
+    if (!currentToken || !conversationId) return;
 
     const s = getChatSocket();
     if (!s) return;
@@ -49,18 +57,18 @@ const ChatWindow = ({ conversationId, otherUser, onClose, isSystemChat = false }
     return () => {
       s.off('new_message', handleNewMessage);
     };
-  }, [clientToken, conversationId]);
+  }, [currentToken, conversationId]);
 
   useEffect(() => {
-    if (conversationId && clientToken) {
+    if (conversationId && currentToken) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 5000);
       return () => clearInterval(interval);
     }
-  }, [conversationId, clientToken]);
+  }, [conversationId, currentToken]);
 
   const fetchMessages = async () => {
-    if (!conversationId || !clientToken) return;
+    if (!conversationId || !currentToken) return;
 
     try {
       const data = await chatService.getMessages(conversationId);
