@@ -62,7 +62,7 @@ const Product = sequelize.define(
       defaultValue: 0.0,
     },
     rating_average: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.FLOAT,
       defaultValue: 0,
       validate: {
         min: 0,

@@ -102,8 +102,8 @@ export const createReview = asyncHandler(async (req, res, next) => {
     const avgRating = stats && stats.avgRating ? Number(stats.avgRating) : Number(rating);
     const count = stats && stats.count ? Number(stats.count) : 1;
 
-    // product.rating_average is INTEGER in model, store rounded nearest integer
-    const newRatingAverage = Math.round(avgRating);
+      // Làm tròn avgRating sau dấu phẩy 1 chữ số
+      const newRatingAverage = Math.round(avgRating * 10) / 10;
 
     await product.update(
       { rating_average: newRatingAverage, review_numbers: count },

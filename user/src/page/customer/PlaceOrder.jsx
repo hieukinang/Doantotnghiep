@@ -34,11 +34,7 @@ const PlaceOrder = () => {
       id: item.id,
       productId: item.productId, // Lưu productId để quay lại
       name: item.name,
-      image: item.image ? (item.image.startsWith("http") 
-        ? item.image 
-        : item.image.startsWith("/")
-        ? `${backendURL.replace('/api', '')}${item.image}`
-        : `${backendURL.replace('/api', '')}/products/${item.image}`) : null,
+      image: item.image,
       price: item.price || 0,
       shippingFee: item.shippingFee || 30000,
       qty: quantities[item.id] || item.qty || 1,
@@ -83,6 +79,10 @@ const PlaceOrder = () => {
         if (!window.location.pathname.includes('/place-order')) {
           localStorage.removeItem("quantities");
           localStorage.removeItem("buyNowItems");
+          localStorage.removeItem("checkedItems");
+          localStorage.removeItem("appliedShippingCode");
+          localStorage.removeItem("appliedCartCoupon");
+          localStorage.removeItem("appliedStoreCoupons");
         }
       }, 0);
       
@@ -112,7 +112,7 @@ const PlaceOrder = () => {
             const storeName = res.data?.data?.name || "Cửa hàng không xác định";
             newStoreNames[storeId] = storeName;
           } catch (err) {
-            console.error(`❌ Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
+            console.error(`Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
             newStoreNames[storeId] = "Cửa hàng không xác định";
           }
         })
@@ -1025,9 +1025,6 @@ const PlaceOrder = () => {
                   </div>
                 )}
               </div>
-              <Link to="/cart" className="mt-3 text-sm text-[#116AD1] underline block">
-                Chỉnh sửa sản phẩm
-              </Link>
             </div>
 
             {/* ===================== MÃ GIẢM GIÁ ===================== */}

@@ -107,7 +107,7 @@ const Banners = () => {
   }, []);
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4">
       <div className="flex justify-end mb-4">
         <button
           className="bg-blue-600 text-right text-white px-5 py-2 rounded shadow hover:bg-blue-700 font-semibold"

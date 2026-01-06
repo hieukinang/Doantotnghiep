@@ -2,6 +2,7 @@ import { Sequelize } from "sequelize";
 import "colors";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import fetch from "node-fetch";
 
 dotenv.config();
 
@@ -29,38 +30,58 @@ const connectToDB = async () => {
     const managerEmail = "manager@admin.com";
 
     // check existence via raw SQL
-      const existing = await sequelize.query(
-        "SELECT id FROM admins WHERE role = :role LIMIT 1",
+    const existing = await sequelize.query(
+      "SELECT id FROM admins WHERE role = :role LIMIT 1",
+      {
+        replacements: { role: ADMIN_ROLES.MANAGER },
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
+
+    if (!existing || existing.length === 0) {
+      // hash password before inserting
+      const hashedPassword = await bcrypt.hash(managerPassword, 12);
+      const id = `ADMIN1766313158298`;
+
+      await sequelize.query(
+        `INSERT INTO admins (id, username, password, email, role, createdAt, updatedAt)
+        VALUES (:id, :username, :password, :email, :role, NOW(), NOW())`,
         {
-          replacements: { role: ADMIN_ROLES.MANAGER },
-          type: sequelize.QueryTypes.SELECT,
+          replacements: {
+            id,
+            username: managerUsername,
+            password: hashedPassword,
+            email: managerEmail,
+            role: ADMIN_ROLES.MANAGER,
+          },
+          type: sequelize.QueryTypes.INSERT,
         }
       );
 
-      if (!existing || existing.length === 0) {
-        // hash password before inserting
-        const hashedPassword = await bcrypt.hash(managerPassword, 12);
-        const id = `ADMIN${Date.now()}`;
+      console.log(`Tạo tài khoản quản trị viên mặc định '${managerUsername}'`.green);
+      const userId = id; // Thay bằng id đã tạo
+      const username = 'Admin';
 
-        await sequelize.query(
-          `INSERT INTO admins (id, username, password, email, role, createdAt, updatedAt)
-           VALUES (:id, :username, :password, :email, :role, NOW(), NOW())`,
-          {
-            replacements: {
-              id,
-              username: managerUsername,
-              password: hashedPassword,
-              email: managerEmail,
-              role: ADMIN_ROLES.MANAGER,
-            },
-            type: sequelize.QueryTypes.INSERT,
-          }
-        );
-
-        console.log(`Tạo tài khoản quản trị viên mặc định '${managerUsername}'`.green);
-      } else {
-        console.log("Đã tồn tại tài khoản quản trị viên mặc định".yellow);
-      }
+      fetch('http://127.0.0.1:3000/api/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          username: username,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('success');
+        })
+        .catch((error) => {
+          console.error('error');
+        });
+    } else {
+      console.log("Đã tồn tại tài khoản quản trị viên mặc định".yellow);
+    }
   } catch (error) {
     console.error(`Error: ${error.message}`.red.bold);
     process.exit(1);

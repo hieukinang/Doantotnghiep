@@ -22,7 +22,7 @@ router.post('/create', async (req, res, next) => {
   try {
     const { user_id } = req.body;
     if (!user_id) {
-      return next(new APIError('user_id is required', 400));
+      return next(new APIError('user_id rỗng', 400));
     }
 
     const parsed = parseCompositeUserId(user_id);
@@ -38,12 +38,13 @@ router.post('/create', async (req, res, next) => {
     }
 
     if (!role) {
-      return next(new APIError('role cannot be determined from user_id; provide role explicitly', 400));
+      return next(new APIError('role không thể xác định từ user_id; vui lòng cung cấp role rõ ràng', 400));
     }
 
     await User.create({ user_id: parsed.original, role, username });
     res.status(201).json({ status: 'success', data: { user_id: parsed.original, role, username } });
   } catch (err) {
+    console.error(err);
     next(err);
   }
 });
