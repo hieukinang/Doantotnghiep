@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { ShopContext } from "../../context/ShopContext";
 import { toast } from "react-toastify";
@@ -15,6 +16,8 @@ export default function Wallet() {
 
     const [amount, setAmount] = useState("");
     const [method, setMethod] = useState("stripe");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [history, setHistory] = useState([]);
@@ -25,6 +28,9 @@ export default function Wallet() {
     const [tab, setTab] = useState("deposit");
 
     const sellerToken = localStorage.getItem("sellerToken");
+    const sellerUser = JSON.parse(localStorage.getItem('sellerUser') || '{}');
+    const hasBankInfo =
+        sellerUser?.bank_name && sellerUser?.bank_account_number && sellerUser?.bank_account_holder_name;
 
     // ================= LẤY SỐ DƯ =================
     const fetchWallet = async () => {
@@ -62,7 +68,7 @@ export default function Wallet() {
     }, []);
 
     useEffect(() => {
-        if (startDate && endDate) fetchHistory();
+        fetchHistory();
     }, [startDate, endDate, page]);
 
     // ================= NẠP TIỀN =================
@@ -102,11 +108,34 @@ export default function Wallet() {
     };
 
     // ================= RÚT TIỀN =================
-    const handleWithdraw = () => {
+    const handleWithdraw = async () => {
         if (!amount || Number(amount) <= 0) {
-            return toast.error("Nhập số tiền muốn rút!");
+            return toast.error("Vui lòng nhập số tiền muốn rút!");
         }
-        console.log("Rút:", amount);
+        if (!password) {
+            return toast.error("Vui lòng nhập mật khẩu!");
+        }
+
+        try {
+            const res = await axios.post(
+                `${backendURL}/transactions/withdraw`,
+                { amount: Number(amount), password },
+                { headers: { Authorization: `Bearer ${sellerToken}` } }
+            );
+
+            if (res.data.status === "success") {
+                toast.success("Rút tiền thành công!");
+                setAmount("");
+                setPassword("");
+                fetchWallet();
+                fetchHistory();
+            } else {
+                toast.error(res.data.message || "Rút tiền thất bại!");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!");
+        }
     };
 
     return (
@@ -182,9 +211,59 @@ export default function Wallet() {
                         </div>
                     )}
 
+                    {/* Xác nhận rút tiền */}
+                    {tab === "withdraw" && (
+                        <div className="mt-6">
+                            {!hasBankInfo ? (
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                    <p className="font-medium text-yellow-800 mb-2">⚠️ Chưa có thông tin ngân hàng</p>
+                                    <p className="text-xs text-yellow-700 mb-3">Vui lòng cập nhật thông tin ngân hàng trước khi rút tiền.</p>
+                                    <Link
+                                        to="/seller/edit-profile"
+                                        className="inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-xs font-medium"
+                                    >
+                                        Cập nhật ngay
+                                    </Link>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Thông tin ngân hàng */}
+                                    <div className="bg-gray-50 border rounded-lg p-3 mb-4">
+                                        <p className="text-xs text-gray-500 mb-1">Tài khoản nhận tiền</p>
+                                        <p className="font-medium">{sellerUser.bank_name}</p>
+                                        <p className="text-xs">{sellerUser.bank_account_number}</p>
+                                        <p className="text-xs text-gray-600">{sellerUser.bank_account_holder_name}</p>
+                                    </div>
+
+                                    <p className="font-medium mb-2">Xác nhận rút tiền</p>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="Nhập mật khẩu tài khoản"
+                                            className="border border-blue-300 rounded-lg px-3 py-2 w-full pr-10"
+                                            autoComplete="off"
+                                            style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                        >
+                                            {showPassword ? "🙈" : "👁️"}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">Nhập mật khẩu đăng nhập để xác nhận giao dịch</p>
+                                </>
+                            )}
+                        </div>
+                    )}
+
                     <button
                         onClick={tab === "deposit" ? handleTopUp : handleWithdraw}
-                        className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow"
+                        disabled={tab === "withdraw" && !hasBankInfo}
+                        className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
                         {tab === "deposit" ? "Nạp tiền" : "Rút tiền"}
                     </button>
@@ -217,48 +296,61 @@ export default function Wallet() {
                 </div>
 
                 {/* Danh sách */}
-                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-                    {history.map((item, i) => (
-                        <div key={i} className="p-3 border rounded-lg flex justify-between">
-                            <div>
-                                <div className="font-medium">{item.description}</div>
-                                <div className="text-gray-500 text-xs">{formatDateTime(item.updatedAt)}</div>
-                            </div>
+                <div className="space-y-3 overflow-y-auto flex-1 pr-1 max-h-[350px] lg:max-h-none">
+                    {history.map((item, i) => {
+                        const isDebit = item.type === "WITHDRAW" || item.type === "PAY_ORDER";
+                        return (
+                            <div key={i} className="p-3 border rounded-lg flex justify-between">
+                                <div>
+                                    <div className="font-medium text-sm md:text-base">{item.description}</div>
+                                    <div className="text-gray-500 text-xs">{formatDateTime(item.updatedAt)}</div>
+                                </div>
 
-                            <div
-                                className={
-                                    item.amount > 0
-                                        ? "text-green-600 font-semibold"
-                                        : "text-red-600 font-semibold"
-                                }
-                            >
-                                {item.amount > 0 ? "+ " : "- "}
-                                ₫{Math.abs(item.amount).toLocaleString()}
+                                <div className={`text-sm md:text-base ${isDebit ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}`}>
+                                    {isDebit ? "- " : "+ "}
+                                    ₫{Math.abs(item.amount).toLocaleString()}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Phân trang */}
-                <div className="mt-4 flex items-center justify-between">
-                    <button
-                        disabled={page <= 1}
-                        onClick={() => setPage(page - 1)}
-                        className="px-3 py-1 border rounded disabled:opacity-50"
-                    >
-                        Trước
-                    </button>
+                {totalPages > 1 && (
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                        <button
+                            disabled={page <= 1}
+                            onClick={() => setPage(page - 1)}
+                            className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            ‹
+                        </button>
 
-                    <div>Trang {page} / {totalPages}</div>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                            .map((p, index, arr) => (
+                                <span key={p} className="flex items-center">
+                                    {index > 0 && arr[index - 1] !== p - 1 && (
+                                        <span className="px-1 text-gray-400">...</span>
+                                    )}
+                                    <button
+                                        onClick={() => setPage(p)}
+                                        className={`w-8 h-8 rounded text-sm ${page === p ? 'bg-blue-600 text-white' : 'border hover:bg-gray-100'}`}
+                                    >
+                                        {p}
+                                    </button>
+                                </span>
+                            ))}
 
-                    <button
-                        disabled={page >= totalPages}
-                        onClick={() => setPage(page + 1)}
-                        className="px-3 py-1 border rounded disabled:opacity-50"
-                    >
-                        Sau
-                    </button>
-                </div>
+                        <button
+                            disabled={page >= totalPages}
+                            onClick={() => setPage(page + 1)}
+                            className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            ›
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
