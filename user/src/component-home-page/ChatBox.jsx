@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import ChatWindow from './ChatWindow';
 import chatService from '../services/chatService';
+import { getChatSocket } from '../services/chatSocket';
 import { 
   Chat as ChatIcon, 
   Close as CloseIcon, 
@@ -284,6 +285,30 @@ const ChatWindowInline = ({ conversationId, otherUser, isSystemChat = false }) =
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Socket realtime messages
+  useEffect(() => {
+    if (!currentToken || !conversationId) return;
+
+    const s = getChatSocket();
+    if (!s) return;
+
+    const handleNewMessage = (message) => {
+      if (!message?.conversation_id) return;
+      if (String(message.conversation_id) !== String(conversationId)) return;
+
+      setMessages((prev) => {
+        const exists = prev.some((m) => (m._id || m.id) === (message._id || message.id));
+        return exists ? prev : [...prev, message];
+      });
+    };
+
+    s.on('new_message', handleNewMessage);
+
+    return () => {
+      s.off('new_message', handleNewMessage);
+    };
+  }, [currentToken, conversationId]);
 
   useEffect(() => {
     if (conversationId && currentToken) {

@@ -4,6 +4,7 @@ import axios from "axios";
 import Header from "../../component-home-page/Header";
 import Footer from "../../component-home-page/Footer";
 import MessageButton from "../../component-home-page/MessageButton";
+import { toast } from "react-toastify";
 import { ShopContext } from "../../context/ShopContext";
 
 const formatPrice = (v) =>
@@ -102,7 +103,7 @@ const StoreProfile = () => {
 
   const handleFollowToggle = async () => {
     if (!clientUser || !clientUser.id) {
-      alert("Bạn cần đăng nhập để theo dõi cửa hàng");
+      toast.warning("Bạn cần đăng nhập để theo dõi cửa hàng");
       return;
     }
 
@@ -125,7 +126,7 @@ const StoreProfile = () => {
       }
     } catch (err) {
       console.error("Error following/unfollowing store:", err);
-      alert("Có lỗi xảy ra, vui lòng thử lại");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setFollowLoading(false);
     }

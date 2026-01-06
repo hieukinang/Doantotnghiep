@@ -243,7 +243,7 @@ const PlaceOrder = () => {
 
   const handleSaveAddress = async () => {
     if (!formData.city || !formData.detail_address) {
-      alert("Vui lòng điền đủ thông tin địa chỉ (Tỉnh/Thành phố và Địa chỉ chi tiết).");
+      toast.warning("Vui lòng điền đủ thông tin địa chỉ (Tỉnh/Thành phố và Địa chỉ chi tiết).");
       return;
     }
 
@@ -451,7 +451,7 @@ const PlaceOrder = () => {
   // Áp dụng coupon cho store
   const applyStoreCoupon = async (coupon) => {
     if (!selectedStoreId || !clientToken) {
-      alert("Lỗi: Không đủ thông tin để áp dụng mã giảm giá!");
+      toast.error("Lỗi: Không đủ thông tin để áp dụng mã giảm giá!");
       return;
     }
 
@@ -460,7 +460,7 @@ const PlaceOrder = () => {
       const storeItems = orderItems.filter((item) => item.storeId === selectedStoreId);
 
       if (storeItems.length === 0) {
-        alert("Không tìm thấy sản phẩm của cửa hàng này!");
+        toast.error("Không tìm thấy sản phẩm của cửa hàng này!");
         return;
       }
 
@@ -489,11 +489,11 @@ const PlaceOrder = () => {
         toast.success("Áp dụng mã giảm giá thành công cho toàn bộ cửa hàng!");
         setShowStoreCouponModal(false);
       } else {
-        alert(res.data.message || "Áp dụng mã giảm giá thất bại!");
+        toast.error(res.data.message || "Áp dụng mã giảm giá thất bại!");
       }
     } catch (err) {
       console.error("❌ Lỗi áp mã:", err);
-      alert(err.response?.data?.message || "Không thể áp dụng mã giảm giá!");
+      toast.error(err.response?.data?.message || "Không thể áp dụng mã giảm giá!");
     }
   };
   const applyCouponCart = (coupon) => {
@@ -622,11 +622,11 @@ const PlaceOrder = () => {
   // ------------------- LOGIC ĐẶT HÀNG (API) -------------------
   const handlePlaceOrder = async () => {
     if (!mainAddress) {
-      alert("Vui lòng chọn địa chỉ nhận hàng.");
+      toast.warning("Vui lòng chọn địa chỉ nhận hàng.");
       return;
     }
     if (orderItems.length === 0) {
-      alert("Không có sản phẩm nào được chọn để đặt hàng.");
+      toast.warning("Không có sản phẩm nào được chọn để đặt hàng.");
       return;
     }
 
@@ -727,11 +727,11 @@ const PlaceOrder = () => {
         navigate("/");
       } else {
         const failedOrders = results.filter(res => res.status !== "success");
-        alert(`Có ${failedOrders.length} đơn hàng đặt thất bại!`);
+        toast.error(`Có ${failedOrders.length} đơn hàng đặt thất bại!`);
       }
     } catch (error) {
       console.error("❌ Lỗi khi đặt hàng:", error);
-      alert(error.response?.data?.message || "Đặt hàng thất bại!");
+      toast.error(error.response?.data?.message || "Đặt hàng thất bại!");
     }
   };
 

@@ -5,6 +5,7 @@ import IconView from "../../assets/home/icon-view.svg";
 import IconDelete from "../../assets/home/icon-delete.svg";
 import IconEdit from "../../assets/home/icon-edit.svg";
 import { ShopContext} from "../../context/ShopContext"
+import { toast } from "react-toastify";
 
 const ListProduct = () => {
   const navigate = useNavigate();
@@ -138,11 +139,11 @@ const ListProduct = () => {
         prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
       );
 
-      alert("Cập nhật sản phẩm thành công!");
+      toast.success("Cập nhật sản phẩm thành công!");
       setOpenUpdate(false);
     } catch (err) {
       console.error("Lỗi cập nhật sản phẩm:", err);
-      alert(
+      toast.error(
         "Cập nhật sản phẩm thất bại: " +
           (err.response?.data?.message || err.message)
       );
