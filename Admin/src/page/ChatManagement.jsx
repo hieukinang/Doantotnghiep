@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import adminChatService from '../services/chatService';
+import { toast } from "react-toastify";
 import { getAdminChatSocket } from '../services/chatSocket';
 import {
   Chat as ChatIcon,
   Send as SendIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
-  AttachFile as AttachFileIcon, // Import icon file
+  AttachFile as AttachFileIcon,
 } from '@mui/icons-material';
 
 const ChatManagement = () => {
@@ -16,7 +17,7 @@ const ChatManagement = () => {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState("");
-  const [attachments, setAttachments] = useState([]); // State mới cho attachments
+  const [attachments, setAttachments] = useState([]);
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -24,7 +25,6 @@ const ChatManagement = () => {
   // Lưu trữ độ dài messages trước khi fetch mới để quyết định scroll
   const prevMessagesLengthRef = useRef(0);
 
-  // --- EFFECTS ---
   useEffect(() => {
     // Tự động tạo user trong chat system nếu chưa có
     const initAdminUser = async () => {
@@ -33,22 +33,9 @@ const ChatManagement = () => {
 
       if (!userId) {
         console.error('Cannot get userId from token');
-        alert('Không thể xác thực. Vui lòng đăng nhập lại.');
+        toast.error("Không thể xác thực. Vui lòng đăng nhập lại.");
         return;
       }
-
-//       try {
-//         // Tạo user trong chat system (sẽ tự động handle duplicate)
-//         await adminChatService.createUser(userId, username);
-//         // Đợi một chút để đảm bảo user đã được tạo
-//         await new Promise((resolve) => setTimeout(resolve, 300));
-//         // Sau đó mới fetch conversations
-//         fetchConversations();
-//       } catch (error) {
-//         // Nếu vẫn lỗi, thử fetch conversations (có thể user đã tồn tại)
-//         console.warn('Could not create admin user in chat system:', error);
-//         setTimeout(() => fetchConversations(), 500);
-//       }
     };
 
     initAdminUser();
@@ -128,23 +115,21 @@ const ChatManagement = () => {
     if (selectedConversation) {
       const conversationId = selectedConversation._id || selectedConversation.id;
       
-      // Reset độ dài cũ khi chọn conversation mới để kích hoạt cuộn lần đầu
+      // Reset độ dài cũ khi chọn conversation mới
       prevMessagesLengthRef.current = 0; 
 
       // Fetch lần đầu và thiết lập auto refresh
       fetchMessages(conversationId, true);
 
       // Auto refresh messages every 3 seconds
-      const interval = setInterval(() => {
-        fetchMessages(conversationId);
-      }, 3000);
+//       const interval = setInterval(() => {
+//         fetchMessages(conversationId);
+//       }, 3000);
       return () => clearInterval(interval);
     }
   }, [selectedConversation]);
 
   useEffect(() => {
-    // Logic cuộn: Chỉ cuộn nếu tin nhắn mới được thêm vào (mới > cũ)
-    // hoặc là lần đầu tiên load messages (cũ == 0)
     if (messages.length > prevMessagesLengthRef.current || prevMessagesLengthRef.current === 0) {
       scrollToBottom();
     }
@@ -157,7 +142,6 @@ const ChatManagement = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // --- FETCH FUNCTIONS ---
   const fetchConversations = async () => {
     setLoading(true);
     try {
@@ -170,25 +154,7 @@ const ChatManagement = () => {
         error.message ||
         'Không thể tải danh sách cuộc trò chuyện';
 
-      // Nếu lỗi là user chưa tồn tại, thử tạo lại user (Giữ nguyên logic này)
-//       if (
-//         errorMessage.includes('does no longer exist') ||
-//         errorMessage.includes('Unauthorized')
-//       ) {
-//         const userId = adminChatService.getUserIdFromToken();
-//         const username = localStorage.getItem('adminUsername') || 'Admin';
-//         if (userId) {
-//           try {
-//             await adminChatService.createUser(userId, username);
-//             setTimeout(() => fetchConversations(), 500);
-//             return;
-//           } catch (createError) {
-//             console.error("Error creating admin user:", createError);
-//           }
-//         }
-//       }
-
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -199,9 +165,8 @@ const ChatManagement = () => {
       const data = await adminChatService.getMessages(conversationId);
       const newMessages = Array.isArray(data) ? data : [];
 
-      // Kiểm tra xem có tin nhắn mới hơn không (chỉ khi không phải lần đầu)
+      // Kiểm tra xem có tin nhắn mới hơn không
       if (!isInitialLoad && newMessages.length > messages.length) {
-        // Logic cuộn sẽ được kích hoạt trong useEffect [messages]
       } else if (isInitialLoad) {
         // Đảm bảo cuộn lần đầu
         prevMessagesLengthRef.current = newMessages.length;
@@ -213,7 +178,6 @@ const ChatManagement = () => {
       console.error("Error fetching messages:", error);
     }
   };
-  // --- END FETCH FUNCTIONS ---
 
   // --- HANDLERS ---
   const handleSelectConversation = (conversation) => {
@@ -229,9 +193,7 @@ const ChatManagement = () => {
   const sendMessage = async (e) => {
     e.preventDefault();
     if (
-      (!newMessage.trim() && attachments.length === 0) || // Chỉ cần content HOẶC file
-      sending || 
-      !selectedConversation
+      (!newMessage.trim() && attachments.length === 0) || sending || !selectedConversation
     )
       return;
 
@@ -239,21 +201,19 @@ const ChatManagement = () => {
     try {
       const conversationId =
         selectedConversation._id || selectedConversation.id;
-      // Giả định adminChatService.sendMessage đã được sửa để chấp nhận attachments (dù yêu cầu là không sửa service)
-      // Dựa trên code gốc, tôi sẽ gọi hàm này với attachments:
       await adminChatService.sendMessage(
         conversationId, 
         newMessage.trim(),
-        attachments // Truyền mảng files
+        attachments
       );
 
       setNewMessage("");
-      setAttachments([]); // Xóa attachments sau khi gửi
+      setAttachments([]);
       // Refresh messages và đảm bảo cuộn
       setTimeout(() => fetchMessages(conversationId, true), 500); 
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("Không thể gửi tin nhắn");
+      toast.error("Không thể gửi tin nhắn");
     } finally {
       setSending(false);
     }
@@ -280,17 +240,15 @@ const ChatManagement = () => {
       }
     } catch (error) {
       console.error("Error deleting conversation:", error);
-      alert("Không thể xóa cuộc trò chuyện");
+      toast.error("Không thể xóa cuộc trò chuyện");
     }
   };
-  // --- END HANDLERS ---
 
-  // --- FORMATTERS ---
+  // --- format time ---
   const formatTime = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    // Chỉ hiển thị giờ và phút
-    return date.toLocaleString("vi-VN", {
+    return date.toLocaleString("vi-VN", { // Chỉ hiện thị giờ và phút
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -301,7 +259,7 @@ const ChatManagement = () => {
       return conversation.name || "Nhóm chat";
     }
 
-    // Direct conversation - lấy tên của participant khác
+    // Lấy tên của participant khác
     const currentUserId = localStorage.getItem('adminId');
     const otherParticipant = conversation.participants?.find(
       (p) =>
@@ -315,14 +273,14 @@ const ChatManagement = () => {
           ? otherParticipant.user_id
           : otherParticipant.user_id?.user_id;
       
-      const username = otherParticipant.username; // Lấy username
+      const username = otherParticipant.username;
 
-      // Kiểm tra nếu là SYSTEM
+      // Kiểm tra nếu là ADMIN
       if (userId === "ADMIN" || userId?.includes("ADMIN")) {
         return "Hệ thống";
       }
       
-      // Hiển thị username (nếu có), nếu không có thì fallback về ID
+      // Hiển thị username hoặc userId
       return username || userId || "Người dùng";
     }
 
@@ -341,12 +299,10 @@ const ChatManagement = () => {
     }
     return "Chưa có tin nhắn";
   };
-  // --- END FORMATTERS ---
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - Danh sách conversations (Scroll riêng) */}
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -391,7 +347,7 @@ const ChatManagement = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1">
                           <ChatIcon
-                            style={{ fontSize: 18, color: "#116AD1" }} // Icon nhỏ hơn
+                            style={{ fontSize: 18, color: "#116AD1" }}
                           />
                           <h3 className="font-semibold text-sm text-gray-800 truncate">
                             {getConversationTitle(conv)}
@@ -402,7 +358,7 @@ const ChatManagement = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1 truncate ml-5"> {/* Lệch trái */}
+                        <p className="text-xs text-gray-500 mt-1 truncate ml-5"> 
                           {getLastMessagePreview(conv)}
                         </p>
                         <p className="text-xs text-gray-400 mt-1 ml-5">
@@ -426,7 +382,7 @@ const ChatManagement = () => {
           </div>
         </div>
 
-        {/* Main Content - Messages (Scroll riêng) */}
+        {/* Main Content - Messages */}
         <div className="flex-1 flex flex-col bg-white">
           {selectedConversation ? (
             <>
@@ -474,7 +430,7 @@ const ChatManagement = () => {
             }
 
             const currentAdminId = localStorage.getItem('adminId');
-            const isAdmin = senderId === currentAdminId; // So sánh chính xác admin hiện tại
+            const isAdmin = senderId === currentAdminId;
 
                     return (
                       <div
@@ -484,7 +440,7 @@ const ChatManagement = () => {
                         }`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-xl px-3 py-2 ${ // Rounded-xl và padding nhỏ hơn
+                          className={`max-w-[70%] rounded-xl px-3 py-2 ${
                             isAdmin
                               ? "bg-[#116AD1] text-white"
                               : senderId === "SYSTEM" || senderId?.includes("ADMIN")
@@ -499,7 +455,7 @@ const ChatManagement = () => {
                               ? "Hệ thống"
                               : senderUsername || "Người dùng"}
                           </div>
-                          <div className="text-sm">{message.content}</div> {/* Tin nhắn nhỏ hơn */}
+                          <div className="text-sm">{message.content}</div>
                           {message.attachments &&
                             message.attachments.length > 0 && (
                               <div className="mt-2 space-y-1">
@@ -509,7 +465,7 @@ const ChatManagement = () => {
                                     src={url}
                                     alt={`Attachment ${idx + 1}`}
                                     className="max-w-full h-auto rounded cursor-pointer"
-                                    onClick={() => window.open(url, "_blank")} // Mở file trong tab mới
+                                    onClick={() => window.open(url, "_blank")}
                                   />
                                 ))}
                               </div>
@@ -544,7 +500,6 @@ const ChatManagement = () => {
                   </div>
                 )}
                 <div className="flex gap-2 items-center">
-                    {/* Button đính kèm file */}
                     <label className="cursor-pointer bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300 transition" title="Đính kèm file">
                     <AttachFileIcon style={{ fontSize: 20 }} />
                     <input

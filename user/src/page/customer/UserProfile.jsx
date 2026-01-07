@@ -22,7 +22,7 @@ const UserProfile = () => {
       }
 
       try {
-        // Lấy thông tin client từ API
+        // Lấy thông tin client
         const res = await axios.get(`${backendURL}/clients/${userId}`);
         if (res.data?.status === 'success' && res.data?.data?.doc) {
           const userData = res.data.data.doc;

@@ -26,6 +26,7 @@ const navItems = [
   // { label: "Chỉnh sửa sản phẩm", icon: EditProductIcon, href: "/seller/update-product" },
   { label: "Báo cáo doanh số", icon: ReportIcon, href: "/seller/sales-report" },
   { label: "Đánh giá", icon: RatingIcon, href: "/seller/rating" },
+  {label: "Người theo dõi", icon: UserIcon, href: "/seller/followed"},
   // { label: "Tài chính", icon: FinanceIcon, href: "/seller/finance" },
   { label: "Hồ sơ cửa hàng", icon: StoreIcon, href: "/seller/edit-profile" },
   // { label: "Quản lý người dùng", icon: UserIcon, href: "/seller/edit-user" },

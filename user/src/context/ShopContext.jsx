@@ -38,7 +38,7 @@ const ShopContextProvider = ({ children }) => {
   const [ordersClient, setOrdersClient] = useState([]);
   const [followedStores, setFollowedStores] = useState([]);
 
-  // ================== 🛒 GIỎ HÀNG ==================
+  // ================== GIỎ HÀNG ==================
 
   const fetchMyCart = async () => {
     if (!clientToken) return;
@@ -93,22 +93,22 @@ const ShopContextProvider = ({ children }) => {
         })
       );
 
-      // ✅ Cập nhật toàn bộ state
+      // Cập nhật toàn bộ state
       setCart(doc);
       setCartItems(enrichedItems);
       setCartTotal(doc.total_amount || 0);
       setShippingFee(doc.total_shipping_fee || 0);
       setCartCount(enrichedItems.length);
 
-      console.log("🛒 CART DATA:", enrichedItems);
+      console.log("CART DATA:", enrichedItems);
     } catch (error) {
-      console.error("❌ Lỗi khi tải giỏ hàng:", error);
+      console.error("Lỗi khi tải giỏ hàng:", error);
     }
   };
   const addToCart = async (productId, quantity = 1) => {
     console.log(clientToken);
     if (!clientToken) {
-      toast.warning("⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!");
+      toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!");
       return;
     }
     try {
@@ -125,7 +125,7 @@ const ShopContextProvider = ({ children }) => {
         toast.error(res.data.message || "Không thể thêm sản phẩm!");
       }
     } catch (error) {
-      console.error("❌ Lỗi khi thêm vào giỏ:", error);
+      console.error("Lỗi khi thêm vào giỏ:", error);
       toast.error("Không thể thêm sản phẩm!");
     }
   };
@@ -144,7 +144,7 @@ const ShopContextProvider = ({ children }) => {
         toast.error(res.data.message || "Không thể xoá sản phẩm!");
       }
     } catch (error) {
-      console.error("❌ Lỗi khi xoá sản phẩm:", error);
+      console.error("Lỗi khi xoá sản phẩm:", error);
       toast.error("Không thể xoá sản phẩm khỏi giỏ hàng!");
     }
   };
@@ -162,7 +162,7 @@ const ShopContextProvider = ({ children }) => {
       );
 
       if (res.data?.token) {
-        console.log("✅ Đăng nhập thành công:", res.data);
+        console.log(" Đăng nhập thành công:", res.data);
         const clientToken = res.data.token;
         const userData = res.data?.data?.user;
         const username = userData?.username || userData?.email || "Client";
@@ -180,7 +180,7 @@ const ShopContextProvider = ({ children }) => {
         setClientUsername(username);
         setIsLoggedIn(true);
         await fetchMyCart();
-        console.log("🧩 token nhận được:", clientToken);
+        console.log("token nhận được:", clientToken);
         toast.success("Đăng nhập thành công!");
         return { success: true, username };
       } else {
@@ -188,7 +188,7 @@ const ShopContextProvider = ({ children }) => {
         return { success: false };
       }
     } catch (err) {
-      console.error("❌ Lỗi khi đăng nhập:", err);
+      console.error("Lỗi khi đăng nhập:", err);
       toast.error(err.response?.data?.message || "Đăng nhập thất bại!");
       return { success: false };
     }
@@ -207,7 +207,7 @@ const ShopContextProvider = ({ children }) => {
         }
       );
     } catch (error) {
-      console.warn("⚠️ Lỗi khi logout:", error);
+      console.warn("Lỗi khi logout:", error);
     } finally {
       // Clear tất cả localStorage
       localStorage.removeItem("clientToken");
@@ -222,7 +222,7 @@ const ShopContextProvider = ({ children }) => {
     }
   };
 
-  // ================== 🧩 DANH MỤC / SẢN PHẨM ==================
+  // ================== DANH MỤC / SẢN PHẨM ==================
 
   const getAllSuperCategories = async () => {
     try {
@@ -231,7 +231,7 @@ const ShopContextProvider = ({ children }) => {
       setSupercategories(data);
       return data;
     } catch (error) {
-      console.error("❌ Lỗi khi tải supercategories:", error);
+      console.error("Lỗi khi tải supercategories:", error);
       return [];
     }
   };
@@ -243,7 +243,7 @@ const ShopContextProvider = ({ children }) => {
       setCategories(data);
       return data;
     } catch (error) {
-      console.error("❌ Lỗi khi tải categories:", error);
+      console.error("Lỗi khi tải categories:", error);
       return [];
     }
   };
@@ -261,7 +261,7 @@ const ShopContextProvider = ({ children }) => {
         return null;
       }
     } catch (error) {
-      console.error("❌ Lỗi khi tạo sản phẩm:", error);
+      console.error(" Lỗi khi tạo sản phẩm:", error);
       toast.error("Không thể thêm sản phẩm!");
       return null;
     }
@@ -273,10 +273,10 @@ const ShopContextProvider = ({ children }) => {
       if (res.data.status === "success") {
         setProduct(res.data.data.doc);
       } else {
-        toast.error(res.data.message || "❌ Lấy sản phẩm thất bại!");
+        toast.error(res.data.message || "Lấy sản phẩm thất bại!");
       }
     } catch (error) {
-      console.error("❌ Lỗi khi tải product:", error);
+      console.error("Lỗi khi tải product:", error);
       toast.error("Không thể tải sản phẩm!");
     }
   };
@@ -288,18 +288,18 @@ const ShopContextProvider = ({ children }) => {
         setAllProducts(res.data.data.products);
         return res.data;
       } else {
-        toast.error(res.data.message || "❌ Lấy sản phẩm thất bại!");
+        toast.error(res.data.message || "Lấy sản phẩm thất bại!");
         return null;
       }
     } catch (error) {
-      console.error("❌ Lỗi khi tải products:", error);
+      console.error(" Lỗi khi tải products:", error);
       return [];
     }
   };
 
   const getAllProductsByStore = async () => {
     if (!sellertoken) {
-      toast.warning("⚠️ Bạn cần đăng nhập để xem sản phẩm của cửa hàng!");
+      toast.warning("Bạn cần đăng nhập để xem sản phẩm của cửa hàng!");
       return [];
     }
 
@@ -312,12 +312,12 @@ const ShopContextProvider = ({ children }) => {
         return res.data;
       } else {
         toast.error(
-          res.data.message || "❌ Không thể lấy sản phẩm của cửa hàng!"
+          res.data.message || "Không thể lấy sản phẩm của cửa hàng!"
         );
         return null;
       }
     } catch (error) {
-      console.error("❌ Lỗi khi tải products by store:", error);
+      console.error("Lỗi khi tải products by store:", error);
       toast.error("Không thể tải sản phẩm của cửa hàng!");
       return [];
     }
@@ -392,12 +392,12 @@ const ShopContextProvider = ({ children }) => {
       return stores;
 
     } catch (error) {
-      console.error("❌ Lỗi khi lấy danh sách shop đã follow:", error);
+      console.error("Lỗi khi lấy danh sách shop đã follow:", error);
       return [];
     }
   };
 
-  // 🔁 Tải danh mục cha khi khởi động
+  // Tải danh mục cha khi khởi động
   useEffect(() => {
     getAllSuperCategories();
   }, []);

@@ -29,7 +29,6 @@ const COLORS = {
   SHIPPER: '#ff7300'
 }
 
-// Helper để lấy headers với token
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken')
   return {
@@ -41,45 +40,38 @@ const Dashboard = () => {
   const today = format(new Date(), 'yyyy-MM-dd')
   const currentYear = new Date().getFullYear()
 
-  // States cho thống kê thành viên mới trong ngày
   const [userDayType, setUserDayType] = useState('ALL')
   const [userDayStartDate, setUserDayStartDate] = useState(today)
   const [userDayEndDate, setUserDayEndDate] = useState(today)
   const [userDayData, setUserDayData] = useState([])
   const [loadingUserDay, setLoadingUserDay] = useState(false)
-  const [userTodayTotal, setUserTodayTotal] = useState(0) // Tổng thành viên mới hôm nay (chỉ ngày hiện tại)
+  const [userTodayTotal, setUserTodayTotal] = useState(0)
 
-  // States cho thống kê thành viên theo năm
   const [userYearType, setUserYearType] = useState('ALL')
   const [userYear, setUserYear] = useState(currentYear)
   const [userYearData, setUserYearData] = useState([])
   const [loadingUserYear, setLoadingUserYear] = useState(false)
 
-  // States cho thống kê đơn hàng theo ngày
   const [orderStartDate, setOrderStartDate] = useState(today)
   const [orderEndDate, setOrderEndDate] = useState(today)
   const [orderDayData, setOrderDayData] = useState([])
   const [loadingOrderDay, setLoadingOrderDay] = useState(false)
 
-  // States cho thống kê doanh thu theo ngày
   const [revenueStartDate, setRevenueStartDate] = useState(today)
   const [revenueEndDate, setRevenueEndDate] = useState(today)
   const [revenueDayData, setRevenueDayData] = useState([])
   const [loadingRevenueDay, setLoadingRevenueDay] = useState(false)
 
-  // States cho thống kê doanh thu theo năm
   const [revenueYear, setRevenueYear] = useState(currentYear)
   const [revenueYearData, setRevenueYearData] = useState([])
   const [loadingRevenueYear, setLoadingRevenueYear] = useState(false)
 
-  // Fetch thành viên mới trong ngày
   const fetchUserDay = async () => {
     setLoadingUserDay(true)
     try {
       const authHeaders = getAuthHeaders()
-      console.log('📅 Fetching user day with:', { startDate: userDayStartDate, endDate: userDayEndDate })
+      console.log('Fetching user day with:', { startDate: userDayStartDate, endDate: userDayEndDate })
       if (userDayType === 'ALL') {
-        // Gọi API 4 lần với 4 type
         const results = await Promise.all(
           USER_TYPES.map(type =>
             axios.get(`${API_BASE}/statistics/admin/user/day`, {
@@ -150,7 +142,6 @@ const Dashboard = () => {
     try {
       const authHeaders = getAuthHeaders()
       if (userYearType === 'ALL') {
-        // Gọi API 4 lần với 4 type
         const results = await Promise.all(
           USER_TYPES.map(type =>
             axios.get(`${API_BASE}/statistics/admin/user/year`, {
@@ -159,8 +150,6 @@ const Dashboard = () => {
             })
           )
         )
-        // Chuyển đổi dữ liệu để hiển thị 4 cột cho mỗi tháng
-        // API trả về: { data: { monthly: [...], total: number } }
         const monthlyData = []
         for (let i = 1; i <= 12; i++) {
           const monthData = { name: `T${i}` }
@@ -175,18 +164,11 @@ const Dashboard = () => {
         }
         setUserYearData(monthlyData)
 
-        // Trường hợp không truyền type (comment lại theo yêu cầu)
-        // const res = await axios.get(`${API_BASE}/statistics/admin/user/year`, {
-        //   params: { year: userYear },
-        //   ...authHeaders
-        // })
-        // setUserYearData(res.data)
       } else {
         const res = await axios.get(`${API_BASE}/statistics/admin/user/year`, {
           params: { year: userYear, type: userYearType },
           ...authHeaders
         })
-        // API trả về: { data: { monthly: [...], total: number } }
         const monthlyArr = res.data?.data?.monthly || []
         const monthlyData = []
         for (let i = 1; i <= 12; i++) {
@@ -213,11 +195,9 @@ const Dashboard = () => {
         params: { startdate: orderStartDate, enddate: orderEndDate },
         ...getAuthHeaders()
       })
-      // API trả về: { data: { daily: [...], total: number } }
       const dailyData = res.data?.data?.daily || []
       const formattedData = Array.isArray(dailyData) ? dailyData.map(item => {
         const dateStr = item.date || item.day
-        // Chỉ hiển thị ngày/tháng (dd/MM) để tránh bị đè trên trục X
         const shortDate = dateStr ? format(new Date(dateStr), 'dd/MM') : dateStr
         return {
           name: shortDate,
@@ -232,7 +212,6 @@ const Dashboard = () => {
     setLoadingOrderDay(false)
   }
 
-  // Fetch doanh thu theo ngày
   const fetchRevenueDay = async () => {
     setLoadingRevenueDay(true)
     try {
@@ -240,11 +219,9 @@ const Dashboard = () => {
         params: { startdate: revenueStartDate, enddate: revenueEndDate },
         ...getAuthHeaders()
       })
-      // API trả về: { data: { daily: [...], total: number } }
       const dailyData = res.data?.data?.daily || []
       const formattedData = Array.isArray(dailyData) ? dailyData.map(item => {
         const dateStr = item.date || item.day
-        // Chỉ hiển thị ngày/tháng (dd/MM) để tránh bị đè trên trục X
         const shortDate = dateStr ? format(new Date(dateStr), 'dd/MM') : dateStr
         return {
           name: shortDate,
@@ -259,7 +236,6 @@ const Dashboard = () => {
     setLoadingRevenueDay(false)
   }
 
-  // Fetch doanh thu theo năm
   const fetchRevenueYear = async () => {
     setLoadingRevenueYear(true)
     try {
@@ -267,7 +243,6 @@ const Dashboard = () => {
         params: { year: revenueYear },
         ...getAuthHeaders()
       })
-      // API trả về: { data: { monthly: [...], total: number } }
       const monthlyArr = res.data?.data?.monthly || []
       const monthlyData = []
       for (let i = 1; i <= 12; i++) {
@@ -286,21 +261,18 @@ const Dashboard = () => {
   }
 
   useEffect(() => { fetchUserDay() }, [userDayType, userDayStartDate, userDayEndDate])
-  useEffect(() => { fetchUserToday() }, []) // Chỉ gọi 1 lần khi mount
+  useEffect(() => { fetchUserToday() }, [])
   useEffect(() => { fetchUserYear() }, [userYearType, userYear])
   useEffect(() => { fetchOrderDay() }, [orderStartDate, orderEndDate])
   useEffect(() => { fetchRevenueDay() }, [revenueStartDate, revenueEndDate])
   useEffect(() => { fetchRevenueYear() }, [revenueYear])
 
-
-  // Tính tổng thành viên mới trong ngày (theo filter)
   const totalUserDay = userDayData.reduce((sum, item) => sum + (item.value || 0), 0)
 
   return (
     <div className="p-4 space-y-6">
       <h2 className="text-xl font-semibold text-gray-800">Tổng quan</h2>
 
-      {/* Thống kê nhanh */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Thành viên mới hôm nay" value={userTodayTotal} color="text-blue-600" />
         <Stat label="Đơn hàng hôm nay" value={orderDayData.reduce((sum, item) => sum + (item['Đơn hàng'] || 0), 0)} color="text-green-600" />
@@ -308,7 +280,6 @@ const Dashboard = () => {
         <Stat label="Doanh thu năm" value={`${revenueYearData.reduce((sum, item) => sum + (item['Doanh thu'] || 0), 0).toLocaleString()}đ`} color="text-purple-600" />
       </div>
 
-      {/* Biểu đồ thành viên mới trong ngày */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <h3 className="text-lg font-semibold text-gray-700">Thành viên mới</h3>
@@ -356,7 +327,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Biểu đồ thành viên theo năm */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <h3 className="text-lg font-semibold text-gray-700">Thành viên theo năm</h3>
@@ -405,8 +375,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-
-      {/* Biểu đồ đơn hàng theo ngày */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <h3 className="text-lg font-semibold text-gray-700">Đơn hàng theo ngày</h3>
@@ -445,7 +413,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Biểu đồ doanh thu theo ngày */}
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <h3 className="text-lg font-semibold text-gray-700">Doanh thu theo ngày</h3>
@@ -483,8 +450,7 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
-      {/* Biểu đồ doanh thu theo năm */}
+      
       <div className="bg-white rounded-lg border p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <h3 className="text-lg font-semibold text-gray-700">Doanh thu theo năm</h3>

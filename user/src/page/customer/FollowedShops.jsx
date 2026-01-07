@@ -84,7 +84,7 @@ const FollowedShops = () => {
         };
       });
     } catch (err) {
-      console.error("❌ Lỗi khi load chi tiết store:", err);
+      console.error("Lỗi khi load chi tiết store:", err);
       return stores;
     }
   };
@@ -101,7 +101,7 @@ const FollowedShops = () => {
       const details = await loadStoreDetails(newList);
       setFollowedStoreList(details);
     } catch (err) {
-      console.error("❌ Lỗi khi hủy theo dõi:", err);
+      console.error("Lỗi khi hủy theo dõi:", err);
     }
   };
 
@@ -144,7 +144,6 @@ const FollowedShops = () => {
             Danh sách các shop bạn đã follow.
           </p>
 
-          {/* GRID LIST */}
           <div className="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-7">
             {currentItems.length === 0 && (
               <div className="text-gray-500 text-sm md:text-base">Bạn chưa theo dõi shop nào.</div>
@@ -156,7 +155,7 @@ const FollowedShops = () => {
                 className="bg-white rounded-lg md:rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer p-4 md:p-5 border border-gray-100 hover:-translate-y-1"
               >
                 <div onClick={() => navigate(`/store/${store.id}`)}>
-                  {/* ... (Phần hiển thị thông tin shop) ... */}
+                  {/* Phần hiển thị thông tin shop */}
                   <div className="flex items-center gap-3 md:gap-4">
                     <div className="relative">
                       <img
@@ -199,7 +198,7 @@ const FollowedShops = () => {
 
           {totalPages > 1 && (
             <div className="mt-8 md:mt-10 flex justify-center items-center gap-1 md:gap-2 flex-wrap">
-              {/* ... (Các nút phân trang) ... */}
+              {/* Phân trang*/}
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 className={`px-2 md:px-3 py-1 md:py-1.5 border rounded-lg text-xs md:text-sm ${

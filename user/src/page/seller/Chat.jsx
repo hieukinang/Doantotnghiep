@@ -336,7 +336,6 @@ const Chat = () => {
             </button>
           </div>
 
-          {/* Nút chat với hệ thống */}
           <div className="p-3 border-b border-gray-100 flex-shrink-0">
             <button
               onClick={handleChatWithSystem}

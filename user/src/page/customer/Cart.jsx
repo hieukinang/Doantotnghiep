@@ -130,7 +130,7 @@ const Cart = () => {
             const storeName = res.data?.data?.name || "Cửa hàng không xác định";
             newStoreNames[storeId] = storeName;
           } catch (err) {
-            console.error(`❌ Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
+            console.error(`Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
             newStoreNames[storeId] = "Cửa hàng không xác định";
           }
         })
@@ -247,7 +247,7 @@ const Cart = () => {
   if (cartItems && cartItems.length > 0) {
     const storeShippingMap = new Map();
 
-    // Tính discount theo store (mỗi store chỉ tính 1 lần)
+    // Tính discount theo store
     const storeDiscountMap = new Map();
 
     cartItems.forEach((it) => {
@@ -267,7 +267,7 @@ const Cart = () => {
       // Tính tạm tính
       subtotal += price * qty;
 
-      // ✅ Tính tổng giảm giá theo store (mỗi store chỉ tính 1 lần)
+      // Tính tổng giảm giá theo store
       if (storeId && !storeDiscountMap.has(storeId)) {
         const storeCoupon = appliedStoreCoupons[storeId];
         if (storeCoupon && storeCoupon.discountValue) {
@@ -276,7 +276,7 @@ const Cart = () => {
         }
       }
 
-      // Tính phí vận chuyển (theo shop)
+      // Tính phí vận chuyển
       const storeShippingFee = variant?.shipping_fee ?? 30000;
 
       if (!storeShippingMap.has(storeId)) {
@@ -297,7 +297,7 @@ const Cart = () => {
 
   const totalAmount = subtotal + totalShippingFee - totalDiscountValue;
 
-  // ==================== XỬ LÝ COUPON ====================
+  // coupon
   const handleOpenStoreCouponModal = async (storeId) => {
     setSelectedStoreId(storeId);
     setIsModalOpen(true);
@@ -312,9 +312,9 @@ const Cart = () => {
           (c) => c.discount > 0 && c.quantity > 0
         ) || [];
       setCouponList(validCoupons);
-      console.log("📋 Danh sách coupon:", validCoupons);
+      console.log("Danh sách coupon:", validCoupons);
     } catch (err) {
-      console.error("❌ Lỗi khi lấy danh sách mã giảm giá:", err);
+      console.error("Lỗi khi lấy danh sách mã giảm giá:", err);
       setCouponList([]);
     } finally {
       setLoadingCoupons(false);
@@ -328,7 +328,7 @@ const Cart = () => {
     }
 
     try {
-      console.log("🎟️ Đang áp dụng coupon cho store:", { code, storeId: selectedStoreId });
+      console.log("Đang áp dụng coupon cho store:", { code, storeId: selectedStoreId });
 
       // Lấy một productVariantId bất kỳ của store để validate coupon
       const storeItems = cartItems.filter((item) => {
@@ -353,13 +353,13 @@ const Cart = () => {
       console.log("📦 Response từ API:", res.data);
 
       if (res.data.status === "success") {
-        // ✅ Lấy discount value từ response
+        // Lấy giá trị discount
         const discountedItem = res.data.data?.discountedItem;
         const discountValue = discountedItem?.discount || 0;
 
         console.log("💰 Discount value:", discountValue);
 
-        // ✅ Cập nhật state appliedStoreCoupons theo storeId
+        // Cập nhật state appliedStoreCoupons theo storeId
         setAppliedStoreCoupons((prev) => ({
           ...prev,
           [selectedStoreId]: {
@@ -383,7 +383,7 @@ const Cart = () => {
         );
       }
     } catch (err) {
-      console.error("❌ Lỗi áp mã:", err);
+      console.error("Lỗi áp mã:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể áp dụng mã giảm giá!";
       toast.error(errorMsg);
@@ -391,11 +391,11 @@ const Cart = () => {
   };
 
   const removeStoreCoupon = (storeId) => {
-    // ✅ Xóa khỏi state local (và tự động lưu vào localStorage qua useEffect)
+    // Xóa khỏi state local
     setAppliedStoreCoupons((prev) => {
       const newState = { ...prev };
       delete newState[storeId];
-      console.log(`🗑️ Removed coupon for store ${storeId}`);
+      console.log(`Removed coupon for store ${storeId}`);
       return newState;
     });
 
@@ -414,7 +414,7 @@ const Cart = () => {
     cartItems.length > 0 &&
     checkedItems.length === cartItems.length;
 
-  // ==================== NHÓM SẢN PHẨM THEO STORE ====================
+  // nhóm sản phẩm theo store
   const groupItemsByStore = () => {
     if (!cartItems || cartItems.length === 0) return {};
 
@@ -443,13 +443,12 @@ const Cart = () => {
 
   const groupedStores = groupItemsByStore();
 
-  // ==================== JSX ====================
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* ===================== GIỎ HÀNG ===================== */}
+          {/* Giỏ hàng*/}
           <div className="lg:col-span-2 bg-white rounded-lg shadow">
             <div className="px-3 md:px-5 py-3 md:py-4 border-b font-semibold text-base md:text-lg flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               Giỏ hàng của bạn
@@ -468,7 +467,7 @@ const Cart = () => {
 
             {!cartItems || cartItems.length === 0 ? (
               <div className="p-4 md:p-6 text-center text-gray-500 text-sm md:text-base">
-                🛒 Giỏ hàng trống.{" "}
+                 Giỏ hàng trống.{" "}
                 <Link to="/" className="text-[#116AD1] underline">
                   Tiếp tục mua sắm
                 </Link>
@@ -511,7 +510,7 @@ const Cart = () => {
                         {appliedStoreCoupons[storeGroup.storeId] ? (
                           <div className="flex flex-wrap items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-2 md:px-3 py-1 md:py-1.5">
                             <span className="text-xs md:text-sm font-semibold text-green-700">
-                              🎉 {appliedStoreCoupons[storeGroup.storeId].code}
+                               {appliedStoreCoupons[storeGroup.storeId].code}
                             </span>
                             <span className="text-xs md:text-sm text-red-600 font-medium">
                               (-{format(appliedStoreCoupons[storeGroup.storeId].discountValue)}₫)
@@ -529,7 +528,7 @@ const Cart = () => {
                             onClick={() => handleOpenStoreCouponModal(storeGroup.storeId)}
                             className="text-blue-600 hover:text-blue-700 underline text-xs md:text-sm font-medium"
                           >
-                            📋 Chọn mã giảm giá
+                            Chọn mã giảm giá
                           </button>
                         )}
                       </div>
@@ -649,7 +648,6 @@ const Cart = () => {
             )}
           </div>
 
-          {/* ===================== TỔNG KẾT ===================== */}
           <div className="bg-white rounded-lg shadow p-4 md:p-5 h-fit sticky top-20 md:top-24">
             <h3 className="font-semibold text-base md:text-lg mb-3 md:mb-4 text-gray-800">
               Tổng đơn hàng
@@ -708,7 +706,7 @@ const Cart = () => {
       </main>
       <Footer />
 
-      {/* ===================== MODAL COUPON ===================== */}
+      {/* MODAL COUPON */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-2xl shadow-lg w-[500px] p-6 relative flex flex-col max-h-[600px]">

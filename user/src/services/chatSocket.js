@@ -42,15 +42,15 @@ export function getChatSocket() {
   });
 
   socket.on('connect', () => {
-    console.log('✅ Socket connected successfully! ID:', socket.id);
+    console.log('Socket connected successfully! ID:', socket.id);
   });
 
   socket.on('connect_error', (err) => {
-    console.error('❌ Chat socket connect error:', err?.message || err);
+    console.error('Chat socket connect error:', err?.message || err);
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('🔴 Socket disconnected:', reason);
+    console.log('Socket disconnected:', reason);
   });
 
   return socket;

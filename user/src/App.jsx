@@ -37,6 +37,7 @@ import SellerCreateComplaint from "./page/seller/sellerCreateComplaint";
 import Finance from "./page/seller/Finance";
 import OrdersSeller from "./page/seller/OrdersSeller";
 import Rating from "./page/seller/Rating";
+import FollowedPage from "./page/seller/FollowedPage";
 import SalesReport from "./page/seller/SalesReport";
 import OrderDetailSeller from "./page/seller/OrderDetailSeller";
 import AddCoupon from "./page/seller/AddCoupon";
@@ -99,7 +100,6 @@ function App() {
         <Route path="/favorites" element={<Favorites />} />
 
         {/* ---------- SELLER ROUTES ---------- */}
-        {/* Nếu đã đăng nhập, chặn truy cập lại trang login */}
         <Route
           path="/seller/login"
           element={
@@ -144,7 +144,7 @@ function App() {
           <Route path="/seller/product/:productId" element={<ProductDetailSeller />} />
           <Route path="/seller/add-product" element={<AddProduct />} />
           <Route path="/seller/add-coupon" element={<AddCoupon />} />
-          {/* <Route path="/seller/update-product" element={<EditProduct />} /> */}
+          <Route path="/seller/followed" element={<FollowedPage />} />
           <Route path="/seller/edit-profile" element={<EditProfileSeller />} />
           <Route path="/seller/create-complaint" element={<SellerCreateComplaint />} />
           <Route path="/seller/finance" element={<Finance />} />

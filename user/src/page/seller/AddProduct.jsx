@@ -116,7 +116,7 @@ const AddProduct = () => {
     return null;
   };
 
-  // ✅ Gọi API tạo sản phẩm qua hàm context
+  // Gọi API tạo sản phẩm
   const handleSubmit = async (e) => {
     e.preventDefault();
     const error = validateProduct();
@@ -153,7 +153,7 @@ const AddProduct = () => {
     }
   };
 
-  // ✅ Các hàm xử lý popup, hủy sản phẩm, gửi biến thể giữ nguyên
+  // Các hàm xử lý popup, hủy sản phẩm, gửi biến thể giữ nguyên
   const handleCancelProduct = async () => {
     if (!createdProductId) {
       setShowVariantModal(false);
@@ -434,7 +434,6 @@ const AddProduct = () => {
               </table>
             </div>
 
-            {/* Nút hành động sát form hơn, bố cục đẹp hơn */}
             <div className="flex justify-end gap-3 mt-4">
               <button
                 type="button"
