@@ -132,7 +132,7 @@ const SalesReport = () => {
       const dailyData = res.data?.data?.daily || [];
       const formattedData = dailyData.map((item) => ({
         name: item.date ? format(new Date(item.date), "dd/MM") : item.date,
-        "Số lượng": item.quantity || 0,
+        "Số lượng": item.sold || 0,
         "Doanh thu": item.revenue || 0,
       }));
       setProductDayData(formattedData);
@@ -161,7 +161,7 @@ const SalesReport = () => {
         const monthItem = monthlyArr.find((item) => item.month === i);
         monthlyData.push({
           name: `T${i}`,
-          "Số lượng": monthItem?.quantity || 0,
+          "Số lượng": monthItem?.sold || 0,
           "Doanh thu": monthItem?.revenue || 0,
         });
       }
@@ -401,11 +401,9 @@ const SalesReport = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
                 <Tooltip />
                 <Legend />
                 <Bar yAxisId="left" dataKey="Số lượng" fill="#8884d8" />
-                <Bar yAxisId="right" dataKey="Doanh thu" fill="#82ca9d" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -468,11 +466,9 @@ const SalesReport = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis yAxisId="left" orientation="left" stroke="#ffc658" />
-                <YAxis yAxisId="right" orientation="right" stroke="#ff7300" />
                 <Tooltip />
                 <Legend />
                 <Bar yAxisId="left" dataKey="Số lượng" fill="#ffc658" />
-                <Bar yAxisId="right" dataKey="Doanh thu" fill="#ff7300" />
               </BarChart>
             </ResponsiveContainer>
           )}

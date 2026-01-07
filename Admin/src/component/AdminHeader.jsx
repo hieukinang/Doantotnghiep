@@ -104,12 +104,12 @@ const AdminHeader = () => {
 
           {isToggleOpen && (
             <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg text-gray-700 z-50">
-              <button
+              {/* <button
                 onClick={handleDetailProfile}
                 className="block w-full text-center px-4 py-2 hover:bg-[#116AD1] hover:text-white hover:rounded-t-lg"
               >
                 Trang cá nhân
-              </button>
+              </button> */}
 
               <button
                 onClick={handleLogout}

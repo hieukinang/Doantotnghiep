@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { format } from "date-fns";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
 
@@ -12,11 +15,21 @@ const getAuthHeaders = () => {
 // Component hiển thị sao
 const Star = ({ n }) => (
   <div className="flex">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <span key={i} className={`text-lg ${i < n ? "text-yellow-400" : "text-gray-300"}`}>
-        ★
-      </span>
-    ))}
+    {Array.from({ length: 5 }).map((_, i) =>
+      i < n ? (
+        <StarIcon
+          key={i}
+          className="text-yellow-400"
+          fontSize="small"
+        />
+      ) : (
+        <StarBorderIcon
+          key={i}
+          className="text-gray-300"
+          fontSize="small"
+        />
+      )
+    )}
   </div>
 );
 

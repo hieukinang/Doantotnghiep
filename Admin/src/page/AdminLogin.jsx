@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import adminChatService from "../services/chatService";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
@@ -24,13 +25,26 @@ const AdminLogin = () => {
       if (res.status === 200 && res.data?.token) {
         localStorage.setItem("adminToken", res.data.token);
 
-        // Lưu username vào localStorage
         const usernameValue =
           res.data.data?.user?.username ||
           res.data.data?.user?.email ||
           "Admin";
         localStorage.setItem("adminUsername", usernameValue);
-        localStorage.setItem("adminId", res.data.data?.user?.id)
+        localStorage.setItem("adminId", res.data.data?.user?.id);
+        
+        // Lưu toàn bộ thông tin admin (id, role, username)
+        localStorage.setItem("admin", JSON.stringify({
+          id: res.data.data?.user?.id,
+          role: res.data.data?.user?.role,
+          username: usernameValue,
+        }));
+
+        // Tao user trong chat system
+        try {
+          await adminChatService.createUser(res.data.data?.user?.id, usernameValue);
+        } catch (chatErr) {
+          console.warn("Khong the tao user trong chat system:", chatErr);
+        }
 
         window.location.href = "/dashboard";
 

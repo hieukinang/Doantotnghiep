@@ -68,7 +68,7 @@ const ProductApproval = () => {
           <thead className="bg-gray-50">
             <tr className="text-sm text-gray-600">
               <th className="px-3 py-2 font-medium">Tên</th>
-              <th className="px-3 py-2 font-medium">Người bán</th>
+              <th className="px-3 py-2 font-medium">Xuất xứ</th>
               <th className="px-3 py-2 font-medium">Giá</th>
               <th className="px-3 py-2 font-medium">Trạng thái</th>
               <th className="px-3 py-2 font-medium">Hành động</th>
@@ -92,13 +92,17 @@ const ProductApproval = () => {
                 <tr key={p.id} className="border-b last:border-0">
                   <td className="px-3 py-2 text-sm text-gray-700">{p.name}</td>
                   <td className="px-3 py-2 text-sm text-gray-700">
-                    {p.Store?.name || p.storeId}
+                    {p.origin}
                   </td>
                   <td className="px-3 py-2 text-sm text-gray-700">
                     {(p.min_price || 0).toLocaleString()}₫
                   </td>
                   <td className="px-3 py-2 text-sm text-gray-700">
-                    {p.status}
+                    {p.status === "ACTIVE"
+                      ? "Đã duyệt"
+                      : p.status === "BANNED"
+                      ? "Cấm"
+                      : "Chờ duyệt"}
                   </td>
                   <td className="px-3 py-2 space-x-3">
                     <button
@@ -111,7 +115,7 @@ const ProductApproval = () => {
                       onClick={() => updateStatus(p.id, "BANNED")}
                       className="text-red-600 hover:underline text-sm"
                     >
-                      Từ chối
+                      Cấm
                     </button>
                   </td>
                 </tr>

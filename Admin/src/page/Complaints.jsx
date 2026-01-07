@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import IconView from "../assets/home/icon-view.svg";
 
@@ -16,6 +17,8 @@ const Complaints = () => {
 
   const [selected, setSelected] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const navigate = useNavigate();
 
   const ITEMS_PER_PAGE = 10;
 
@@ -47,6 +50,24 @@ const Complaints = () => {
     if (c.shipperId) return `Shipper (${c.shipperId})`;
     if (c.adminId) return `Admin (${c.adminId})`;
     return "N/A";
+  };
+
+  const handleChat = (c) => {
+    const oderId = c.clientId || c.storeId || c.shipperId || c.adminId;
+    const userName = c.clientId ? "Khach hang" 
+                   : c.storeId ? "Cua hang" 
+                   : c.shipperId ? "Shipper" 
+                   : "Admin";
+    if (!oderId) {
+      toast.warn("Khong tim thay nguoi dung de nhan tin");
+      return;
+    }
+    navigate('/chat-management', { 
+      state: { 
+        targetUserId: String(oderId),
+        targetUserName: userName
+      } 
+    });
   };
 
   const fetchComplaints = useCallback(async () => {
@@ -231,6 +252,14 @@ const Complaints = () => {
                         className="p-2 rounded-lg hover:bg-blue-100 transition-colors"
                       >
                         <img src={IconView} alt="view" className="w-5 h-5" />
+                      </button>
+
+                      <button
+                        title="Nhắn tin"
+                        onClick={() => handleChat(c)}
+                        className="px-3 py-1.5 bg-[#116AD1] text-white text-xs font-semibold rounded-lg hover:bg-[#0e57aa] transition-colors"
+                      >
+                        Nhắn tin
                       </button>
 
                       {c.status === "pending" && (

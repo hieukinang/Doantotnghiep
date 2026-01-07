@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home as HomeIcon,
@@ -17,10 +17,10 @@ import {
 } from "@mui/icons-material";
 
 const navItems = [
-  { name: "Tổng quan", icon: HomeIcon, path: "/dashboard" },
-  { name: "Quản lý Store", icon: StoreIcon, path: "/stores-management" },
-  { name: "Quản lý Shipper", icon: ShippingIcon, path: "/shippers-management" },
-  { name: "Tạo tài khoản", icon: PersonAddIcon, path: "/create-account" },
+  { name: "Tổng quan", icon: HomeIcon, path: "/dashboard", requireRole: "manager" },
+  { name: "Quản lý Store", icon: StoreIcon, path: "/stores-management", requireRole: "manager" },
+  { name: "Quản lý Shipper", icon: ShippingIcon, path: "/shippers-management", requireRole: "manager" },
+  { name: "Tạo tài khoản", icon: PersonAddIcon, path: "/create-account", requireRole: "manager" },
   { name: "Quản lý Banner", icon: BannerIcon, path: "/banners" },
   { name: "Tạo mã giảm giá", icon: CreateCouponIcon, path: "/create-coupon" },
   { name: "Thêm danh mục", icon: CreateCategoryIcon, path: "/create-category" },
@@ -28,11 +28,30 @@ const navItems = [
   { name: "Khiếu nại", icon: ComplaintIcon, path: "/complaints" },
   // { name: "Vi phạm", icon: ViolationIcon, path: "/violations" },
   // { name: "Ví Admin", icon: WalletIcon, path: "/wallet" },
-  { name: "Quản lý Chat", icon: ChatIcon, path: "/chat-management" },
+  { name: "Nhắn tin", icon: ChatIcon, path: "/chat-management" },
 ];
 
 const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const location = useLocation();
+  const [adminInfo, setAdminInfo] = useState(null);
+
+  useEffect(() => {
+    const admin = localStorage.getItem("admin");
+    if (admin) {
+      setAdminInfo(JSON.parse(admin));
+    }
+  }, []);
+
+  // Filter navItems based on admin role/id
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.requireRole && adminInfo?.role !== item.requireRole) {
+      return false;
+    }
+    if (item.requireId && adminInfo?.id !== item.requireId) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <aside
@@ -59,7 +78,7 @@ const AdminSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       {/* Navigation Menu */}
       <nav className="flex-1 px-2 py-3 overflow-y-auto overflow-x-hidden">
         <div className="space-y-1">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
 
