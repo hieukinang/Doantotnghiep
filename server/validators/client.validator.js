@@ -7,41 +7,41 @@ import {isPasswordsMatches, isUnique} from "./custom.validators.js";
 export const registerValidator = [
   check("username")
     .notEmpty()
-    .withMessage("Username is required")
+    .withMessage("Username bắt buộc")
     .isString()
-    .withMessage("Username must be a string")
+    .withMessage("Username phải là chuỗi")
     .isLength({min: 3})
-    .withMessage("Username minimum length 3 characters")
+    .withMessage("Username tối thiểu 3 ký tự")
     .isLength({max: 30})
-    .withMessage("Username maximum length 30 characters"),
+    .withMessage("Username tối đa 30 ký tự"),
   check("phone")
     .notEmpty()
-    .withMessage("Phone is required")
+    .withMessage("Phone bắt buộc")
     .isString()
-    .withMessage("Phone must be a string")
+    .withMessage("Phone phải là chuỗi")
     .isLength({min: 9})
-    .withMessage("Phone minimum length 9 characters")
+    .withMessage("Phone tối thiểu 9 ký tự")
     .isLength({max: 20})
-    .withMessage("Phone maximum length 20 characters")
+    .withMessage("Phone tối đa 20 ký tự")
     .custom((val) => isUnique(val, Client, "phone")),
   check("email")
     .notEmpty()
-    .withMessage("Email is required")
+    .withMessage("Email bắt buộc")
     .isEmail()
-    .withMessage("Please enter a valid email address")
+    .withMessage("Vui lòng nhập địa chỉ email hợp lệ")
     .custom((val) => isUnique(val, Client, "email")),
   check("password")
     .notEmpty()
-    .withMessage("Password is required")
+    .withMessage("Mật khẩu bắt buộc")
     .isString()
-    .withMessage("Password must be a string")
+    .withMessage("Mật khẩu phải là chuỗi")
     .isLength({min: 6})
-    .withMessage("Password minimum length 6 characters")
+    .withMessage("Mật khẩu tối thiểu 6 ký tự")
     .isLength({max: 25})
-    .withMessage("Password maximum length 25 characters"),
+    .withMessage("Mật khẩu tối đa 25 ký tự"),
   check("confirmPassword")
     .notEmpty()
-    .withMessage("confirmPassword is required")
+    .withMessage("Xác nhận mật khẩu bắt buộc")
     .custom((val, {req}) => isPasswordsMatches(val, req)),
   check("image").optional(),
   validatorMiddleware,

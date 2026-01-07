@@ -4,17 +4,17 @@ import {check} from "express-validator";
 export const loginValidator = [
   check("emailOrPhone")
     .notEmpty()
-    .withMessage("Email or Phone is required")
+    .withMessage("Email or Phone bắt buộc")
     .isString()
-    .withMessage("Email or Phone must be a string"),
+    .withMessage("Email or Phone phải là chuỗi"),
   check("password")
     .notEmpty()
-    .withMessage("Password is required")
+    .withMessage("Mật khẩu bắt buộc")
     .isString()
-    .withMessage("Password must be a string")
+    .withMessage("Mật khẩu phải là chuỗi")
     .isLength({min: 6})
-    .withMessage("Password minimum length 6 characters")
+    .withMessage("Mật khẩu tối thiểu 6 ký tự")
     .isLength({max: 25})
-    .withMessage("Password maximum length 25 characters"),
+    .withMessage("Mật khẩu tối đa 25 ký tự"),
   validatorMiddleware,
 ];

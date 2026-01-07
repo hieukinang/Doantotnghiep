@@ -15,7 +15,7 @@ export const isAuth = (Model) =>
       token = req.cookies.token;
     }
     if (!token) {
-      return next(new APIError("Unauthorized , Please login to get access", 401));
+      return next(new APIError("Lỗi xác thực", 401));
     }
 
     const decoded = verifyToken(token);
@@ -25,7 +25,7 @@ export const isAuth = (Model) =>
     if (!currentUser) {
       return next(
         new APIError(
-          "The user that belong to this token does no longer exist",
+          "Người dùng thuộc token này không còn tồn tại",
           401
         )
       );
@@ -33,7 +33,7 @@ export const isAuth = (Model) =>
 
     if (currentUser.isPasswordChangedAfterJwtIat && currentUser.isPasswordChangedAfterJwtIat(decoded.iat)) {
       return next(
-        new APIError("User recently changed password, please log in again", 401)
+        new APIError("Người dùng vừa thay đổi mật khẩu, vui lòng đăng nhập lại", 401)
       );
     }
 
@@ -47,7 +47,7 @@ export const allowedTo = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return next(
         new APIError(
-          `You as ${req.user.role} do not have permission to perform this action`,
+          `Bạn với vai trò ${req.user.role} không có quyền thực hiện hành động này`,
           403
         )
       );

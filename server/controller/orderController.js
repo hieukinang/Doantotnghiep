@@ -498,7 +498,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
 
     const orderItemsPayload = [];
     for (const it of items) {
-      // 🔒 THAY ĐỔI QUAN TRỌNG: TRỪ TỒN KHO ATOMIC
+      // THAY ĐỔI QUAN TRỌNG: TRỪ TỒN KHO ATOMIC
       // Chỉ trừ nếu stock_quantity >= số lượng khách mua
       const [affectedCount] = await ProductVariant.update(
         { stock_quantity: literal(`stock_quantity - ${it.quantity}`) },

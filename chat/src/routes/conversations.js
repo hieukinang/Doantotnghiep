@@ -19,12 +19,11 @@ router.post('/direct', auth, upload.array('attachments', 5), async (req, res, ne
   let { userId } = req.query;
   const { message } = req.body; // Tin nhắn đầu tiên (optional)
 
-  if (!userId) return next(new APIError("userId not found", 404));
+  if (!userId) return next(new APIError("không tìm thấy userId", 404));
 
   // Parse userId composite → { user_id, role }
   const p2 = parseCompositeUserId(userId);
-  if (!p2) return next(new APIError("Invalid userId format", 400));
-
+  if (!p2) return next(new APIError("Định dạng userId không hợp lệ", 400));
   const participant1 = {
     user_id: String(req.user.user_id),
     role: String(req.user.role)
@@ -36,7 +35,7 @@ router.post('/direct', auth, upload.array('attachments', 5), async (req, res, ne
   };
 
   try {
-    // find existing direct conversation between 2 users
+    // tìm conversation đã tồn tại giữa 2 người
     let existing = await Conversation.findOne({
       participants: {
         $all: [
@@ -95,11 +94,11 @@ router.post('/direct', auth, upload.array('attachments', 5), async (req, res, ne
         req.files.map(async file => {
           try {
             const result = await uploadImage(file.buffer, 'images', file.mimetype);
-            if (!result?.secure_url) throw new Error('No secure_url returned');
+            if (!result?.secure_url) throw new Error('Không có secure_url trả về');
             return result.secure_url;
           } catch (err) {
-            console.error('Upload error:', err);
-            throw new Error(`Failed to upload file: ${file.originalname}`);
+            console.error('Lỗi upload:', err);
+            throw new Error(`Không thể upload file: ${file.originalname}`);
           }
         })
       );
@@ -129,7 +128,7 @@ router.post('/direct', auth, upload.array('attachments', 5), async (req, res, ne
         const io = getIO();
         io.to(roomId).emit('new_message', firstMessage);
       } catch (e) {
-        console.error('Socket emit error:', e);
+        console.error('Lỗi phát sự kiện socket:', e);
       }
     }
 
@@ -210,7 +209,7 @@ router.delete('/:id', auth, async (req, res, next) => {
         p.role === user.role
     );
 
-    if (idx === -1) return next(new APIError("Not participant", 403));
+    if (idx === -1) return next(new APIError("Không có thành viên trong cuộc trò chuyện", 403));
 
     conv.participants.splice(idx, 1);
 
@@ -230,7 +229,7 @@ router.delete('/:id', auth, async (req, res, next) => {
         user
       });
     } catch (e) {
-      console.error("Socket emit error:", e);
+      console.error("Lỗi phát sự kiện socket:", e);
     }
 
     res.json({ status: 'success' });

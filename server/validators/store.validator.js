@@ -3,6 +3,7 @@ import { check } from "express-validator";
 import { isPasswordsMatches, isUnique } from "./custom.validators.js";
 import Store from "../model/storeModel.js";
 import { isExistInDB } from "./custom.validators.js";
+
 // Custom middleware kiểm tra file ảnh cho store
 const checkStoreImages = (req, res, next) => {
   const requiredFields = ["id_image", "image"];
@@ -27,76 +28,76 @@ const checkStoreImages = (req, res, next) => {
 export const IdValidator = [
   check("id")
     .custom((val) => isExistInDB(val, Store))
-    .withMessage("Store not found"),
+    .withMessage("Store không tồn tại"),
   validatorMiddleware,
 ];
 
 export const registerValidator = [
   check("name")
     .notEmpty()
-    .withMessage("Store name is required")
+    .withMessage("Tên cửa hàng bắt buộc")
     .isString()
-    .withMessage("Store name must be a string")
+    .withMessage("Tên cửa hàng phải là chuỗi")
     .isLength({ min: 3 })
-    .withMessage("Store name minimum length 3 characters")
+    .withMessage("Tên cửa hàng tối thiểu 3 ký tự")
     .isLength({ max: 100 })
-    .withMessage("Store name maximum length 100 characters"),
+    .withMessage("Tên cửa hàng tối đa 100 ký tự"),
   check("citizen_id")
     .notEmpty()
-    .withMessage("Citizen ID is required")
+    .withMessage("Citizen ID bắt buộc")
     .isString()
-    .withMessage("Citizen ID must be a string")
+    .withMessage("Citizen ID phải là chuỗi")
     .custom((val) => isUnique(val, Store, "citizen_id")),
   check("phone")
     .notEmpty()
-    .withMessage("Phone is required")
+    .withMessage("Số điện thoại bắt buộc")
     .isString()
-    .withMessage("Phone must be a string")
+    .withMessage("Số điện thoại phải là chuỗi")
     .isLength({ min: 9 })
-    .withMessage("Phone minimum length 9 characters")
+    .withMessage("Số điện thoại tối thiểu 9 ký tự")
     .isLength({ max: 20 })
-    .withMessage("Phone maximum length 20 characters")
+    .withMessage("Số điện thoại tối đa 20 ký tự")
     .custom((val) => isUnique(val, Store, "phone")),
   check("email")
     .notEmpty()
-    .withMessage("Email is required")
+    .withMessage("Email bắt buộc")
     .isEmail()
-    .withMessage("Please enter a valid email address")
+    .withMessage("Vui lòng nhập địa chỉ email hợp lệ")
     .custom((val) => isUnique(val, Store, "email")),
   check("password")
     .notEmpty()
-    .withMessage("Password is required")
+    .withMessage("Mật khẩu bắt buộc")
     .isString()
-    .withMessage("Password must be a string")
+    .withMessage("Mật khẩu phải là chuỗi")
     .isLength({ min: 6 })
-    .withMessage("Password minimum length 6 characters")
+    .withMessage("Mật khẩu tối thiểu 6 ký tự")
     .isLength({ max: 25 })
-    .withMessage("Password maximum length 25 characters"),
+    .withMessage("Mật khẩu tối đa 25 ký tự"),
   check("confirmPassword")
     .notEmpty()
-    .withMessage("confirmPassword is required")
+    .withMessage("Xác nhận mật khẩu bắt buộc")
     .custom((val, { req }) => isPasswordsMatches(val, req)),
   check("bank_name")
     .notEmpty()
-    .withMessage("Bank name is required"),
+    .withMessage("Tên ngân hàng bắt buộc"),
   check("bank_account_number")
     .notEmpty()
-    .withMessage("Bank account number is required"),
+    .withMessage("Số tài khoản ngân hàng bắt buộc"),
   check("bank_account_holder_name")
     .notEmpty()
-    .withMessage("Bank account holder name is required"),
+    .withMessage("Tên chủ tài khoản ngân hàng bắt buộc"),
   check("city")
     .notEmpty()
-    .withMessage("City is required"),
+    .withMessage("Thành phố bắt buộc"),
   check("village")
     .notEmpty()
-    .withMessage("Village is required"),
+    .withMessage("Xã/Phường bắt buộc"),
   check("detail_address")
     .notEmpty()
-    .withMessage("Detail address is required"),
+    .withMessage("Địa chỉ chi tiết bắt buộc"),
   check("description")
     .notEmpty()
-    .withMessage("Description is required"),
+    .withMessage("Mô tả bắt buộc"),
   checkStoreImages, // kiểm tra file ảnh
   validatorMiddleware,
 ];
