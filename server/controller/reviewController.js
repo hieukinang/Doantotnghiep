@@ -45,7 +45,6 @@ export const resizeReviewImages = asyncHandler(async (req, res, next) => {
 // @desc Create a review (client) with up to 5 images when order status is DELIVERED
 // @route POST /api/reviews/order/:orderId
 // @access Protected(Client)
-
 export const createReview = asyncHandler(async (req, res, next) => {
   const clientId = req.user && req.user.id;
   const { orderId } = req.params;

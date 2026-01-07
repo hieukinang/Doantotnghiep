@@ -146,18 +146,18 @@ export const logout = asyncHandler(async (req, res, next) => {
 
 export const updateProfile = asyncHandler(async (req, res, next) => {
   const adminId = req.user && req.user.id;
-  if (!adminId) return next(new APIError("Authentication required", 401));
+  if (!adminId) return next(new APIError("Yêu cầu xác thực", 401));
 
   const admin = await Admin.findByPk(adminId);
   req.body.image = `Admin-${req.user.id}.jpeg`;
   
-  if (!admin) return next(new APIError("Admin not found", 404));
+  if (!admin) return next(new APIError("Không tồn tại", 404));
   // Build allowed update set dynamically from req.body keys that match model attributes
   const modelAttrs = Object.keys(Admin.rawAttributes || {});
   const forbidden = ["id", "passwordChangedAt"]; // fields we don't allow updating directly
 
   const bodyKeys = Object.keys(req.body || {});
-  if (bodyKeys.length === 0) return next(new APIError("No fields to update", 400));
+  if (bodyKeys.length === 0) return next(new APIError("Không có trường nào để cập nhật", 400));
 
   const allowed = {};
 
@@ -172,7 +172,7 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
       if (value !== undefined && value !== admin[key]) {
         const exists = await Admin.findOne({ where: { [key]: value } });
         if (exists && String(exists.id) !== String(admin.id)) {
-          return next(new APIError(`${key} already in use`, 400));
+          return next(new APIError(`${key} đã được sử dụng`, 400));
         }
       }
       allowed[key] = value;
@@ -182,8 +182,8 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
     // password requires confirmPassword
     if (key === "password") {
       const confirmPassword = req.body.confirmPassword;
-      if (!confirmPassword) return next(new APIError("confirmPassword is required when changing password", 400));
-      if (value !== confirmPassword) return next(new APIError("Password and confirmPassword do not match", 400));
+      if (!confirmPassword) return next(new APIError("Vui lòng nhập confirmPassword khi thay đổi mật khẩu", 400));
+      if (value !== confirmPassword) return next(new APIError("Mật khẩu và confirmPassword không khớp", 400));
       allowed.password = value;
       continue;
     }
@@ -192,7 +192,7 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
     allowed[key] = value;
   }
 
-  if (Object.keys(allowed).length === 0) return next(new APIError("No valid fields to update", 400));
+  if (Object.keys(allowed).length === 0) return next(new APIError("Không có trường hợp lệ để cập nhật", 400));
 
   await admin.update(allowed);
 

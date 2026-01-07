@@ -17,30 +17,30 @@ router.post('/:conversationId', auth, upload.array('attachments', 5), async (req
   const { conversationId } = req.params;
 
   if (!conversationId)
-    return res.status(400).json({ error: 'conversation_id required' });
+    return res.status(400).json({ error: 'conversation_id bắt buộc' });
 
   try {
-    // --- Find conversation ---
+    // --- Tìm kiếm cuộc trò chuyện ---
     const conv = await Conversation.findById(conversationId);
     if (!conv)
-      return res.status(404).json({ error: 'Conversation not found' });
+      return res.status(404).json({ error: 'Không tìm thấy cuộc trò chuyện' });
 
-    // --- Only participants can send messages ---
+    // --- Chỉ những người tham gia mới có thể gửi tin nhắn ---
     const isParticipant = conv.participants.some(
       p => String(p.user_id) === String(req.user.user_id)
     );
     if (!isParticipant)
-      return res.status(403).json({ error: 'You are not a participant of this conversation' });
+      return res.status(403).json({ error: 'Bạn không phải là thành viên của cuộc trò chuyện này' });
 
-    // --- Validate content or files ---
+    // --- Kiểm tra nội dung hoặc tệp đính kèm ---
     if (!content && (!req.files || req.files.length === 0))
-      return res.status(400).json({ error: 'Message requires text or attachments' });
+      return res.status(400).json({ error: 'Tin nhắn yêu cầu có nội dung hoặc tệp đính kèm' });
 
-    // --- Double check max attachments ---
+    // --- Kiểm tra số lượng tệp đính kèm tối đa ---
     if (req.files && req.files.length > 5)
-      return res.status(400).json({ error: 'Maximum 5 attachments allowed' });
+      return res.status(400).json({ error: 'Tối đa 5 tệp đính kèm được phép' });
 
-    // --- Upload attachments to cloudinary ---
+    // --- Upload ---
     let attachmentUrls = [];
 
     if (req.files?.length) {
@@ -49,17 +49,17 @@ router.post('/:conversationId', auth, upload.array('attachments', 5), async (req
         req.files.map(async file => {
           try {
             const result = await uploadImage(file.buffer, 'images', file.mimetype);
-            if (!result?.secure_url) throw new Error('No secure_url returned');
+            if (!result?.secure_url) throw new Error('Không có secure_url trả về');
             return result.secure_url;
           } catch (err) {
-            console.error('Upload error:', err);
-            throw new Error(`Failed to upload file: ${file.originalname}`);
+            console.error('Lỗi upload:', err);
+            throw new Error(`Không thể upload file: ${file.originalname}`);
           }
         })
       );
     }
 
-    // --- Create message ---
+    // --- Tạo tin nhắn ---
     const msg = await Message.create({
       conversation_id: conversationId,
       sender: {
@@ -71,21 +71,21 @@ router.post('/:conversationId', auth, upload.array('attachments', 5), async (req
       attachments: attachmentUrls
     });
 
-    // --- Update conversation last message ---
+    // --- Cập nhật tin nhắn cuối cùng của cuộc trò chuyện ---
     conv.last_message = msg._id;
     await conv.save();
 
-    // --- Emit socket event ---
+    // --- Phát sự kiện socket ---
     try {
       const io = getIO();
       io.to(conversationId).emit('new_message', msg);
     } catch (e) {
-      console.error('Socket emit error:', e);
+      console.error('Lỗi phát sự kiện socket:', e);
     }
 
     res.json(msg);
   } catch (err) {
-    console.error('Message send error:', err);
+    console.error('Lỗi gửi tin nhắn:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -100,14 +100,14 @@ router.get('/:conversationId', auth, async (req, res) => {
     // Kiểm tra quyền truy cập
     const conv = await Conversation.findById(conversationId).select('participants');
     if (!conv) {
-      return res.status(404).json({ error: 'Conversation not found' });
+      return res.status(404).json({ error: 'Không tìm thấy cuộc trò chuyện' });
     }
 
     const isParticipant = conv.participants.some(
       p => String(p.user_id) === String(req.user.user_id)
     );
     if (!isParticipant) {
-      return res.status(403).json({ error: 'You are not a participant of this conversation' });
+      return res.status(403).json({ error: 'Bạn không phải là thành viên của cuộc trò chuyện này' });
     }
 
     // Optional: paginate

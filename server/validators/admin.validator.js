@@ -5,70 +5,70 @@ import Admin from "../model/adminModel.js";
 
 export const registerValidator = [
 	check("username")
-		.notEmpty().withMessage("Username is required")
-		.isString().withMessage("Username must be a string")
-		.isLength({ min: 3 }).withMessage("Username minimum length 3 characters")
-		.isLength({ max: 50 }).withMessage("Username maximum length 50 characters")
+		.notEmpty().withMessage("Username bắt buộc")
+		.isString().withMessage("Username phải là chuỗi")
+		.isLength({ min: 3 }).withMessage("Username tối thiểu 3 ký tự")
+		.isLength({ max: 50 }).withMessage("Username tối đa 50 ký tự")
 		.custom((val) => isUnique(val, Admin, "username")),
 	check("phone")
-		.notEmpty().withMessage("Phone is required")
-		.isString().withMessage("Phone must be a string")
-		.isLength({ min: 9 }).withMessage("Phone minimum length 9 characters")
-		.isLength({ max: 20 }).withMessage("Phone maximum length 20 characters")
+		.notEmpty().withMessage("Phone bắt buộc")
+		.isString().withMessage("Phone phải là chuỗi")
+		.isLength({ min: 9 }).withMessage("Phone tối thiểu 9 ký tự")
+		.isLength({ max: 20 }).withMessage("Phone tối đa 20 ký tự")
 		.custom((val) => isUnique(val, Admin, "phone")),
 	check("email")
-		.notEmpty().withMessage("Email is required")
-		.isEmail().withMessage("Please enter a valid email address")
+		.notEmpty().withMessage("Email bắt buộc")
+		.isEmail().withMessage("Vui lòng nhập địa chỉ email hợp lệ")
 		.custom((val) => isUnique(val, Admin, "email")),
 	check("password")
-		.notEmpty().withMessage("Password is required")
-		.isString().withMessage("Password must be a string")
-		.isLength({ min: 6 }).withMessage("Password minimum length 6 characters")
-		.isLength({ max: 25 }).withMessage("Password maximum length 25 characters"),
+		.notEmpty().withMessage("Mật khẩu bắt buộc")
+		.isString().withMessage("Mật khẩu phải là chuỗi")
+		.isLength({ min: 6 }).withMessage("Mật khẩu tối thiểu 6 ký tự")
+		.isLength({ max: 25 }).withMessage("Mật khẩu tối đa 25 ký tự"),
 	check("confirmPassword")
-		.notEmpty().withMessage("confirmPassword is required")
+		.notEmpty().withMessage("Xác nhận mật khẩu bắt buộc")
 		.custom((val, { req }) => isPasswordsMatches(val, req)),
 	check("fullname")
-		.notEmpty().withMessage("Full name is required")
-		.isString().withMessage("Full name must be a string")
-		.isLength({ min: 3 }).withMessage("Full name minimum length 3 characters")
-		.isLength({ max: 100 }).withMessage("Full name maximum length 100 characters"),
+		.notEmpty().withMessage("Họ và tên bắt buộc")
+		.isString().withMessage("Họ và tên phải là chuỗi")
+		.isLength({ min: 3 }).withMessage("Họ và tên tối thiểu 3 ký tự")
+		.isLength({ max: 100 }).withMessage("Họ và tên tối đa 100 ký tự"),
 	check("role")
-		.notEmpty().withMessage("Role is required"),
+		.notEmpty().withMessage("Role bắt buộc"),
 	check("job_title")
-		.notEmpty().withMessage("Job title is required")
-		.isString().withMessage("Job title must be a string"),
+		.notEmpty().withMessage("Job title bắt buộc")
+		.isString().withMessage("Job title phải là chuỗi"),
 	check("hire_date")
-		.notEmpty().withMessage("Hire date is required"),
+		.notEmpty().withMessage("Hire date bắt buộc"),
 	check("salary")
-		.notEmpty().withMessage("Salary is required")
-		.isNumeric().withMessage("Salary must be a number"),
+		.notEmpty().withMessage("Salary bắt buộc")
+		.isNumeric().withMessage("Salary phải là số"),
 	check("address")
-		.notEmpty().withMessage("Address is required"),
+		.notEmpty().withMessage("Địa chỉ bắt buộc"),
 	check("image").optional(),
 	check("bank_name")
-		.notEmpty().withMessage("Bank name is required"),
+		.notEmpty().withMessage("Tên ngân hàng bắt buộc"),
 	check("bank_account_number")
-		.notEmpty().withMessage("Bank account number is required"),
+		.notEmpty().withMessage("Số tài khoản ngân hàng bắt buộc"),
 	check("bank_account_holder_name")
-		.notEmpty().withMessage("Bank account holder name is required"),
+		.notEmpty().withMessage("Tên chủ tài khoản ngân hàng bắt buộc"),
 	validatorMiddleware,
 ];
 
 export const loginValidator = [
   check("username")
     .notEmpty()
-    .withMessage("Username is required")
+    .withMessage("Username bắt buộc")
     .isString()
-    .withMessage("Username must be a string"),
+    .withMessage("Username phải là chuỗi"),
   check("password")
     .notEmpty()
-    .withMessage("Password is required")
+    .withMessage("Mật khẩu bắt buộc")
     .isString()
-    .withMessage("Password must be a string")
+    .withMessage("Mật khẩu phải là chuỗi")
     .isLength({min: 6})
-    .withMessage("Password minimum length 6 characters")
+    .withMessage("Mật khẩu tối thiểu 6 ký tự")
     .isLength({max: 25})
-    .withMessage("Password maximum length 25 characters"),
+    .withMessage("Mật khẩu tối đa 25 ký tự"),
   validatorMiddleware,
 ];
