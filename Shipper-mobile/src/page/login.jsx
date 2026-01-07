@@ -94,7 +94,6 @@ const Login = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Image source={logo} style={styles.logo} />
           <Text style={styles.headerTitle}>KOHI MALL</Text>
         </View>
         <Text style={styles.headerSubTitle}>ĐĂNG NHẬP SHIPPER</Text>
