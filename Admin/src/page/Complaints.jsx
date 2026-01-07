@@ -157,11 +157,11 @@ const Complaints = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800">Quản lý khiếu nại</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold text-gray-800">Quản lý khiếu nại</h1>
 
       {/* Filters */}
-      <div className="flex gap-3 justify-end">
+      <div className="flex gap-3 mb-4 justify-end">
         <select
           className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           value={filters.status}
@@ -226,17 +226,17 @@ const Complaints = () => {
                   key={c.id}
                   className="border-b border-gray-100 hover:bg-blue-50 transition-colors"
                 >
-                  <td className="p-4 text-gray-700">
+                  <td className="p-4 text-left text-gray-700">
                     {(filters.page - 1) * ITEMS_PER_PAGE + i + 1}
                   </td>
-                  <td className="p-4 text-gray-700 font-medium">
+                  <td className="p-4 text-left text-gray-700 font-medium">
                     {COMPLAINT_TYPES[c.type]}
                   </td>
-                  <td className="p-4 text-gray-600">{getCreator(c)}</td>
-                  <td className="p-4 text-gray-600">
+                  <td className="p-4 text-left text-gray-600">{getCreator(c)}</td>
+                  <td className="p-4 text-left text-gray-600">
                     {new Date(c.createdAt).toLocaleDateString("vi-VN")}
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 text-left">
                     <span
                       className="px-3 py-1.5 rounded-full text-xs font-bold text-white inline-block"
                       style={{ backgroundColor: STATUS[c.status].color }}
@@ -244,7 +244,7 @@ const Complaints = () => {
                       {STATUS[c.status].label}
                     </span>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 text-center">
                     <div className="flex gap-2 justify-center items-center">
                       <button
                         title="Xem chi tiết"
