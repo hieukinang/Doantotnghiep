@@ -66,21 +66,15 @@ const SellerHeader = () => {
       className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm border-b border-gray-200 flex items-center px-6 z-50"
       style={{ backgroundColor: PRIMARY_COLOR }}
     >
-      {/* Left Section - Logo & Brand Name */}
+      {/* Trái - Logo & Brand Name */}
       <div className="flex items-center">
-        {/* <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 mr-4 transition duration-200 text-white"
-        >
-          <MenuIcon style={{ fontSize: 24 }} />
-        </button> */}
         <div className="flex items-center gap-2 text-white text-xl font-bold">
           <img src={Logo} alt="KOHI Logo" className="h-8 w-auto" />
           <span>KOHI SELLER</span>
         </div>
       </div>
 
-      {/* Center Section - Search Bar */}
+      {/* Giữa - Search Bar */}
       <div className="flex-1 flex justify-center">
         <div className="w-full max-w-md">
           <div className="flex rounded-lg overflow-hidden border border-white">
@@ -99,7 +93,7 @@ const SellerHeader = () => {
         </div>
       </div>
 
-      {/* Right Section - User Info & Logout */}
+      {/* Phải - User Info & Logout */}
       <div className="flex items-center text-white space-x-4">
         <span className="text-sm font-medium">
           {`Xin chào ${localStorage.getItem("storeName") || "Seller"}`}

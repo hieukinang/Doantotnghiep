@@ -26,7 +26,7 @@ const Login = () => {
 
     setLoading(false);
     if (result.success) {
-      navigate("/"); // ✅ trở về trang chủ
+      navigate("/");
     } else {
       setError("Sai thông tin đăng nhập, vui lòng thử lại!");
     }
@@ -52,7 +52,7 @@ const Login = () => {
       {/* Container chính */}
       <div className="flex flex-1 mt-5 justify-center items-center px-4">
         <div className="flex flex-col md:flex-row w-full md:w-[80%] max-w-5xl border border-gray-300 shadow-lg">
-          {/* Hình ảnh bên trái - Ẩn trên mobile */}
+          {/* Hình ảnh bên trái*/}
           <div className="hidden md:flex w-full md:w-1/2 items-center justify-center bg-white p-4">
             <img
               src={signinImage}

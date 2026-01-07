@@ -13,9 +13,6 @@ const SystemChatBox = () => {
   const [conversationId, setConversationId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  //   const currentToken = clientToken || sellerToken;
-  //   const currentUsername = clientUsername || localStorage.getItem('storeName') ||  'User';
-
   const isSellerPage = location.pathname.startsWith('/seller');
 
   const currentToken = isSellerPage ? (sellerToken || clientToken) : (clientToken || sellerToken);
@@ -28,7 +25,6 @@ const SystemChatBox = () => {
     } else {
       chatService.clearToken();
     }
-    // User đã được tạo trong chat system khi đăng ký
   }, [currentToken, currentUsername, isOpen]);
 
   useEffect(() => {
@@ -50,11 +46,6 @@ const SystemChatBox = () => {
       if (!userId) {
         throw new Error('Không thể lấy thông tin user');
       }
-
-      // User đã được tạo trong chat system khi đăng ký
-
-      // Tạo conversation với SYSTEM
-      // SYSTEM user_id có thể là "SYSTEM" hoặc một ID cụ thể
       const systemUserId = "ADMIN1766313158298";
       const conversation = await chatService.createDirectConversation(
         systemUserId
@@ -81,7 +72,7 @@ const SystemChatBox = () => {
     setIsOpen(false);
   };
 
-  if (!currentToken) return null; // Don't show if not logged in
+  if (!currentToken) return null;
 
   return (
     <>

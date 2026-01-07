@@ -1,12 +1,11 @@
 import axios from 'axios';
 
-// Base URL cho chat API - có thể cần điều chỉnh theo cấu hình của bạn
 const CHAT_API_URL = import.meta.env.VITE_CHAT_API_URL || 'http://127.0.0.1:3000/api';
 
 class ChatService {
   constructor() {
     this.baseURL = CHAT_API_URL;
-    this._currentToken = null; // Token tùy chỉnh (nếu có)
+    this._currentToken = null;
   }
 
   setToken(token) {
@@ -30,9 +29,7 @@ class ChatService {
 
   // Tạo user trong chat system (nếu chưa có)
   async createUser(userId, username) {
-    // Nếu đang trong quá trình tạo user này, đợi
     if (this._creatingUsers.has(userId)) {
-      // Đợi một chút rồi return (user đang được tạo)
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({ status: 'success', message: 'User already being created' });
@@ -67,7 +64,7 @@ class ChatService {
     }
   }
 
-  // Tạo direct conversation (chuẩn hoá trả về object conversation thuần)
+  // Tạo direct conversation
   async createDirectConversation(userId) {
     try {
       const token = this.getToken();

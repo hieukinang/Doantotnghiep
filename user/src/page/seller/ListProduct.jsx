@@ -34,7 +34,7 @@ const ListProduct = () => {
   const { backendURL } = useContext(ShopContext);
   const token = localStorage.getItem("sellerToken");
 
-  // --- FETCH DATA ---
+  // FETCH DATA
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -51,7 +51,7 @@ const ListProduct = () => {
     fetchProducts();
   }, []);
 
-  // --- FETCH PRODUCT DETAIL ---
+  // FETCH PRODUCT DETAIL
   const fetchProductDetail = async (productId) => {
     setLoadingDetail(true);
     try {
@@ -66,7 +66,7 @@ const ListProduct = () => {
     }
   };
 
-  // --- SEARCH & PAGINATION ---
+  // SEARCH & PAGINATION
   const filteredProducts = products.filter((p) =>
     p.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -77,7 +77,7 @@ const ListProduct = () => {
     startIndex + itemsPerPage
   );
 
-  // --- HANDLERS ---
+  // HANDLERS
   const handleDetail = async (product) => {
     setSelectedProduct(product);
     setOpenDetail(true);
@@ -106,7 +106,7 @@ const ListProduct = () => {
     try {
       const formData = new FormData();
 
-      // Chỉ append các trường có giá trị
+      // Append các trường có giá trị
       if (productDetail.name) formData.append("name", productDetail.name);
       if (productDetail.description)
         formData.append("description", productDetail.description);
@@ -180,7 +180,7 @@ const ListProduct = () => {
 
   return (
     <div className="p-16">
-      {/* --- TÌM KIẾM + THÊM SẢN PHẨM --- */}
+      {/* TÌM KIẾM + THÊM SẢN PHẨM */}
       <div className="flex justify-end items-center mb-4 gap-3">
         <input
           type="text"
@@ -201,7 +201,7 @@ const ListProduct = () => {
         </Link>
       </div>
 
-      {/* --- BẢNG DANH SÁCH SẢN PHẨM --- */}
+      {/* BẢNG DANH SÁCH SẢN PHẨM */}
       <div className="overflow-x-auto bg-white rounded-xl shadow-md">
         <table className="min-w-full text-sm text-gray-800">
           <thead className="bg-blue-600 text-white">
@@ -313,7 +313,7 @@ const ListProduct = () => {
         </table>
       </div>
 
-      {/* --- PHÂN TRANG --- */}
+      {/* PHÂN TRANG */}
       {totalPages > 1 && (
         <div className="flex justify-end items-center mt-4 space-x-2">
           <button
@@ -371,12 +371,12 @@ const ListProduct = () => {
             ) : productDetail ? (
               <div className="space-y-5">
 
-                {/* DÒNG 1: TÊN */}
+                {/* TÊN */}
                 <h1 className="text-2xl font-bold text-gray-800">
                   {productDetail.name}
                 </h1>
 
-                {/* DÒNG 2: ẢNH CHÍNH + ẢNH PHỤ */}
+                {/* ẢNH CHÍNH + ẢNH PHỤ */}
                 <div className="flex gap-4">
                   {/* Ảnh chính */}
                   <img
@@ -400,7 +400,7 @@ const ListProduct = () => {
                   )}
                 </div>
 
-                {/* DÒNG 3: BIẾN THỂ */}
+                {/* BIẾN THỂ */}
                 {productDetail.ProductVariants?.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-gray-700 mb-2">
@@ -437,7 +437,7 @@ const ListProduct = () => {
                   </div>
                 )}
 
-                {/* DÒNG 4: TRẠNG THÁI + ĐÃ BÁN */}
+                {/* TRẠNG THÁI + ĐÃ BÁN */}
                 <div className="flex gap-8 text-sm">
                   <div>
                     <span className="font-semibold">Trạng thái:</span>{" "}
@@ -449,7 +449,7 @@ const ListProduct = () => {
                   </div>
                 </div>
 
-                {/* DÒNG 5: ĐÁNH GIÁ – XUẤT XỨ – GIẢM GIÁ */}
+                {/*  ĐÁNH GIÁ – XUẤT XỨ – GIẢM GIÁ */}
                 <div className="flex gap-8 text-sm">
                   <div className="text-yellow-600">
                     <span className="font-semibold">Đánh giá:</span>{" "}
@@ -467,7 +467,7 @@ const ListProduct = () => {
                   )}
                 </div>
 
-                {/* DÒNG 6: MÔ TẢ */}
+                {/*MÔ TẢ */}
                 <div>
                   <span className="font-semibold text-gray-700">Mô tả</span>
                   <p className="text-gray-600 mt-1">
@@ -475,7 +475,7 @@ const ListProduct = () => {
                   </p>
                 </div>
 
-                {/* ===== DÒNG 7: REVIEW KHÁCH HÀNG ===== */}
+                {/* REVIEW KHÁCH HÀNG*/}
                 <div>
                   <h3 className="font-semibold text-gray-700 mb-2">
                     Đánh giá từ khách hàng ({reviews.length})
@@ -556,7 +556,7 @@ const ListProduct = () => {
         </div>
       )}
 
-      {/* --- POPUP XÁC NHẬN XÓA --- */}
+      {/* POPUP XÁC NHẬN XÓA */}
       {openDelete && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-40">
           <div className="bg-white p-6 rounded-xl shadow-lg w-96">
@@ -585,7 +585,7 @@ const ListProduct = () => {
         </div>
       )}
 
-      {/* --- POPUP CẬP NHẬT --- */}
+      {/* POPUP CẬP NHẬT*/}
       {openUpdate && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-[700px] max-h-[85vh] flex flex-col overflow-hidden">

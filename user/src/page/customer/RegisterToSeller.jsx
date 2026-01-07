@@ -161,10 +161,10 @@ const RegisterToSeller = () => {
 
     setErrors(newErrors);
 
-    // Check if there are any errors
+    // Check
     const hasErrors = Object.values(newErrors).some((error) => error !== "");
     if (hasErrors) {
-      // Show first error
+      // hiển thị lỗi đầu tiên
       const firstError = Object.values(newErrors).find((error) => error !== "");
       if (firstError) {
         toast.error(firstError);
@@ -196,7 +196,7 @@ const RegisterToSeller = () => {
       });
 
       if (res.data?.status === "success") {
-        // 🎯 Tạo user trong chat system ngay sau khi đăng ký thành công
+        // Tạo user trong chat system ngay sau khi đăng ký thành công
         if (res.data?.token && res.data?.data?.user) {
           const storeData = res.data.data.user;
           const storeName = storeData.name || storeData.email || "Store";
@@ -204,10 +204,10 @@ const RegisterToSeller = () => {
 
           try {
             await chatService.createUser(storeId, storeName);
-            console.log("✅ Store đã được tạo trong chat system");
+            console.log("Store đã được tạo trong chat system");
           } catch (chatError) {
             console.warn(
-              "⚠️ Không thể tạo store trong chat system:",
+              "Không thể tạo store trong chat system:",
               chatError
             );
             // Không hiển thị lỗi cho user vì đây không phải lỗi critical
@@ -248,7 +248,6 @@ const RegisterToSeller = () => {
 
           <form className="grid grid-cols-1 md:grid-cols-2 gap-3" onSubmit={handleSubmit}>
 
-            {/* Đã thêm size="small" cho tất cả các TextField để giảm chiều cao */}
             <div>
               <TextField
                 label="Căn cước công dân"
@@ -458,11 +457,10 @@ const RegisterToSeller = () => {
               required
               size="small"
               sx={{
-                // Mục tiêu là thẻ input/textarea bên trong TextField
                     '& .MuiInputBase-inputMultiline': {
                   // Cho phép ngắt dòng khi nội dung vượt quá chiều rộng
                       wordBreak: 'break-word',
-                  // Vô hiệu hóa thuộc tính white-space nếu nó đang ngăn cản ngắt dòng
+                  // Disable thuộc tính white-space nếu nó đang ngăn cản ngắt dòng
                       whiteSpace: 'pre-wrap',
                     }
               }}

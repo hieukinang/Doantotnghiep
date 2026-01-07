@@ -61,9 +61,6 @@ const DealsToday = () => {
 
               {p.min_price ? (
                 <>
-                  <div className="mt-1 text-xs text-gray-500 line-through hidden sm:block">
-                    {formatPrice(p.min_price * 1.1)}₫
-                  </div>
                   <div className="mt-1 text-[#116AD1] font-semibold text-sm md:text-base">
                     {formatPrice(p.min_price)}₫
                   </div>

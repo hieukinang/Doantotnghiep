@@ -63,7 +63,7 @@ const Favorites = () => {
     fetchFavorites();
   }, [backendURL, navigate]);
 
-  // SORT / FILTER
+  // SORT & FILTER
   useEffect(() => {
     let list = [...favorites];
 
@@ -140,7 +140,7 @@ const Favorites = () => {
             </div>
           ) : (
             <div className="grid grid-cols-12 gap-4 md:gap-6">
-              {/* SIDEBAR - Hidden on mobile, shown as dropdown or collapsible */}
+              {/* SIDEBAR */}
               <div className="col-span-12 md:col-span-3 bg-white rounded-xl border p-3 md:p-4 h-fit">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">
                   Bộ lọc

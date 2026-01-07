@@ -38,7 +38,7 @@ const SearchResults = () => {
       setProducts(productData);
       setStores(storeData);
     } catch (err) {
-      console.error("❌ Lỗi khi tìm kiếm:", err);
+      console.error(" Lỗi khi tìm kiếm:", err);
     } finally {
       setLoading(false);
     }

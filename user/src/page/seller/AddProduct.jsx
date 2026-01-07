@@ -13,6 +13,7 @@ const AddProduct = () => {
     description: "",
     origin: "",
     categoryId: "",
+    discount: "",
   });
 
   const [variants, setVariants] = useState([]);
@@ -105,6 +106,8 @@ const AddProduct = () => {
       return "Xuất xứ không vượt quá 100 ký tự!";
     if (!product.categoryId)
       return "Vui lòng chọn danh mục!";
+    if (product.discount !== "" && (isNaN(Number(product.discount)) || Number(product.discount) < 0 || Number(product.discount) > 100))
+      return "Giảm giá phải là số trong khoảng 0–100 (%).";
     if (!main_image)
       return "Vui lòng chọn ảnh chính!";
     if (categoryAttributesValues.length === 0 || categoryAttributesValues.every(attr => attr.values.length === 0))
@@ -116,7 +119,7 @@ const AddProduct = () => {
     return null;
   };
 
-  // ✅ Gọi API tạo sản phẩm qua hàm context
+  // Gọi API tạo sản phẩm
   const handleSubmit = async (e) => {
     e.preventDefault();
     const error = validateProduct();
@@ -142,6 +145,7 @@ const AddProduct = () => {
     formData.append("description", product.description.trim());
     formData.append("origin", product.origin.trim());
     formData.append("categoryId", product.categoryId || "");
+    formData.append("discount", product.discount === "" ? 0 : Number(product.discount));
     if (main_image) formData.append("main_image", main_image);
     slide_images.forEach(img => {
       if (img) formData.append("slide_images", img);
@@ -153,7 +157,7 @@ const AddProduct = () => {
     }
   };
 
-  // ✅ Các hàm xử lý popup, hủy sản phẩm, gửi biến thể giữ nguyên
+  // Các hàm xử lý popup, hủy sản phẩm, gửi biến thể giữ nguyên
   const handleCancelProduct = async () => {
     if (!createdProductId) {
       setShowVariantModal(false);
@@ -172,7 +176,7 @@ const AddProduct = () => {
       setTimeout(() => setMessage(""), 3000);
 
       // Reset toàn bộ
-      setProduct({ name: "", description: "", origin: "", categoryId: "" });
+      setProduct({ name: "", description: "", origin: "", categoryId: "", discount: "" });
       setMainImage(null);
       setPreviewMainImage(null);
       setslide_images([]);
@@ -293,6 +297,15 @@ const AddProduct = () => {
                 <option value="">-- Chọn danh mục --</option>
                 {categories.map(cate => <option key={cate.id} value={cate.id}>{cate.name}</option>)}
               </select>
+              <input
+                placeholder="Giảm giá (%)"
+                type="number"
+                min="0"
+                max="100"
+                value={product.discount}
+                onChange={(e) => setProduct({ ...product, discount: e.target.value })}
+                className="border rounded px-3 py-2 w-full text-sm col-span-2"
+              />
             </div>
           </div>
 
@@ -434,7 +447,6 @@ const AddProduct = () => {
               </table>
             </div>
 
-            {/* Nút hành động sát form hơn, bố cục đẹp hơn */}
             <div className="flex justify-end gap-3 mt-4">
               <button
                 type="button"

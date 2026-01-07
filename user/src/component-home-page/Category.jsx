@@ -9,7 +9,6 @@ const Categories = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // 👉 Lấy dữ liệu từ context
   const { categories, getAllCategories } = useContext(ShopContext);
 
   const updateScrollButtons = () => {
@@ -30,7 +29,7 @@ const Categories = () => {
   };
 
   useEffect(() => {
-    getAllCategories(); // 🔄 Gọi API khi load lần đầu
+    getAllCategories();
     updateScrollButtons();
 
     const el = containerRef.current;

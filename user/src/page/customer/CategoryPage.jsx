@@ -43,7 +43,7 @@ const CategoryPage = () => {
     fetchData();
   }, [id]);
 
-  // SORT / FILTER
+  // SORT & FILTER
   useEffect(() => {
     let list = [...products];
 

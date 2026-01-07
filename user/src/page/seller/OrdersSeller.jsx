@@ -50,14 +50,14 @@ const OrdersSeller = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  // ✅ Gọi API orders/store
+  // Gọi API orders/store
   const { ordersStore, getOrdersofStore } = useContext(ShopContext);
 
   useEffect(() => {
     getOrdersofStore();
   }, []);
 
-  // 🔍 Lọc theo trạng thái + ngày
+  // Lọc theo trạng thái + ngày
   const filteredOrders = (ordersStore || []).filter((o) => {
     const matchStatus = statusFilter === "Tất cả" || o.status === statusFilter;
 
@@ -87,7 +87,7 @@ const OrdersSeller = () => {
       id: o.orderCode || `${o.id}`,
       rawStatus: o.status,
       status: STATUS_MAP[o.status] || o.status,
-      total: o.total_price || 0, // Tổng tiền từ API
+      total: o.total_price || 0, // Tổng tiền
       subtotal: subtotal, // Tạm tính = tổng price * quantity
       orderItems: o.OrderItems || [],
       shippingAddress: o.shipping_address || "",

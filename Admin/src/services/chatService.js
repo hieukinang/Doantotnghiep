@@ -7,23 +7,9 @@ class AdminChatService {
     this.baseURL = CHAT_API_URL;
   }
 
-  // Lấy token từ localStorage
   getToken() {
     return localStorage.getItem('adminToken');
   }
-
-  // // Lấy user_id từ token (decode JWT)
-  // getUserIdFromToken() {
-  //   const token = this.getToken();
-  //   if (!token) return null;
-  //   try {
-  //     const payload = JSON.parse(atob(token.split('.')[1]));
-  //     return payload.userId || payload.user_id;
-  //   } catch (e) {
-  //     console.error('Error decoding token:', e);
-  //     return null;
-  //   }
-  // }
 
   _creatingUsers = new Set();
 
@@ -61,7 +47,7 @@ class AdminChatService {
     }
   }
 
-  // Lấy danh sách tất cả conversations (Admin có thể xem tất cả)
+  // Lấy danh sách tất cả conversations
   async getAllConversations() {
     try {
       const token = this.getToken();
@@ -94,7 +80,7 @@ class AdminChatService {
     }
   }
 
-  // Gửi message (Admin có thể gửi message)
+  // Gửi message
   async sendMessage(conversationId, content, attachments = []) {
     try {
       const token = this.getToken();

@@ -34,11 +34,7 @@ const PlaceOrder = () => {
       id: item.id,
       productId: item.productId, // Lưu productId để quay lại
       name: item.name,
-      image: item.image ? (item.image.startsWith("http") 
-        ? item.image 
-        : item.image.startsWith("/")
-        ? `${backendURL.replace('/api', '')}${item.image}`
-        : `${backendURL.replace('/api', '')}/products/${item.image}`) : null,
+      image: item.image,
       price: item.price || 0,
       shippingFee: item.shippingFee || 30000,
       qty: quantities[item.id] || item.qty || 1,
@@ -83,6 +79,10 @@ const PlaceOrder = () => {
         if (!window.location.pathname.includes('/place-order')) {
           localStorage.removeItem("quantities");
           localStorage.removeItem("buyNowItems");
+          localStorage.removeItem("checkedItems");
+          localStorage.removeItem("appliedShippingCode");
+          localStorage.removeItem("appliedCartCoupon");
+          localStorage.removeItem("appliedStoreCoupons");
         }
       }, 0);
       
@@ -112,7 +112,7 @@ const PlaceOrder = () => {
             const storeName = res.data?.data?.name || "Cửa hàng không xác định";
             newStoreNames[storeId] = storeName;
           } catch (err) {
-            console.error(`❌ Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
+            console.error(`Lỗi khi lấy tên cửa hàng ${storeId}:`, err);
             newStoreNames[storeId] = "Cửa hàng không xác định";
           }
         })
@@ -203,7 +203,7 @@ const PlaceOrder = () => {
       }
       return [];
     } catch (err) {
-      console.error("❌ Lỗi khi lấy danh sách địa chỉ:", err);
+      console.error(" Lỗi khi lấy danh sách địa chỉ:", err);
       setAllAddresses([]);
       return [];
     }
@@ -225,7 +225,7 @@ const PlaceOrder = () => {
         }
       }
     } catch (err) {
-      console.error("❌ Lỗi khi lấy địa chỉ chính:", err);
+      console.error("Lỗi khi lấy địa chỉ chính:", err);
       const addressList = addresses || allAddresses;
       if (addressList.length > 0) {
         await handleSetMainAddress(addressList[0].id, false);
@@ -293,7 +293,7 @@ const PlaceOrder = () => {
       setEditingAddressId(null);
       setFormData({ city: "", village: "", detail_address: "", isMain: false });
     } catch (err) {
-      console.error("❌ Lỗi khi lưu địa chỉ:", err);
+      console.error(" Lỗi khi lưu địa chỉ:", err);
       toast.error(err.response?.data?.message || "Không thể lưu địa chỉ!");
     }
   };
@@ -312,7 +312,7 @@ const PlaceOrder = () => {
       await fetchMainAddress(updatedAddresses);
       setShowAddressList(false);
     } catch (err) {
-      console.error("❌ Lỗi khi đặt địa chỉ mặc định:", err);
+      console.error("Lỗi khi đặt địa chỉ mặc định:", err);
       if (showToast) {
         toast.error(err.response?.data?.message || "Không thể đặt địa chỉ mặc định!");
       }
@@ -345,7 +345,7 @@ const PlaceOrder = () => {
         await fetchMainAddress(updatedAddresses);
       }
     } catch (err) {
-      console.error("❌ Lỗi khi xóa địa chỉ:", err);
+      console.error("Lỗi khi xóa địa chỉ:", err);
       toast.error(err.response?.data?.message || "Không thể xóa địa chỉ!");
     }
   };
@@ -409,7 +409,7 @@ const PlaceOrder = () => {
       const validCoupons = res.data?.data?.coupons?.filter(c => c.discount > 0 && c.quantity > 0) || [];
       setCouponList(validCoupons);
     } catch (err) {
-      console.error("❌ Lỗi khi lấy mã giảm giá cửa hàng:", err);
+      console.error("Lỗi khi lấy mã giảm giá cửa hàng:", err);
       setCouponList([]);
     } finally {
       setLoadingCoupons(false);
@@ -440,7 +440,7 @@ const PlaceOrder = () => {
       setCouponList(validCoupons);
       setShippingCodeList(validShippingCodes);
     } catch (err) {
-      console.error("❌ Lỗi khi lấy mã giảm giá hệ thống:", err);
+      console.error("Lỗi khi lấy mã giảm giá hệ thống:", err);
       setCouponList([]);
       setShippingCodeList([]);
     } finally {
@@ -492,7 +492,7 @@ const PlaceOrder = () => {
         toast.error(res.data.message || "Áp dụng mã giảm giá thất bại!");
       }
     } catch (err) {
-      console.error("❌ Lỗi áp mã:", err);
+      console.error("Lỗi áp mã:", err);
       toast.error(err.response?.data?.message || "Không thể áp dụng mã giảm giá!");
     }
   };
@@ -555,7 +555,7 @@ const PlaceOrder = () => {
 
   // 2. Tính tổng giảm giá từ coupons đã áp dụng
   let totalDiscountValue = 0;
-  // Tính discount theo store (mỗi store chỉ tính 1 lần)
+  // Tính discount theo store
   const storeDiscountMap = new Map();
   orderItems.forEach(item => {
     const storeId = item.storeId;
@@ -619,7 +619,7 @@ const PlaceOrder = () => {
 
   const groupedStores = groupItemsByStore();
 
-  // ------------------- LOGIC ĐẶT HÀNG (API) -------------------
+  // ------------------- LOGIC ĐẶT HÀNG -------------------
   const handlePlaceOrder = async () => {
     if (!mainAddress) {
       toast.warning("Vui lòng chọn địa chỉ nhận hàng.");
@@ -681,7 +681,7 @@ const PlaceOrder = () => {
           shipping_address: shippingAddressString
         };
 
-        console.log(`📦 Order payload (${paymentMethod}):`, JSON.stringify(orderPayload, null, 2));
+        console.log(`Order payload (${paymentMethod}):`, JSON.stringify(orderPayload, null, 2));
 
         const res = await axios.post(
           checkoutEndpoint,
@@ -711,9 +711,9 @@ const PlaceOrder = () => {
               })
             );
             await Promise.all(removePromises);
-            console.log("✅ Đã xóa các sản phẩm đã đặt khỏi giỏ hàng");
+            console.log("Đã xóa các sản phẩm đã đặt khỏi giỏ hàng");
           } catch (err) {
-            console.error("⚠️ Lỗi khi xóa sản phẩm khỏi giỏ hàng:", err);
+            console.error("Lỗi khi xóa sản phẩm khỏi giỏ hàng:", err);
           }
         }
         
@@ -730,7 +730,7 @@ const PlaceOrder = () => {
         toast.error(`Có ${failedOrders.length} đơn hàng đặt thất bại!`);
       }
     } catch (error) {
-      console.error("❌ Lỗi khi đặt hàng:", error);
+      console.error("Lỗi khi đặt hàng:", error);
       toast.error(error.response?.data?.message || "Đặt hàng thất bại!");
     }
   };
@@ -1025,9 +1025,6 @@ const PlaceOrder = () => {
                   </div>
                 )}
               </div>
-              <Link to="/cart" className="mt-3 text-sm text-[#116AD1] underline block">
-                Chỉnh sửa sản phẩm
-              </Link>
             </div>
 
             {/* ===================== MÃ GIẢM GIÁ ===================== */}

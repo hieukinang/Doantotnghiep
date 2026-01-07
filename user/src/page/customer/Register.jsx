@@ -73,45 +73,7 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-
-    // Real-time validation
-    let error = "";
-    switch (name) {
-      case "username":
-        error = validateUsername(value);
-        break;
-      case "email":
-        error = validateEmail(value);
-        break;
-      case "phone":
-        error = validatePhone(value);
-        break;
-      case "password":
-        error = validatePassword(value);
-        // Re-validate confirmPassword if it's already filled
-        if (form.confirmPassword) {
-          const confirmError = validateConfirmPassword(
-            value,
-            form.confirmPassword
-          );
-          setErrors((prev) => ({
-            ...prev,
-            confirmPassword: confirmError,
-          }));
-        }
-        break;
-      case "confirmPassword":
-        error = validateConfirmPassword(form.password, value);
-        break;
-      default:
-        break;
-    }
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleBlur = async (e) => {
@@ -124,20 +86,21 @@ const Register = () => {
         break;
       case "email":
         error = validateEmail(value);
+        if (!error) await checkEmailExists(value);
         break;
       case "phone":
         error = validatePhone(value);
+        if (!error) await checkPhoneExists(value);
         break;
       case "password":
         error = validatePassword(value);
         if (form.confirmPassword) {
-          const confirmError = validateConfirmPassword(
-            value,
-            form.confirmPassword
-          );
           setErrors((prev) => ({
             ...prev,
-            confirmPassword: confirmError,
+            confirmPassword: validateConfirmPassword(
+              value,
+              form.confirmPassword
+            ),
           }));
         }
         break;
@@ -148,74 +111,56 @@ const Register = () => {
         break;
     }
 
-    if (error) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: error,
-      }));
-      toast.error(error);
-    }
-
-    if (name === "email") {
-      await checkEmailExists(value);
-    }
-
-    if (name === "phone") {
-      await checkPhoneExists(value);
-    }
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
   const checkEmailExists = async (email) => {
-    if (!email) return;
-
     try {
       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/clients/register`, {
         username: "___temp___",
         password: "123456",
         phone: "0000000000",
         confirmPassword: "123456",
-        email: email,
+        email,
       });
 
       // Nếu API không báo lỗi ⇒ email không trùng
       setErrors((prev) => ({ ...prev, email: "" }));
     } catch (err) {
-      const errorItem = err.response?.data?.errors?.find(
+      const exist = err.response?.data?.errors?.find(
         (e) => e.param === "email"
       );
-      if (errorItem) {
-        setErrors((prev) => ({ ...prev, email: "Email đã tồn tại" }));
-        return true;
+      if (exist) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "Email đã tồn tại",
+        }));
       }
     }
-
-    return false;
   };
 
   const checkPhoneExists = async (phone) => {
-    if (!phone) return;
-
     try {
       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/clients/register`, {
         username: "___temp___",
         password: "123456",
         confirmPassword: "123456",
-        phone: phone,
+        phone,
         email: "temp@gmail.com",
       });
 
       setErrors((prev) => ({ ...prev, phone: "" }));
     } catch (err) {
-      const errorItem = err.response?.data?.errors?.find(
+      const exist = err.response?.data?.errors?.find(
         (e) => e.param === "phone"
       );
-      if (errorItem) {
-        setErrors((prev) => ({ ...prev, phone: "Số điện thoại đã tồn tại" }));
-        return true;
+      if (exist) {
+        setErrors((prev) => ({
+          ...prev,
+          phone: "Số điện thoại đã tồn tại",
+        }));
       }
     }
-
-    return false;
   };
 
   const handleSubmit = async (e) => {
@@ -235,70 +180,35 @@ const Register = () => {
 
     setErrors(newErrors);
 
-    // 2. Nếu còn lỗi validate → chặn submit
-    const hasErrors = Object.values(newErrors).some((err) => err !== "");
-    if (hasErrors) {
-      const firstError = Object.values(newErrors).find((err) => err !== "");
-      if (firstError) toast.error(firstError);
-      return;
-    }
+    const hasErrors = Object.values(newErrors).some(Boolean);
+    if (hasErrors) return;
 
-    // 3. Nếu email hoặc phone đã được check và lỗi vẫn còn → chặn submit
-    if (errors.email) {
-      toast.error(errors.email);
-      return;
-    }
-
-    if (errors.phone) {
-      toast.error(errors.phone);
-      return;
-    }
-
-    // 4. Gửi API đăng ký
     try {
-      const url = `${import.meta.env.VITE_BACKEND_URL}/clients/register`;
-
-      const res = await axios.post(url, form, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/clients/register`,
+        form
+      );
 
       if (res.data?.status === "success") {
-        // 🎯 Tạo user trong chat system ngay sau khi đăng ký thành công
-        if (res.data?.token && res.data?.data?.user) {
-          const userData = res.data.data.user;
-          const username = userData.username || userData.email || "Client";
-          const userId = userData.id;
-
-          try {
-            await chatService.createUser(userId, username);
-            console.log("✅ User đã được tạo trong chat system");
-          } catch (chatError) {
-            console.warn("⚠️ Không thể tạo user trong chat system:", chatError);
-            // Không hiển thị lỗi cho user vì đây không phải lỗi critical
-          }
+        if (res.data?.data?.user && res.data?.token) {
+          const user = res.data.data.user;
+          await chatService.createUser(
+            user.id,
+            user.username || user.email
+          );
         }
-
-        toast.success("Đăng ký thành công!");
-        setTimeout(() => navigate("/login"), 1500);
-      } else {
-        toast.error(res.data?.message || "Đăng ký thất bại");
+        navigate("/login");
       }
     } catch (err) {
-      // Nhận lỗi từ backend (email hoặc phone trùng)
-      const backendErrors = err.response?.data?.errors;
-      if (backendErrors?.length > 0) {
-        const field = backendErrors[0].param; // email / phone
-        let msg = backendErrors[0].msg;
-        if (msg.toLowerCase().includes("exist") && field === "email") {
-          msg = "Email đã tồn tại";
-        } else if (msg.toLowerCase().includes("exist") && field === "phone") {
-          msg = "Số điện thoại đã tồn tại";
-        }
-
-        setErrors((prev) => ({ ...prev, [field]: msg }));
-        toast.error(msg);
-      } else {
-        toast.error("Đã xảy ra lỗi, vui lòng thử lại");
+      const backendError = err.response?.data?.errors?.[0];
+      if (backendError) {
+        setErrors((prev) => ({
+          ...prev,
+          [backendError.param]:
+            backendError.param === "email"
+              ? "Email đã tồn tại"
+              : "Số điện thoại đã tồn tại",
+        }));
       }
     }
   };

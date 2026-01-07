@@ -93,7 +93,7 @@ const CreateAccount = () => {
       });
 
       if (res?.status === "success" || res.status === "success") {
-        // 🎯 Tạo user trong chat system ngay sau khi tạo tài khoản thành công
+        // Tạo user trong chat system ngay sau khi tạo tài khoản thành công
         if (res.data?.newAdmin) {
           console.log("cdscd", res.data?.newAdmin)
           const adminData = res.data.newAdmin;
@@ -102,13 +102,12 @@ const CreateAccount = () => {
 
           try {
             await AdminChatService.createUser(userId, username);
-            console.log("✅ Admin đã được tạo trong chat system");
+            console.log("Admin đã được tạo trong chat system");
           } catch (chatError) {
             console.warn(
-              "⚠️ Không thể tạo admin trong chat system:",
+              "Không thể tạo admin trong chat system:",
               chatError
             );
-            // Không hiển thị lỗi cho user vì đây không phải lỗi critical
           }
         }
         else {

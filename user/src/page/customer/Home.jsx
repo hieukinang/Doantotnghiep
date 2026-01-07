@@ -33,11 +33,8 @@ const Home = () => {
 
         <RanDom />
 
-        {/* Gợi ý hôm nay */}
-        {/* <Suggestions products={products} /> */}
       </main>
       <Footer />
-      {/* Chat với hệ thống - Floating button */}
       <ChatBox />
     </div>
   );

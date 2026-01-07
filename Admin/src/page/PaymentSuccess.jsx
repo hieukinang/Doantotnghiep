@@ -5,7 +5,6 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Xóa paymentSource sau khi đã xử lý
     localStorage.removeItem("paymentSource");
   }, []);
 

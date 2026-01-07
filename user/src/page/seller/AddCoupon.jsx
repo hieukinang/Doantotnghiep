@@ -94,7 +94,7 @@ const AddCoupon = () => {
         return new Date(dateStr).toLocaleString("vi-VN");
     };
 
-    // Phân trang FE
+    // Phân trang
     const totalPages = Math.ceil(coupons.length / ITEMS_PER_PAGE);
     const paginatedCoupons = coupons.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 

@@ -164,7 +164,7 @@ const CreateCategory = () => {
       <div className="bg-white shadow-md rounded-md p-6">
         <form onSubmit={handleSubmit} className="w-full">
           {mode === "category" ? (
-            /* --- Layout 2 cột cho form Thêm danh mục --- */
+            /* Layout 2 cột cho form Thêm danh mục */
             <div className="grid grid-cols-2 gap-6">
               {/* Cột trái */}
               <div className="space-y-4">
@@ -272,7 +272,7 @@ const CreateCategory = () => {
               </div>
             </div>
           ) : (
-            /* --- Form Thêm danh mục cha (ảnh ở dưới) --- */
+            /* Form Thêm danh mục cha */
             <div className="space-y-4">
               <div>
                 <label className="block mb-1 font-medium text-left">
