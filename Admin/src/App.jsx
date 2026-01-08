@@ -28,17 +28,41 @@ import PaymentSuccess from "./page/PaymentSuccess";
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     JSON.parse(localStorage.getItem("isSidebarOpen")) ?? true
-  );
+  ); 
+  const [admin, setAdmin] = useState(() => {
+    try {
+      const data = localStorage.getItem("admin");
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   //  Lưu trạng thái sidebar mỗi khi thay đổi
   useEffect(() => {
     localStorage.setItem("isSidebarOpen", JSON.stringify(isSidebarOpen));
   }, [isSidebarOpen]);
 
+  useEffect(() => {
+    try {
+      const data = localStorage.getItem("admin");
+      setAdmin(data ? JSON.parse(data) : null);
+    } catch (e) {
+      setAdmin(null);
+    }
+  }, []);
+
   // Route bảo vệ
   const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem("adminToken");
     return token ? children : <Navigate to="/" replace />;
+  };
+
+  const ManagerRoute = ({ children }) => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) return <Navigate to="/" replace />;
+    if (admin?.role !== "manager") return <Navigate to="/profile-detail" replace />;
+    return children;
   };
 
   return (
@@ -84,14 +108,14 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<ManagerRoute><Dashboard /></ManagerRoute>} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/product-approval" element={<ProductApproval />} />
         <Route path="/complaints" element={<Complaints />} />
         {/* <Route path="/violations" element={<Violations />} /> */}
-        <Route path="/create-account" element={<CreateAccount />} />
-        <Route path="/shippers-management" element={<ShipperManagement />} />
-        <Route path="/stores-management" element={<StoreManagement />} />
+        <Route path="/create-account" element={<ManagerRoute><CreateAccount /></ManagerRoute>} />
+        <Route path="/shippers-management" element={<ManagerRoute><ShipperManagement /></ManagerRoute>} />
+        <Route path="/stores-management" element={<ManagerRoute><StoreManagement /></ManagerRoute>} />
         <Route
           path="/shipper/profile-detail/:id"
           element={<ShipperProfileDetail />}

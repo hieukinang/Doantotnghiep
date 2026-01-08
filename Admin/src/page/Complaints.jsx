@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import IconView from "../assets/home/icon-view.svg";
 
@@ -16,6 +17,8 @@ const Complaints = () => {
 
   const [selected, setSelected] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const navigate = useNavigate();
 
   const ITEMS_PER_PAGE = 10;
 
@@ -47,6 +50,24 @@ const Complaints = () => {
     if (c.shipperId) return `Shipper (${c.shipperId})`;
     if (c.adminId) return `Admin (${c.adminId})`;
     return "N/A";
+  };
+
+  const handleChat = (c) => {
+    const oderId = c.clientId || c.storeId || c.shipperId || c.adminId;
+    const userName = c.clientId ? "Khach hang" 
+                   : c.storeId ? "Cua hang" 
+                   : c.shipperId ? "Shipper" 
+                   : "Admin";
+    if (!oderId) {
+      toast.warn("Khong tim thay nguoi dung de nhan tin");
+      return;
+    }
+    navigate('/chat-management', { 
+      state: { 
+        targetUserId: String(oderId),
+        targetUserName: userName
+      } 
+    });
   };
 
   const fetchComplaints = useCallback(async () => {
@@ -136,11 +157,11 @@ const Complaints = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800">Quản lý khiếu nại</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold text-gray-800">Quản lý khiếu nại</h1>
 
       {/* Filters */}
-      <div className="flex gap-3 justify-end">
+      <div className="flex gap-3 mb-4 justify-end">
         <select
           className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           value={filters.status}
@@ -205,17 +226,17 @@ const Complaints = () => {
                   key={c.id}
                   className="border-b border-gray-100 hover:bg-blue-50 transition-colors"
                 >
-                  <td className="p-4 text-gray-700">
+                  <td className="p-4 text-left text-gray-700">
                     {(filters.page - 1) * ITEMS_PER_PAGE + i + 1}
                   </td>
-                  <td className="p-4 text-gray-700 font-medium">
+                  <td className="p-4 text-left text-gray-700 font-medium">
                     {COMPLAINT_TYPES[c.type]}
                   </td>
-                  <td className="p-4 text-gray-600">{getCreator(c)}</td>
-                  <td className="p-4 text-gray-600">
+                  <td className="p-4 text-left text-gray-600">{getCreator(c)}</td>
+                  <td className="p-4 text-left text-gray-600">
                     {new Date(c.createdAt).toLocaleDateString("vi-VN")}
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 text-left">
                     <span
                       className="px-3 py-1.5 rounded-full text-xs font-bold text-white inline-block"
                       style={{ backgroundColor: STATUS[c.status].color }}
@@ -223,7 +244,7 @@ const Complaints = () => {
                       {STATUS[c.status].label}
                     </span>
                   </td>
-                  <td className="p-4">
+                  <td className="p-4 text-center">
                     <div className="flex gap-2 justify-center items-center">
                       <button
                         title="Xem chi tiết"
@@ -231,6 +252,14 @@ const Complaints = () => {
                         className="p-2 rounded-lg hover:bg-blue-100 transition-colors"
                       >
                         <img src={IconView} alt="view" className="w-5 h-5" />
+                      </button>
+
+                      <button
+                        title="Nhắn tin"
+                        onClick={() => handleChat(c)}
+                        className="px-3 py-1.5 bg-[#116AD1] text-white text-xs font-semibold rounded-lg hover:bg-[#0e57aa] transition-colors"
+                      >
+                        Nhắn tin
                       </button>
 
                       {c.status === "pending" && (

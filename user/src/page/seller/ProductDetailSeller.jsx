@@ -150,7 +150,7 @@ const ProductDetailSeller = () => {
       );
 
       if (res.data.status === "success") {
-        toast.success("Thêm biến thể thành công!");
+        toast.success("Thêm lựa chọn thành công!");
         // Refresh variants
         const productRes = await axios.get(`${backendURL}/products/${productId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -161,7 +161,7 @@ const ProductDetailSeller = () => {
       }
     } catch (err) {
       console.error("Lỗi thêm variant:", err);
-      toast.error(err.response?.data?.message || "Thêm biến thể thất bại");
+      toast.error(err.response?.data?.message || "Thêm lựa chọn thất bại");
     } finally {
       setSaving(false);
     }
@@ -192,7 +192,7 @@ const ProductDetailSeller = () => {
       );
 
       if (res.data.status === "success") {
-        toast.success("Cập nhật biến thể thành công!");
+        toast.success("Cập nhật lựa chọn thành công!");
         // Refresh variants
         const productRes = await axios.get(`${backendURL}/products/${productId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -204,7 +204,7 @@ const ProductDetailSeller = () => {
       }
     } catch (err) {
       console.error("Lỗi cập nhật variant:", err);
-      toast.error(err.response?.data?.message || "Cập nhật biến thể thất bại");
+      toast.error(err.response?.data?.message || "Cập nhật lựa chọn thất bại");
     } finally {
       setSaving(false);
     }
@@ -220,14 +220,14 @@ const ProductDetailSeller = () => {
       );
 
       if (res.data.status === "success") {
-        toast.success("Xóa biến thể thành công!");
+        toast.success("Xóa lựa chọn thành công!");
         setVariants(variants.filter((v) => v.id !== selectedVariant.id));
         setShowDeleteVariant(false);
         setSelectedVariant(null);
       }
     } catch (err) {
       console.error("Lỗi xóa variant:", err);
-      toast.error(err.response?.data?.message || "Xóa biến thể thất bại");
+      toast.error(err.response?.data?.message || "Xóa lựa chọn thất bại");
     } finally {
       setSaving(false);
     }
@@ -283,24 +283,24 @@ const ProductDetailSeller = () => {
       </div>
 
 
-      {/* Danh sách biến thể */}
+      {/* Danh sách lựa chọn */}
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800">
-            Biến thể sản phẩm ({variants.length})
+            Lựa chọn sản phẩm ({variants.length})
           </h3>
           <button
             onClick={handleOpenAddVariant}
             className="flex items-center gap-2 px-4 py-2 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e5bbc] transition"
           >
             <IoAdd size={20} />
-            Thêm biến thể
+            Thêm lựa chọn
           </button>
         </div>
 
         {variants.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            Chưa có biến thể nào. Nhấn "Thêm biến thể" để tạo mới.
+            Chưa có lựa chọn nào. Nhấn "Thêm lựa chọn" để tạo mới.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -381,7 +381,7 @@ const ProductDetailSeller = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-[500px] max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-4 border-b bg-[#116AD1] text-white rounded-t-xl">
-              <h2 className="text-lg font-bold">Thêm biến thể mới</h2>
+              <h2 className="text-lg font-bold">Thêm lựa chọn mới</h2>
               <button onClick={() => setShowAddVariant(false)}>
                 <IoClose size={24} />
               </button>
@@ -463,7 +463,7 @@ const ProductDetailSeller = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-[500px] max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-4 border-b bg-[#116AD1] text-white rounded-t-xl">
-              <h2 className="text-lg font-bold">Sửa biến thể #{selectedVariant.id}</h2>
+              <h2 className="text-lg font-bold">Sửa lựa chọn #{selectedVariant.id}</h2>
               <button onClick={() => setShowEditVariant(false)}>
                 <IoClose size={24} />
               </button>
@@ -512,7 +512,7 @@ const ProductDetailSeller = () => {
                     ))}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    * Không thể sửa thuộc tính. Hãy xóa và tạo biến thể mới nếu cần thay đổi.
+                    * Không thể sửa thuộc tính. Hãy xóa và tạo lựa chọn mới nếu cần thay đổi.
                   </p>
                 </div>
               )}
@@ -544,7 +544,7 @@ const ProductDetailSeller = () => {
             <div className="p-5">
               <h2 className="text-lg font-bold text-red-600 mb-3">Xác nhận xóa</h2>
               <p className="text-gray-600">
-                Bạn có chắc chắn muốn xóa biến thể <b>#{selectedVariant.id}</b> không?
+                Bạn có chắc chắn muốn xóa lựa chọn <b>#{selectedVariant.id}</b> không?
               </p>
               <p className="text-sm text-gray-500 mt-2">
                 Giá: {selectedVariant.price?.toLocaleString("vi-VN")}đ | 

@@ -8,6 +8,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from '../shipper-context/config';
 import axiosInstance from '../shipper-context/axiosInstance'; // dùng cho ngrok tunnel
 import chatService from '../shipper-context/chatService';
+import { MaterialIcons } from "@expo/vector-icons";
+
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -94,7 +96,6 @@ const Login = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Image source={logo} style={styles.logo} />
           <Text style={styles.headerTitle}>KOHI MALL</Text>
         </View>
         <Text style={styles.headerSubTitle}>ĐĂNG NHẬP SHIPPER</Text>
@@ -104,13 +105,13 @@ const Login = () => {
       <View style={styles.content}>
         {/* Left */}
         <View style={styles.left}>
-          <Text style={styles.truck}>🚚</Text>
+          <MaterialIcons name="local-shipping" style={styles.icon} />
           <Text style={styles.subtitle}>Giao hàng chuyên nghiệp</Text>
           <Text style={styles.desc}>Tham gia đội ngũ shipper của KOHI MALL</Text>
         </View>
 
         {/* Right */}
-        <View style={styles.right}>
+        <View style={styles.right }>
           <Text style={styles.formTitle}>Đăng nhập vào KOHI MALL</Text>
           <Text style={styles.formSubtitle}>Điền thông tin chi tiết bên dưới</Text>
 
@@ -155,11 +156,11 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#116AD1', padding: 16, alignItems: 'center' },
   headerLeft: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   logo: { width: 40, height: 40, marginRight: 8 },
-  headerTitle: { color: 'white', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 10 },
   headerSubTitle: { color: 'white', fontSize: 18, fontWeight: 'bold' },
   content: { flexDirection: 'column', padding: 16, alignItems: 'center' },
   left: { alignItems: 'center', marginBottom: 16 },
-  truck: { fontSize: 60, marginBottom: 8 },
+  icon: { fontSize: 60, color:"#116AD1", margin:12 },
   subtitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
   desc: { fontSize: 16, color: '#555', textAlign: 'center' },
   right: { width: '100%', maxWidth: 400, backgroundColor: 'white', padding: 16, borderRadius: 8 },

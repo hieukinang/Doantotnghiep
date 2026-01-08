@@ -187,7 +187,7 @@ export const updateReview = asyncHandler(async (req, res, next) => {
 
       const avgRating = stats && stats.avgRating ? Number(stats.avgRating) : Number(rating);
       const count = stats && stats.count ? Number(stats.count) : 0;
-      const newRatingAverage = Math.round(avgRating);
+      const newRatingAverage = Math.round(avgRating * 10) / 10;
 
       await product.update(
         { rating_average: newRatingAverage, review_numbers: count },

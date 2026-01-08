@@ -24,15 +24,21 @@ const AdminLogin = () => {
       if (res.status === 200 && res.data?.token) {
         localStorage.setItem("adminToken", res.data.token);
 
-        // Lưu username vào localStorage
         const usernameValue =
           res.data.data?.user?.username ||
           res.data.data?.user?.email ||
           "Admin";
         localStorage.setItem("adminUsername", usernameValue);
-        localStorage.setItem("adminId", res.data.data?.user?.id)
+        localStorage.setItem("adminId", res.data.data?.user?.id);
+        
+        // Lưu toàn bộ thông tin admin (id, role, username)
+        localStorage.setItem("admin", JSON.stringify({
+          id: res.data.data?.user?.id,
+          role: res.data.data?.user?.role,
+          username: usernameValue,
+        }));
 
-        window.location.href = "/dashboard";
+        window.location.href = "/create-category";
 
       } else {
         setError(res.data?.message || "Sai tên đăng nhập hoặc mật khẩu");
@@ -62,7 +68,7 @@ const AdminLogin = () => {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700 text-left"
             >
-              Email hoặc Số điện thoại
+              Tên đăng nhập
             </label>
             <div className="mt-1">
               <input

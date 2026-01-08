@@ -158,7 +158,7 @@ const MapScreen = () => {
         if (order.shipping_address) {
           // Delay 1.5 giây giữa các request (LocationIQ free: 1 req/sec)
           if (i > 0) {
-            await delay(1500);
+            await delay(1000);
           }
           
           const coords = await geocodeAddress(order.shipping_address);

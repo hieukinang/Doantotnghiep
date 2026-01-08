@@ -207,15 +207,17 @@ const OrdersSeller = () => {
       
       <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
         <h3 style="background: #f5f5f5; margin: 0; padding: 12px 15px; font-size: 14px; font-weight: 600;">Sản phẩm (${order.orderItems.length})</h3>
-        ${order.orderItems.map(item => `
+        ${order.orderItems.map(item => {
+          const productName = item.OrderItemProductVariant?.ProductVariantProduct?.name || item.title || "Sản phẩm";
+          return `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-top: 1px solid #eee;">
             <div>
-              <div style="font-weight: 500; margin-bottom: 4px;">${item.title}</div>
+              <div style="font-weight: 500; margin-bottom: 4px;">${productName}</div>
               <div style="color: #666; font-size: 12px;">Số lượng: ${item.quantity}</div>
             </div>
             <div style="color: #116AD1; font-weight: 600;">${(item.price || 0).toLocaleString('vi-VN')}₫</div>
           </div>
-        `).join('')}
+        `}).join('')}
       </div>
       
       <div style="text-align: right; padding: 15px; background: #f9f9f9; border-radius: 8px;">

@@ -188,7 +188,11 @@ const ProductDetail = () => {
       const res = await axios.get(url);
       const list = res.data?.data?.reviews || [];
 
-      setReviews(list);
+      const productReviews = list.filter(
+        (rv) => rv.productId === product.id
+      );
+
+      setReviews(productReviews);
 
       if (list.length > 0) {
         const avg =
@@ -216,7 +220,12 @@ const ProductDetail = () => {
           const res = await axios.get(
             `${backendURL}/reviews/rating/${star}?productId=${product.id}`
           );
-          counts[star] = res.data?.results || 0;
+          const reviews = res.data?.data?.reviews || [];
+
+          const productReviews = reviews.filter(
+            (rv) => rv.productId === product.id
+          );
+          counts[star] = productReviews.length;
         })
       );
 
