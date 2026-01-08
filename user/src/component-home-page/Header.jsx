@@ -85,7 +85,7 @@ const Header = () => {
       setProducts(productData.slice(0, 5)); // Hiển thị tối đa 5 kết quả
       setStores(storeData.slice(0, 5));
     } catch (err) {
-      console.error("❌ Lỗi khi tìm kiếm:", err);
+      console.error("Lỗi khi tìm kiếm:", err);
     } finally {
       setLoading(false);
     }
