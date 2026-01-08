@@ -237,6 +237,75 @@ export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: "success", results: orders.length, data: { orders } });
 });
 
+// @desc    GET Orders by Admin (ADMIN: get all orders)
+// @route   GET /admin
+// @access  Private("ADMIN")
+export const getAllOrdersByAdmin = asyncHandler(async (req, res, next) => {
+  const status = req.query.status;
+  const startDateQ = req.query.startDate;
+  const endDateQ = req.query.endDate;
+
+  const where = {};
+  if (status !== undefined && status !== null && String(status).trim() !== "") {
+    if (!Object.values(ORDER_STATUS).includes(status)) {
+      return next(new APIError("Trạng thái đơn hàng không hợp lệ", 400));
+    }
+    where.status = status;
+  }
+
+  // Date range handling for order_date (DATEONLY)
+  if (startDateQ || endDateQ) {
+    // parse endDate: if not provided, set to today
+    const now = new Date();
+    let endDate = endDateQ ? new Date(endDateQ) : now;
+    if (Number.isNaN(endDate.getTime())) return next(new APIError("enddate không hợp lệ", 400));
+
+    // parse startDate if provided
+    let startDate = null;
+    if (startDateQ) {
+      startDate = new Date(startDateQ);
+      if (Number.isNaN(startDate.getTime())) return next(new APIError("startdate không hợp lệ", 400));
+    }
+
+    // If startDate provided, validate startDate <= endDate
+    if (startDate && startDate > endDate) {
+      return next(new APIError("startdate phải nhỏ hơn hoặc bằng enddate", 400));
+    }
+
+    // Normalize to YYYY-MM-DD for DATEONLY comparison
+    const endStr = endDate.toISOString().slice(0, 10);
+    if (startDate) {
+      const startStr = startDate.toISOString().slice(0, 10);
+      where.order_date = { [Op.between]: [startStr, endStr] };
+    } else {
+      // startDate not provided: get all orders up to endDate
+      where.order_date = { [Op.lte]: endStr };
+    }
+  }
+
+  const orders = await Order.findAll({
+    where,
+    include: [
+      {
+        model: OrderItem,
+        as: "OrderItems",
+        include: [
+          {
+            model: ProductVariant,
+            as: "OrderItemProductVariant",
+            include: [
+              { model: Product, as: "ProductVariantProduct", attributes: ["id", "name", "main_image"] },
+            ],
+          },
+        ],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+
+  res.status(200).json({ status: "success", results: orders.length, data: { orders } });
+});
+
 // @desc    POST Confirm Order by Store
 // @route   POST /store/:id
 // @access  Private("STORE")
@@ -1011,3 +1080,4 @@ export const getAllOrdersByShipper = asyncHandler(async (req, res, next) => {
     data: { orders: transformedRows },
   });
 });
+

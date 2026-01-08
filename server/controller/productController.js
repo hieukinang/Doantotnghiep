@@ -1,6 +1,5 @@
 import Product from "../model/productModel.js";
 import {
-  getAll,
   getOne,
   deleteOne,
 } from "../utils/refactorControllers.utils.js";
@@ -16,6 +15,7 @@ import ProductVariant from "../model/productVariantModel.js";
 import VariantOption from "../model/variantOptionModel.js";
 import Attribute from "../model/attributeModel.js";
 import APIError from "../utils/apiError.utils.js";
+import OrderItem from "../model/orderItemModel.js";
 
 //__________IMAGES_HANDLER__________//
 // 1) UPLOADING(Multer)
@@ -351,8 +351,27 @@ export const updateSingleProduct = asyncHandler(async (req, res, next) => {
 // @desc    DELETE Single Product
 // @route   DELETE /api/products/:id
 // @access  Private("ADMIN")
-export const deleteSingleProduct = deleteOne(Product, {
-  include: [{ model: ProductImage, as: "ProductImages" },
-            { model: ProductVariant, as: "ProductVariants" },
-  ],
+export const deleteSingleProduct = asyncHandler(async (req, res, next) => {
+  const productId = req.params.id;
+
+  // Kiểm tra xem có ProductVariant nào của sản phẩm này tồn tại trong OrderItem không
+  const productVariants = await ProductVariant.findAll({ where: { productId } });
+  const variantIds = productVariants.map(v => v.id);
+  if (variantIds.length > 0) {
+    const orderItem = await OrderItem.findOne({ where: { product_variantId: variantIds } });
+    if (orderItem) {
+      return next(new APIError("Không thể xóa sản phẩm vì đã tồn tại trong đơn hàng.", 400));
+    }
+  }
+
+  // Xóa sản phẩm và các liên kết (ảnh, variant)
+  await deleteOne(Product, {
+    include: [
+      { model: ProductImage, as: "ProductImages" },
+      { model: ProductVariant, as: "ProductVariants" },
+    ],
+  })(req, res, (err) => {
+    if (err) return next(err);
+  })
+  return res.status(200).json({message: "success" });
 });
