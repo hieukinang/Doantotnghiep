@@ -22,6 +22,7 @@ const ProductDetailSeller = () => {
   const [showDeleteVariant, setShowDeleteVariant] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
 
   // Form state cho variant
   const [variantForm, setVariantForm] = useState({
@@ -44,8 +45,9 @@ const ProductDetailSeller = () => {
         // Fetch attributes của category
         if (data?.categoryId) {
           const catRes = await axios.get(`${backendURL}/categories/${data.categoryId}`);
-          const categoryAttributes = catRes.data?.data?.doc?.CategoryAttributes || [];
-          setAttributes(categoryAttributes);
+          const categoryDoc = catRes.data?.data?.doc;
+          setCategoryName(categoryDoc?.name || "");
+          setAttributes(categoryDoc?.CategoryAttributes || []);
         }
       } catch (err) {
         console.error("Lỗi khi tải sản phẩm:", err);
@@ -272,7 +274,12 @@ const ProductDetailSeller = () => {
           />
           <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-800 mb-2">{product.name}</h2>
-            <p className="text-gray-600 text-sm mb-2">{product.description || "Không có mô tả"}</p>
+            {categoryName && (
+              <p className="text-sm text-[#116AD1] font-medium mb-2">
+                Danh mục: {categoryName}
+              </p>
+            )}
+            <p className="text-gray-600 text-sm mb-2">Mô tả: {product.description || "Không có mô tả"}</p>
             <div className="flex gap-6 text-sm">
               <span><b>Xuất xứ:</b> {product.origin || "N/A"}</span>
               <span><b>Đã bán:</b> {product.sold || 0}</span>
