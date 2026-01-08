@@ -66,6 +66,20 @@ const ListProduct = () => {
     }
   };
 
+  const fetchDeleteProduct = async (productId) => {
+    setOpenDelete(false);
+    try {
+      const res = await axios.delete(`${backendURL}/products/store/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProducts(res.data?.data?.products || []);
+    } catch (err) {
+      console.error("Lỗi khi tải chi tiết sản phẩm:", err);
+    } finally {
+      setOpenDelete(false);
+    }
+  };
+
   // SEARCH & PAGINATION
   const filteredProducts = products.filter((p) =>
     p.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -576,7 +590,7 @@ const ListProduct = () => {
               </button>
               <button
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                onClick={confirmDelete}
+                onClick={fetchDeleteProduct (selectedProduct?.id)}
               >
                 Xóa
               </button>
