@@ -24,6 +24,7 @@ import ProfileDetail from "./page/ProfileDetail";
 import ChatManagement from "./page/ChatManagement";
 import Wallet from "./page/Wallet";
 import PaymentSuccess from "./page/PaymentSuccess";
+import OrdersAdmin from "./page/OrderAdmin"
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
@@ -133,6 +134,7 @@ function App() {
         <Route path="/chat-management" element={<ChatManagement />} />
         {/* <Route path="/wallet" element={<Wallet />} /> */}
         <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/order-management" element={<OrdersAdmin />} />
       </Route>
     </Routes>
   );

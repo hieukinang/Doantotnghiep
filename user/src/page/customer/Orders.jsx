@@ -38,7 +38,8 @@ const STATUS_OPTIONS = [
 ];
 
 const Orders = () => {
-  const { ordersClient, getOrderofClient, clientToken } = useContext(ShopContext);
+  const { clientToken } = useContext(ShopContext);
+  const [ordersClient, setOrdersClient] = useState([]);
   const [activeStatus, setActiveStatus] = useState("ALL");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -59,6 +60,14 @@ const Orders = () => {
   const [showProductSelector, setShowProductSelector] = useState(false);
   const [selectedProductForReview, setSelectedProductForReview] = useState(null);
   const [reviewedProducts, setReviewedProducts] = useState(new Set());
+
+  // States cho filter và pagination
+  const [searchOrderId, setSearchOrderId] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [limit] = useState(10);
 
   const backendURL = 
   import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:5000/api";
@@ -81,9 +90,155 @@ const Orders = () => {
     "Lý do khác",
   ];
 
+  // Hàm gọi API với các params mới
+  // const getOrderofClient = async () => {
+  //   if (!clientToken) return;
+
+  //   try {
+  //     const params = {
+  //       orderby: "created_at",
+  //       page: currentPage,
+  //       limit: limit,
+  //     };
+
+  //     // Thêm status nếu không phải ALL
+  //     if (activeStatus !== "ALL") {
+  //       params.status = activeStatus;
+  //     }
+
+  //     // Thêm order_id nếu có tìm kiếm
+  //     if (searchOrderId.trim()) {
+  //       params.order_id = searchOrderId.trim();
+  //     }
+
+  //     // Thêm startdate nếu có
+  //     if (startDate) {
+  //       params.startdate = startDate;
+  //     }
+
+  //     // Thêm enddate nếu có
+  //     if (endDate) {
+  //       params.enddate = endDate;
+  //     }
+
+  //     const res = await axios.get(`${backendURL}/orders/client`, {
+  //       params,
+  //       headers: { Authorization: `Bearer ${clientToken}` }
+  //     });
+
+  //     if (res.data.status === "success") {
+  //       setOrdersClient(res.data.data.orders || []);
+  //       setTotalPages(res.data.data.totalPages || 1);
+  //     } else {
+  //       toast.error("Không thể tải danh sách đơn hàng!");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching orders:", error);
+  //     toast.error("Lỗi khi tải đơn hàng!");
+  //   }
+  // };
+
+  const getOrderofClient = async (page = 1, pageLimit = limit) => {
+    if (!clientToken) return;
+
+    try {
+      const params = {
+        orderby: "created_at",
+        page: Number(page),
+        limit: Number(pageLimit),
+      };
+
+      if (activeStatus !== "ALL") {
+        params.status = activeStatus;
+      }
+
+      if (searchOrderId.trim()) {
+        params.order_id = searchOrderId.trim();
+      }
+
+      if (startDate) {
+        params.startdate = startDate;
+      }
+
+      if (endDate) {
+        params.enddate = endDate;
+      }
+
+      const res = await axios.get(`${backendURL}/orders/client`, {
+        params,
+        headers: { Authorization: `Bearer ${clientToken}` },
+      });
+
+      if (res.data.status === "success") {
+        const orders = res.data.data.orders || [];
+        const total = Number(res.data.totalPages) || 0; // Sửa: lấy từ res.data.totalPages
+        
+        console.log("API Response:", {
+          totalPages: res.data.totalPages,
+          totalRecords: res.data.totalRecords,
+          currentPage: res.data.page,
+          ordersLength: orders.length
+        });
+        
+        setOrdersClient(orders);
+        setTotalPages(total);
+      } else {
+        toast.error("Không thể tải danh sách đơn hàng!");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi khi tải đơn hàng!");
+    }
+  };
+
+  // useEffect(() => {
+  //   getOrderofClient();
+  // }, [activeStatus, currentPage, clientToken]);
+
   useEffect(() => {
-    getOrderofClient();
-  }, []);
+    getOrderofClient(currentPage, limit);
+  }, [currentPage,
+  activeStatus,
+  searchOrderId,
+  startDate,
+  endDate,
+  clientToken]);
+
+  useEffect(() => {
+  if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1);
+  }
+}, [totalPages]);
+
+
+  // Hàm tìm kiếm
+  // const handleSearch = () => {
+  //   setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+  //   getOrderofClient();
+  // };
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    getOrderofClient(1, limit);
+  };
+
+  // Hàm reset filter
+  // const handleResetFilter = () => {
+  //   setActiveStatus("ALL");
+  //   setSearchOrderId("");
+  //   setStartDate("");
+  //   setEndDate("");
+  //   setCurrentPage(1);
+  // };
+
+  const handleResetFilter = () => {
+    setActiveStatus("ALL");
+    setSearchOrderId("");
+    setStartDate("");
+    setEndDate("");
+    setCurrentPage(1);
+    getOrderofClient(1, limit);
+  };
 
   const formatOrders = (ordersClient || []).map((o) => {
     const statusUI = STATUS_MAP[o.status] || "Đang xử lý";
@@ -125,12 +280,6 @@ const Orders = () => {
     setSelectedOrder(null);
   };
 
-  const filteredOrders =
-    activeStatus === "ALL"
-      ? formatOrders
-      : formatOrders.filter((o) => o.rawStatus === activeStatus);
-
-  // 🔹 Xác nhận đã nhận hàng hoặc chưa nhận được
   const handleConfirmReceived = async (orderId, isReceived = true) => {
     if (!clientToken) {
       toast.warning("⚠️ Vui lòng đăng nhập!");
@@ -463,46 +612,88 @@ const Orders = () => {
       <main className="pt-28 md:pt-32 px-3 md:px-5 flex-1 pb-4">
         <div className="max-w-7xl mx-auto">
 
-          {/* Dropdown lọc trạng thái */}
-          <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <label className="text-xs md:text-sm font-medium text-gray-700 whitespace-nowrap">Trạng thái:</label>
-            <div className="relative">
-              <select
-                value={activeStatus}
-                onChange={(e) => setActiveStatus(e.target.value)}
-                className="appearance-none px-3 md:px-4 py-2 border border-gray-300 rounded-lg bg-white text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1] focus:border-transparent w-[160px] sm:w-[200px] pr-8 cursor-pointer"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
+          {/* Filter Section */}
+          <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-blue-100">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Bộ lọc tìm kiếm</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Trạng thái */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Trạng thái</label>
+                <select
+                  value={activeStatus}
+                  onChange={(e) => setActiveStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                >
+                  {STATUS_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Mã đơn hàng */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Mã đơn hàng</label>
+                <input
+                  type="text"
+                  value={searchOrderId}
+                  onChange={(e) => setSearchOrderId(e.target.value)}
+                  placeholder="Nhập mã đơn hàng..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                />
+              </div>
+
+              {/* Từ ngày */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Từ ngày</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                />
+              </div>
+
+              {/* Đến ngày */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Đến ngày</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                />
               </div>
             </div>
-            {activeStatus !== "ALL" && (
+
+            {/* Buttons */}
+            <div className="flex gap-2 mt-3">
               <button
-                onClick={() => setActiveStatus("ALL")}
-                className="text-xs text-red-500 hover:text-red-700 underline"
+                onClick={handleSearch}
+                className="px-4 py-2 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] text-sm"
+              >
+                Tìm kiếm
+              </button>
+              <button
+                onClick={handleResetFilter}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
               >
                 Xóa bộ lọc
               </button>
-            )}
+            </div>
           </div>
 
           {/* Order list - Mobile card view */}
           <div className="mt-4 space-y-3 md:hidden">
-            {filteredOrders.length === 0 ? (
+            {formatOrders.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-8 text-center text-gray-400">
                 <div className="text-4xl mb-3">📦</div>
                 <div>Không có đơn hàng nào</div>
               </div>
             ) : (
-              filteredOrders.map((o) => (
+              formatOrders.map((o) => (
                 <div key={o.id} className="bg-white rounded-xl shadow p-4 border border-blue-100">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -594,7 +785,7 @@ const Orders = () => {
                   </tr>
                 </thead>
                 <tbody>
-                {filteredOrders.length === 0 ? (
+                {formatOrders.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="text-center py-12 md:py-16 text-gray-400">
                       <div className="text-3xl md:text-4xl mb-3">📦</div>
@@ -602,7 +793,7 @@ const Orders = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredOrders.map((o, index) => (
+                  formatOrders.map((o, index) => (
                     <tr 
                       key={o.id} 
                       className={`hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
@@ -701,6 +892,29 @@ const Orders = () => {
             </table>
             </div>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 0 && (
+            <div className="mt-4 flex justify-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Trước
+              </button>
+              <span className="px-4 py-2 text-sm">
+                Trang {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Sau
+              </button>
+            </div>
+          )}
 
           <div className="mt-4 md:mt-6 text-center">
             <Link

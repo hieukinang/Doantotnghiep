@@ -1,6 +1,5 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
-import { ShopContext } from "../../context/ShopContext";
 import { toast } from "react-toastify";
 import { IoClose, IoChevronDown, IoFilter, IoChevronBack, IoChevronForward, IoDownloadOutline, IoStar, IoStarOutline } from "react-icons/io5";
 import jsPDF from "jspdf";
@@ -34,7 +33,7 @@ const STATUS_OPTIONS = [
 // Các trạng thái được phép xem đánh giá
 const REVIEWABLE_STATUSES = ["CLIENT_CONFIRMED","RETURNED","RETURN_CONFIRMED"];
 
-const OrdersSeller = () => {
+const OrdersAdmin = () => {
   const [ordersStore, setOrdersStore] = useState([]);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchOrderId, setSearchOrderId] = useState("");
@@ -66,7 +65,7 @@ const OrdersSeller = () => {
 
   // Gọi API orders/store với params
   const getOrdersofStore = async (page = 1, pageLimit = limit) => {
-    const token = localStorage.getItem("sellerToken");
+    const token = localStorage.getItem("adminToken");
     if (!token) return;
 
     try {
@@ -92,7 +91,7 @@ const OrdersSeller = () => {
         params.enddate = endDate;
       }
 
-      const res = await axios.get(`${backendURL}/orders/store`, {
+      const res = await axios.get(`${backendURL}/orders/admin`, {
         params,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -496,7 +495,7 @@ const OrdersSeller = () => {
                       {((o.total_price || 0) + (o.shipping_fee || 0)).toLocaleString("vi-VN")}₫
                     </td>
                     <td className="px-4 py-2">{STATUS_MAP[o.status] || o.status}</td>
-                    <td className="px-4 py-2">
+                    {/* <td className="px-4 py-2">
                       <div className="flex justify-end gap-2">
                         {(o.status === "PENDING" || o.status === "RETURNED") && (
                           <button
@@ -528,6 +527,16 @@ const OrdersSeller = () => {
                           Chi tiết
                         </button>
                       </div>
+                    </td> */}
+                    <td className="px-4 py-2">
+                        <div className="flex justify-end">
+                            <button
+                            onClick={() => handleViewDetail(o)}
+                            className="px-3 py-1 border rounded text-blue-600 hover:bg-blue-50"
+                            >
+                            Chi tiết
+                            </button>
+                        </div>
                     </td>
                   </tr>
                 ))
@@ -798,7 +807,7 @@ const OrdersSeller = () => {
 
               {/* Nút hành động */}
               <div className="flex justify-end gap-3">
-                {REVIEWABLE_STATUSES.includes(selectedOrder.rawStatus) && (
+                {/* {REVIEWABLE_STATUSES.includes(selectedOrder.rawStatus) && (
                   <button
                     onClick={() => {
                       closeModal();
@@ -831,7 +840,7 @@ const OrdersSeller = () => {
                   >
                     {selectedOrder.rawStatus === "RETURNED" ? "Xác nhận trả hàng" : "Xác nhận đơn hàng"}
                   </button>
-                )}
+                )} */}
                 <button
                   onClick={closeModal}
                   className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
@@ -847,4 +856,4 @@ const OrdersSeller = () => {
   );
 };
 
-export default OrdersSeller;
+export default OrdersAdmin;

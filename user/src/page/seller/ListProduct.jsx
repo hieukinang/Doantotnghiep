@@ -36,7 +36,10 @@ const ListProduct = () => {
 
   // FETCH DATA
   useEffect(() => {
-    const fetchProducts = async () => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
       try {
         const res = await axios.get(`${backendURL}/products/store`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -48,8 +51,6 @@ const ListProduct = () => {
         setLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
 
   // FETCH PRODUCT DETAIL
   const fetchProductDetail = async (productId) => {
@@ -67,15 +68,21 @@ const ListProduct = () => {
   };
 
   const fetchDeleteProduct = async (productId) => {
-    setOpenDelete(false);
     try {
-      const res = await axios.delete(`${backendURL}/products/store/${productId}`, {
+      await axios.delete(`${backendURL}/products/store/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProducts(res.data?.data?.products || []);
+
+      toast.success("Xóa sản phẩm thành công!");
+      setOpenDelete(false);
+
+      fetchProducts();
     } catch (err) {
-      console.error("Lỗi khi tải chi tiết sản phẩm:", err);
-    } finally {
+      console.error("Lỗi khi xóa sản phẩm:", err);
+      toast.error(
+        "Xóa sản phẩm thất bại: " +
+          (err.response?.data?.message || err.message)
+      );
       setOpenDelete(false);
     }
   };
@@ -590,7 +597,7 @@ const ListProduct = () => {
               </button>
               <button
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                onClick={fetchDeleteProduct (selectedProduct?.id)}
+                onClick={() => fetchDeleteProduct(selectedProduct?.id)}
               >
                 Xóa
               </button>
