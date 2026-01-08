@@ -97,54 +97,35 @@ export const getSingleCategory = getOne(Category, {
 // @access  Private("ADMIN")
 export const updateSingleCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  let { name_attributes } = req.body;
-
-  // Nếu là string, parse sang array
-  if (typeof name_attributes === "string") {
-    try {
-      name_attributes = JSON.parse(name_attributes);
-    } catch {
-      return res.status(400).json({ message: "name_attributes must be an array or JSON string" });
-    }
-  }
+  const { name } = req.body;
 
   // Validate
-  if (!Array.isArray(name_attributes) || name_attributes.length === 0) {
-    return res.status(400).json({ message: "name_attributes must be a non-empty array" });
+  if (!name || typeof name !== "string" || name.trim().length < 3 || name.trim().length > 30) {
+    return res.status(400).json({ message: "Vui lòng nhập tên danh mục từ 3 đến 30 ký tự" });
   }
 
-  // Update category
-  const [affectedRows] = await Category.update(req.body, {
-    where: { id },
-    individualHooks: true,
-  });
+  // Update only name
+  const [affectedRows] = await Category.update(
+    { name },
+    {
+      where: { id },
+      individualHooks: true,
+    }
+  );
 
   if (!affectedRows) {
-    return res.status(404).json({ message: "Category not found" });
+    return res.status(404).json({ message: "Không tìm thấy danh mục" });
   }
 
-  // Xóa hết attribute cũ
-  await Attribute.destroy({ where: { categoryId: id } });
-
-  // Tạo lại attributes mới
-  const attributes = [];
-  for (let i = 0; i < name_attributes.length; i++) {
-    attributes.push({
-      name: name_attributes[i],
-      categoryId: id,
-    });
-  }
-  await Attribute.bulkCreate(attributes);
-
-  // Lấy lại category kèm attributes mới
-  const categoryWithAttributes = await Category.findByPk(id, {
+  // Lấy lại category mới
+  const updatedCategory = await Category.findByPk(id, {
     include: [{ model: Attribute, as: "CategoryAttributes" }],
   });
 
   res.status(200).json({
     status: "success",
     data: {
-      category: categoryWithAttributes,
+      category: updatedCategory,
     },
   });
 });
