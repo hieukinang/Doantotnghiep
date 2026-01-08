@@ -64,7 +64,7 @@ export const getAllOrdersByClient = asyncHandler(async (req, res, next) => {
   if (order_id && String(order_id).trim().length > 0) {
     const pattern = `%${String(order_id).trim()}%`;
     where[Op.and] = where[Op.and] || [];
-    where[Op.and].push(seqWhere(cast(col('id'), 'CHAR'), { [Op.like]: pattern }));
+    where[Op.and].push(seqWhere(cast(col('Order.id'), 'CHAR'), { [Op.like]: pattern }));
   }
 
   // date range filter on createdAt
@@ -189,7 +189,7 @@ export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
   if (order_id && String(order_id).trim().length > 0) {
     const pattern = `%${String(order_id).trim()}%`;
     where[Op.and] = where[Op.and] || [];
-    where[Op.and].push(seqWhere(cast(col("id"), "CHAR"), { [Op.like]: pattern }));
+    where[Op.and].push(seqWhere(cast(col("Order.id"), "CHAR"), { [Op.like]: pattern }));
   }
 
   // date range filter on createdAt
@@ -289,7 +289,7 @@ export const getAllOrdersByAdmin = asyncHandler(async (req, res, next) => {
   if (order_id && String(order_id).trim().length > 0) {
     const pattern = `%${String(order_id).trim()}%`;
     where[Op.and] = where[Op.and] || [];
-    where[Op.and].push(seqWhere(cast(col("id"), "CHAR"), { [Op.like]: pattern }));
+    where[Op.and].push(seqWhere(cast(col("Order.id"), "CHAR"), { [Op.like]: pattern }));
   }
 
   // date range filter on createdAt
