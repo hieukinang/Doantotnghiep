@@ -13,7 +13,7 @@ const AddProduct = () => {
     description: "",
     origin: "",
     categoryId: "",
-    discount: "",
+    // discount: "",
   });
 
   const [variants, setVariants] = useState([]);
@@ -106,8 +106,8 @@ const AddProduct = () => {
       return "Xuất xứ không vượt quá 100 ký tự!";
     if (!product.categoryId)
       return "Vui lòng chọn danh mục!";
-    if (product.discount !== "" && (isNaN(Number(product.discount)) || Number(product.discount) < 0 || Number(product.discount) > 100))
-      return "Giảm giá phải là số trong khoảng 0–100 (%).";
+    // if (product.discount !== "" && (isNaN(Number(product.discount)) || Number(product.discount) < 0 || Number(product.discount) > 100))
+      // return "Giảm giá phải là số trong khoảng 0–100 (%).";
     if (!main_image)
       return "Vui lòng chọn ảnh chính!";
     if (categoryAttributesValues.length === 0 || categoryAttributesValues.every(attr => attr.values.length === 0))
@@ -145,7 +145,7 @@ const AddProduct = () => {
     formData.append("description", product.description.trim());
     formData.append("origin", product.origin.trim());
     formData.append("categoryId", product.categoryId || "");
-    formData.append("discount", product.discount === "" ? 0 : Number(product.discount));
+    // formData.append("discount", product.discount === "" ? 0 : Number(product.discount));
     if (main_image) formData.append("main_image", main_image);
     slide_images.forEach(img => {
       if (img) formData.append("slide_images", img);
@@ -176,7 +176,7 @@ const AddProduct = () => {
       setTimeout(() => setMessage(""), 3000);
 
       // Reset toàn bộ
-      setProduct({ name: "", description: "", origin: "", categoryId: "", discount: "" });
+      setProduct({ name: "", description: "", origin: "", categoryId: ""});
       setMainImage(null);
       setPreviewMainImage(null);
       setslide_images([]);
@@ -212,7 +212,7 @@ const AddProduct = () => {
 
   const submitVariantsToServer = async () => {
     if (!createdProductId) {
-      toast.warning("Chưa có sản phẩm để tạo biến thể!");
+      toast.warning("Chưa có sản phẩm để tạo lựa chọn!");
       return;
     }
 
@@ -244,7 +244,7 @@ const AddProduct = () => {
         );
       }
 
-      toast.success("Đã tạo tất cả biến thể thành công!", { autoClose: 2000 });
+      toast.success("Đã tạo tất cả lựa chọn thành công!", { autoClose: 2000 });
       setShowVariantModal(false);
       setProduct({ name: "", description: "", origin: "", categoryId: "" });
       setMainImage(null);
@@ -256,7 +256,7 @@ const AddProduct = () => {
       setCreatedProductId(null);
     } catch (err) {
       console.error("Lỗi khi tạo biến thể:", err);
-      setMessage("Tạo biến thể thất bại!");
+      setMessage("Tạo lựa chọn thất bại!");
       setTimeout(() => setMessage(""), 3000);
     }
   };
@@ -297,7 +297,7 @@ const AddProduct = () => {
                 <option value="">-- Chọn danh mục --</option>
                 {categories.map(cate => <option key={cate.id} value={cate.id}>{cate.name}</option>)}
               </select>
-              <input
+              {/* <input
                 placeholder="Giảm giá (%)"
                 type="number"
                 min="0"
@@ -305,7 +305,7 @@ const AddProduct = () => {
                 value={product.discount}
                 onChange={(e) => setProduct({ ...product, discount: e.target.value })}
                 className="border rounded px-3 py-2 w-full text-sm col-span-2"
-              />
+              /> */}
             </div>
           </div>
 
