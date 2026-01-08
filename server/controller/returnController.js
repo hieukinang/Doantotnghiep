@@ -109,16 +109,6 @@ export const returnOrderByClient = asyncHandler(async (req, res, next) => {
       refund_amount: refundAmount,
     }, { transaction: t });
 
-    // restock all product variants from the order
-    for (const item of order.OrderItems) {
-      if (item.product_variantId) {
-        const variant = await ProductVariant.findByPk(item.product_variantId, { transaction: t });
-        if (variant) {
-          await variant.increment("stock_quantity", { by: item.quantity || 0, transaction: t });
-        }
-      }
-    }
-
     // handle images saved by resizeReturnImages (filenames in req.body.return_images)
     if (req.body.return_images && Array.isArray(req.body.return_images)) {
       for (const imgPath of req.body.return_images) {
@@ -195,7 +185,10 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
   const { id } = req.params; // order id
 
   // verify order belongs to store
-  const order = await Order.findOne({ where: { id, storeId } });
+  const order = await Order.findOne({
+    where: { id, storeId },
+    include: [{ model: OrderItem, as: "OrderItems" }],
+  });
   if (!order) return next(new APIError("Không tìm thấy đơn hàng", 404));
 
   // only proceed if order is in RETURNED status
@@ -204,7 +197,7 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
   }
 
   // Find the latest return for this order
-  const returnDoc = await Return.findOne({ where: { orderId: order.id }});
+  const returnDoc = await Return.findOne({ where: { orderId: order.id } });
   if (!returnDoc) return next(new APIError("Không tìm thấy yêu cầu trả hàng cho đơn hàng này", 404));
 
   const refundAmount = Number(returnDoc.refund_amount || 0);
@@ -218,6 +211,16 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
     if (!client || !store) {
       await t.rollback();
       return next(new APIError("Không tìm thấy khách hàng hoặc cửa hàng", 404));
+    }
+
+    // revert stock for all product variants in the order
+    for (const item of order.OrderItems) {
+      if (item.product_variantId) {
+        const variant = await ProductVariant.findByPk(item.product_variantId, { transaction: t });
+        if (variant) {
+          await variant.increment("stock_quantity", { by: item.quantity || 0, transaction: t });
+        }
+      }
     }
 
     // credit client wallet
