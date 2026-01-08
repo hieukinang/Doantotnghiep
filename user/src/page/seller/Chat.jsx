@@ -21,6 +21,7 @@ const Chat = () => {
   const [_socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const conversationsContainerRef = useRef(null);
   const previousMessagesLengthRef = useRef(0);
   const isUserScrollingRef = useRef(false);
 
@@ -320,223 +321,230 @@ const Chat = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - Danh sách conversations */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-            <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
-            <button
-              onClick={fetchConversations}
-              className="p-2 hover:bg-gray-100 rounded transition"
-              title="Làm mới"
-            >
-              <RefreshIcon style={{ fontSize: 20 }} />
-            </button>
-          </div>
-
-          <div className="p-3 border-b border-gray-100 flex-shrink-0">
-            <button
-              onClick={handleChatWithSystem}
-              className="w-full text-sm px-3 py-2 rounded-lg bg-[#116AD1] text-white hover:bg-[#0d5ba8] transition"
-            >
-              Nhắn với hệ thống
-            </button>
-          </div>
-
-          {/* Conversations List */}
-          <div className="flex-1 overflow-y-auto">
-            {loading ? (
-              <div className="p-4 text-center text-gray-500">Đang tải...</div>
-            ) : conversations.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">Chưa có cuộc trò chuyện nào</div>
-            ) : (
-              conversations.map((conv) => {
-                const isSelected = selectedConversation && 
-                  (selectedConversation._id === conv._id || selectedConversation.id === conv.id);
-
-                return (
-                  <div
-                    key={conv._id || conv.id}
-                    onClick={() => handleSelectConversation(conv)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition ${
-                      isSelected ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <ChatIcon style={{ fontSize: 20, color: '#116AD1' }} />
-                          <h3 className="font-semibold text-gray-800 truncate">
-                            {getConversationTitle(conv)}
-                          </h3>
-                          {conv.type === 'group' && (
-                            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">
-                              Nhóm
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1 truncate">
-                          {getLastMessagePreview(conv)}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {formatTime(conv.updatedAt || conv.updated_at)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteConversation(conv._id || conv.id, e)}
-                        className="p-1 hover:bg-red-100 rounded text-red-600 transition ml-2"
-                        title="Xóa cuộc trò chuyện"
-                      >
-                        <DeleteIcon style={{ fontSize: 18 }} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+    <div className="h-screen flex bg-gray-50">
+      {/* ============ SIDEBAR - DANH SÁCH CONVERSATIONS ============ */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        {/* Header - Cố định */}
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+          <h2 className="text-lg font-semibold text-gray-800">Cuộc trò chuyện</h2>
+          <button
+            onClick={fetchConversations}
+            className="p-2 hover:bg-gray-100 rounded transition"
+            title="Làm mới"
+          >
+            <RefreshIcon style={{ fontSize: 20 }} />
+          </button>
         </div>
 
-        {/* Main Content - Messages */}
-        <div className="flex-1 flex flex-col bg-white">
-          {selectedConversation ? (
-            <>
-              {/* Header - Cố định */}
-              <div className="p-4 border-b border-gray-200 bg-[#116AD1] text-white flex-shrink-0">
-                <h2 className="text-lg font-semibold">
-                  {getConversationTitle(selectedConversation)}
-                </h2>
-                <p className="text-sm opacity-90">
-                  {selectedConversation.type === 'group' 
-                    ? `${selectedConversation.participants?.length || 0} thành viên`
-                    : getOtherParticipantName(selectedConversation)}
-                </p>
-              </div>
+        <div className="p-3 border-b border-gray-100 flex-shrink-0">
+          <button
+            onClick={handleChatWithSystem}
+            className="w-full text-sm px-3 py-2 rounded-lg bg-[#116AD1] text-white hover:bg-[#0d5ba8] transition"
+          >
+            Nhắn với hệ thống
+          </button>
+        </div>
 
-              {/* Messages - Có scroll riêng */}
-              <div
-                ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
-              >
-                {messages.length === 0 ? (
-                  <div className="text-center text-gray-500 mt-8">
-                    Chưa có tin nhắn nào
-                  </div>
-                ) : (
-                  messages.map((message) => {
-                    const currentUserId = localStorage.getItem("storeId");
+        {/* Conversations List - CÓ SCROLL RIÊNG */}
+        <div 
+          ref={conversationsContainerRef}
+          className="flex-1 overflow-y-auto"
+          style={{
+            maxHeight: 'calc(100vh - 140px)', // Trừ đi header + button
+          }}
+        >
+          {loading ? (
+            <div className="p-4 text-center text-gray-500">Đang tải...</div>
+          ) : conversations.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">Chưa có cuộc trò chuyện nào</div>
+          ) : (
+            conversations.map((conv) => {
+              const isSelected = selectedConversation && 
+                (selectedConversation._id === conv._id || selectedConversation.id === conv.id);
 
-                    const sender = message.sender;
-                    const senderUserId = sender?.user_id;
-                    const senderName = sender?.username;
-                    const senderRole = sender?.role;
-
-                    const isMe = senderUserId?.endsWith(currentUserId);
-                    const isAdmin = senderRole === "ADMIN";
-
-                    return (
-                      <div
-                        key={message._id}
-                        className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                            isMe
-                              ? "bg-[#116AD1] text-white"
-                              : isAdmin
-                              ? "bg-gray-200 text-gray-900"
-                              : "bg-white text-gray-800 border border-gray-200"
-                          }`}
-                        >
-                          <div className="text-xs font-semibold mb-1 opacity-80">
-                            {isMe ? "Bạn" : senderName}
-                          </div>
-
-                          <div className="text-sm">{message.content}</div>
-
-                          {message.attachments &&
-                            message.attachments.length > 0 && (
-                              <div className="mt-2 space-y-1">
-                                {message.attachments.map((url, idx) => (
-                                  <img
-                                    key={idx}
-                                    src={url}
-                                    alt={`Attachment ${idx + 1}`}
-                                    className="max-w-full h-auto rounded cursor-pointer"
-                                    onClick={() => window.open(url, "_blank")}
-                                  />
-                                ))}
-                              </div>
-                            )}
-
-                          <div className="text-xs mt-1 opacity-70">
-                            {formatTime(message.sent_at || message.createdAt)}
-                          </div>
-                        </div>
+              return (
+                <div
+                  key={conv._id || conv.id}
+                  onClick={() => handleSelectConversation(conv)}
+                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition ${
+                    isSelected ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <ChatIcon style={{ fontSize: 20, color: '#116AD1' }} />
+                        <h3 className="font-semibold text-gray-800 truncate">
+                          {getConversationTitle(conv)}
+                        </h3>
+                        {conv.type === 'group' && (
+                          <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">
+                            Nhóm
+                          </span>
+                        )}
                       </div>
-                    );
-                  })
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Input - Cố định */}
-              <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
-                {/* Hiển thị file đính kèm đã chọn */}
-                {attachments.length > 0 && (
-                  <div className="mb-2 text-sm text-gray-600">
-                    <strong>File đính kèm:</strong> {attachments.map(f => f.name).join(', ')}
-                    <button 
-                      type="button" 
-                      onClick={() => setAttachments([])} 
-                      className="ml-2 text-red-500 hover:text-red-700 font-bold"
+                      <p className="text-sm text-gray-500 mt-1 truncate">
+                        {getLastMessagePreview(conv)}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {formatTime(conv.updatedAt || conv.updated_at)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => handleDeleteConversation(conv._id || conv.id, e)}
+                      className="p-1 hover:bg-red-100 rounded text-red-600 transition ml-2"
+                      title="Xóa cuộc trò chuyện"
                     >
-                      (Xóa)
+                      <DeleteIcon style={{ fontSize: 18 }} />
                     </button>
                   </div>
-                )}
-                <div className="flex gap-2 items-center">
-                  {/* Button đính kèm file */}
-                  <label className="cursor-pointer bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300 transition" title="Đính kèm file">
-                    <AttachFileIcon style={{ fontSize: 20 }} />
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleAttachmentChange}
-                      className="hidden"
-                      disabled={sending}
-                    />
-                  </label>
-
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Nhập tin nhắn..."
-                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
-                    disabled={sending}
-                  />
-                  <button
-                    type="submit"
-                    disabled={(!newMessage.trim() && attachments.length === 0) || sending}
-                    className="bg-[#116AD1] text-white px-4 py-2 rounded-lg hover:bg-[#0d5ba8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <SendIcon style={{ fontSize: 20 }} />
-                  </button>
                 </div>
-              </form>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <ChatIcon style={{ fontSize: 64, color: '#ccc', marginBottom: 16 }} />
-                <p>Chọn một cuộc trò chuyện để xem tin nhắn</p>
-              </div>
-            </div>
+              );
+            })
           )}
         </div>
+      </div>
+
+      {/* ============ MAIN CONTENT - MESSAGES ============ */}
+      <div className="flex-1 flex flex-col bg-white">
+        {selectedConversation ? (
+          <>
+            {/* Header - Cố định */}
+            <div className="p-4 border-b border-gray-200 bg-[#116AD1] text-white flex-shrink-0">
+              <h2 className="text-lg font-semibold">
+                {getConversationTitle(selectedConversation)}
+              </h2>
+              <p className="text-sm opacity-90">
+                {selectedConversation.type === 'group' 
+                  ? `${selectedConversation.participants?.length || 0} thành viên`
+                  : getOtherParticipantName(selectedConversation)}
+              </p>
+            </div>
+
+            {/* Messages - CÓ SCROLL RIÊNG */}
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
+              style={{
+                maxHeight: 'calc(100vh - 200px)', // Trừ đi header + input
+              }}
+            >
+              {messages.length === 0 ? (
+                <div className="text-center text-gray-500 mt-8">
+                  Chưa có tin nhắn nào
+                </div>
+              ) : (
+                messages.map((message) => {
+                  const currentUserId = localStorage.getItem("storeId");
+
+                  const sender = message.sender;
+                  const senderUserId = sender?.user_id;
+                  const senderName = sender?.username;
+                  const senderRole = sender?.role;
+
+                  const isMe = senderUserId?.endsWith(currentUserId);
+                  const isAdmin = senderRole === "ADMIN";
+
+                  return (
+                    <div
+                      key={message._id}
+                      className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                          isMe
+                            ? "bg-[#116AD1] text-white"
+                            : isAdmin
+                            ? "bg-gray-200 text-gray-900"
+                            : "bg-white text-gray-800 border border-gray-200"
+                        }`}
+                      >
+                        <div className="text-xs font-semibold mb-1 opacity-80">
+                          {isMe ? "Bạn" : senderName}
+                        </div>
+
+                        <div className="text-sm">{message.content}</div>
+
+                        {message.attachments &&
+                          message.attachments.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {message.attachments.map((url, idx) => (
+                                <img
+                                  key={idx}
+                                  src={url}
+                                  alt={`Attachment ${idx + 1}`}
+                                  className="max-w-full h-auto rounded cursor-pointer"
+                                  onClick={() => window.open(url, "_blank")}
+                                />
+                              ))}
+                            </div>
+                          )}
+
+                        <div className="text-xs mt-1 opacity-70">
+                          {formatTime(message.sent_at || message.createdAt)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input - Cố định */}
+            <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
+                {/* Hiển thị file đính kèm đã chọn */}
+              {attachments.length > 0 && (
+                <div className="mb-2 text-sm text-gray-600">
+                  <strong>File đính kèm:</strong> {attachments.map(f => f.name).join(', ')}
+                  <button 
+                    type="button" 
+                    onClick={() => setAttachments([])} 
+                    className="ml-2 text-red-500 hover:text-red-700 font-bold"
+                  >
+                    (Xóa)
+                  </button>
+                </div>
+              )}
+              <div className="flex gap-2 items-center">
+                  {/* Button đính kèm file */}
+                <label className="cursor-pointer bg-gray-200 text-gray-700 p-2 rounded-lg hover:bg-gray-300 transition" title="Đính kèm file">
+                  <AttachFileIcon style={{ fontSize: 20 }} />
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleAttachmentChange}
+                    className="hidden"
+                    disabled={sending}
+                  />
+                </label>
+
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Nhập tin nhắn..."
+                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#116AD1]"
+                  disabled={sending}
+                />
+                <button
+                  type="submit"
+                  disabled={(!newMessage.trim() && attachments.length === 0) || sending}
+                  className="bg-[#116AD1] text-white px-4 py-2 rounded-lg hover:bg-[#0d5ba8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <SendIcon style={{ fontSize: 20 }} />
+                </button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div className="text-center">
+              <ChatIcon style={{ fontSize: 64, color: '#ccc', marginBottom: 16 }} />
+              <p>Chọn một cuộc trò chuyện để xem tin nhắn</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
