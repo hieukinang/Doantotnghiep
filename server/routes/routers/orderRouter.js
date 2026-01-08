@@ -11,6 +11,7 @@ import {
   cancelOrderByClient,
   shipperDeliverOrder,
   clientConfirmedOrder,
+  getAllOrdersByAdmin,
   getAllOrdersByShipper,
   createWalletOrder,
   uploadShippingImage,
@@ -36,6 +37,7 @@ import {
 } from "../../validators/status.validator.js";
 import Store from "../../model/storeModel.js";
 import Shipper from "../../model/shipperModel.js";
+import Admin from "../../model/adminModel.js";
 
 const router = express.Router();
 
@@ -91,5 +93,8 @@ router.route("/shipper/:id/deliver-order").post(isAuth(Shipper),
   uploadShippingImage,
   resizeShippingImage,
   shipperDeliverOrder);
+
+router.route("/admin").get(isAuth(Admin), getAllOrdersByAdmin);
+router.route("/admin/:id").get(isAuth(Admin), OrderIdValidator, getSingleOrder);
 
 export default router;
