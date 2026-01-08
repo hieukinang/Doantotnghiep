@@ -162,11 +162,11 @@ const CreateCategory = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium">Ten danh muc *</label>
+                  <label className="block mb-1 font-medium">Tên danh mục *</label>
                   <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border p-2 rounded-md" placeholder="VD: Giay dep" />
                 </div>
                 <div>
-                  <label className="block mb-2 font-medium">Thuoc tinh *</label>
+                  <label className="block mb-2 font-medium">Thuộc tính *</label>
                   {attributes.map((attr, index) => (
                     <div key={index} className="flex gap-2 items-center mb-2">
                       <input type="text" value={attr} onChange={(e) => handleAttributeChange(index, e.target.value)} placeholder={`Thuoc tinh ${index + 1}`} className="flex-1 border p-2 rounded-md" />
@@ -181,19 +181,19 @@ const CreateCategory = () => {
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="block mb-1 font-medium">Ten danh muc cha *</label>
+                  <label className="block mb-1 font-medium">Tên danh mục cha *</label>
                   <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border p-2 rounded-md" placeholder="VD: Thoi trang" />
                 </div>
               </div>
             )}
 
             <div className="mt-4">
-              <label className="block text-sm font-medium mb-2">Anh</label>
+              <label className="block text-sm font-medium mb-2">Ảnh</label>
               <div className="border-2 border-dashed w-[150px] h-[150px] rounded-lg p-2 text-center cursor-pointer hover:bg-gray-50" onClick={() => fileInputRef.current?.click()}>
                 {previewImage ? (
                   <img src={previewImage} alt="preview" className="w-full h-full object-cover rounded-lg" />
                 ) : (
-                  <div className="text-gray-500 text-sm flex items-center justify-center h-full">Chon anh</div>
+                  <div className="text-gray-500 text-sm flex items-center justify-center h-full">Chọn ảnh</div>
                 )}
               </div>
               <input ref={fileInputRef} type="file" name="image" accept="image/*" onChange={handleChange} className="hidden" />
@@ -209,10 +209,10 @@ const CreateCategory = () => {
 
       {/* Ben phai - Danh sach phan cap */}
       <div className="flex-1 flex flex-col">
-        <h2 className="text-lg font-semibold mb-4">Danh sach danh muc</h2>
+        <h2 className="text-lg font-semibold mb-4">Danh sách danh mục</h2>
         <div className="bg-white shadow-md rounded-md p-4 h-[500px] overflow-y-auto">
           {superCategories.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">Chua co danh muc nao</p>
+            <p className="text-gray-500 text-center py-4">Chưa có danh mục nào</p>
           ) : (
             <div className="space-y-1">
               {superCategories.map((sc) => {
