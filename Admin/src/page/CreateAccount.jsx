@@ -92,23 +92,27 @@ const CreateAccount = () => {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 
-      console.log("API Response:", res.data);
+      if (res?.status === "success" || res.status === "success") {
+        // Tạo user trong chat system ngay sau khi tạo tài khoản thành công
+        if (res.data?.newAdmin) {
+          console.log("cdscd", res.data?.newAdmin)
+          const adminData = res.data.newAdmin;
+          const username = adminData.username || adminData.email || "Admin";
+          const userId = adminData.id;
 
-      const newAdminData = res.data?.data?.newAdmin;
-      
-      if (newAdminData) {
-        const username = newAdminData.username || newAdminData.email || "Admin";
-        const userId = newAdminData.id;
-        console.log("Creating chat user with:", userId, username);
-
-        try {
-          await AdminChatService.createUser(userId, username);
-          console.log("Admin da duoc tao trong chat system");
-        } catch (chatError) {
-          console.warn("Khong the tao admin trong chat system:", chatError);
+          try {
+            await AdminChatService.createUser(userId, username);
+            console.log("Admin đã được tạo trong chat system");
+          } catch (chatError) {
+            console.warn(
+              "Không thể tạo admin trong chat system:",
+              chatError
+            );
+          }
         }
-      } else {
-        console.log("Khong tim thay newAdmin trong response");
+        else {
+          console.log("lỗi")
+        }
       }
 
       setSuccessMessage(
