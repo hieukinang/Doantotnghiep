@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import axios from "axios";
-import adminChatService from "../services/chatService";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
@@ -39,14 +38,7 @@ const AdminLogin = () => {
           username: usernameValue,
         }));
 
-        // Tao user trong chat system
-        try {
-          await adminChatService.createUser(res.data.data?.user?.id, usernameValue);
-        } catch (chatErr) {
-          console.warn("Khong the tao user trong chat system:", chatErr);
-        }
-
-        window.location.href = "/dashboard";
+        window.location.href = "/create-category";
 
       } else {
         setError(res.data?.message || "Sai tên đăng nhập hoặc mật khẩu");
@@ -76,7 +68,7 @@ const AdminLogin = () => {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700 text-left"
             >
-              Email hoặc Số điện thoại
+              Tên đăng nhập
             </label>
             <div className="mt-1">
               <input

@@ -10,8 +10,6 @@ import {
   Person,
   Work,
   CalendarToday,
-  AttachMoney,
-  MonetizationOn,
   Savings,
   LocationOn,
   AccountBalance,
@@ -96,50 +94,48 @@ const CreateAccount = () => {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 
-      if (res?.status === "success" || res.status === "success") {
-        // Tạo user trong chat system ngay sau khi tạo tài khoản thành công
-        if (res.data?.newAdmin) {
-          console.log("cdscd", res.data?.newAdmin)
-          const adminData = res.data.newAdmin;
-          const username = adminData.username || adminData.email || "Admin";
-          const userId = adminData.id;
+      //Tạo user trong chat system ngay sau khi tạo tài khoản thành công      
+      if (res.status === 200 || res.status === 201) {
+        const newAdmin = res.data?.newAdmin || res.data?.data?.newAdmin;
+        
+        if (newAdmin && newAdmin.id) {
+          const username = newAdmin.username || newAdmin.email || formData.username;
+          const userId = newAdmin.id;
 
           try {
             await AdminChatService.createUser(userId, username);
-            console.log("Admin đã được tạo trong chat system");
+            console.log(`User chat đã được tạo cho admin ID: ${userId}`);
           } catch (chatError) {
-            console.warn(
-              "Không thể tạo admin trong chat system:",
-              chatError
-            );
+            console.warn("Không thể tạo user trong chat system:", chatError);
+            // Không throw error, vì tài khoản admin đã tạo thành công
           }
+        } else {
+          console.warn("Không tìm thấy thông tin newAdmin trong response");
         }
-        else {
-          console.log("lỗi")
-        }
+
+        toast.success(`Tạo tài khoản "${formData.username}" thành công`);
+
+        // Reset form
+        setFormData({
+          username: "",
+          password: "",
+          confirmPassword: "",
+          phone: "",
+          email: "",
+          fullName: "",
+          role: "staff",
+          job_title: "",
+          hire_date: "",
+          salary: "",
+          address: "",
+          image: null,
+          bank_name: "",
+          bank_account_number: "",
+          bank_account_holder_name: "",
+        });
+        setSelectedImageName("");
+        setErrors({});
       }
-
-      toast.success(`Tạo tài khoản "${formData.username}" thành công`);
-
-      setFormData({
-        username: "",
-        password: "",
-        confirmPassword: "",
-        phone: "",
-        email: "",
-        fullName: "",
-        role: "staff",
-        job_title: "",
-        hire_date: "",
-        salary: "",
-        address: "",
-        image: null,
-        bank_name: "",
-        bank_account_number: "",
-        bank_account_holder_name: "",
-      });
-      setSelectedImageName("");
-      setErrors({});
     } catch (err) {
       setSuccessMessage("");
       setErrors({});
@@ -147,7 +143,6 @@ const CreateAccount = () => {
       // Nếu backend trả về mảng errors
       if (err.response?.data?.errors?.length) {
         const firstError = err.response.data.errors[0];
-
         toast.error(firstError.msg);
         return;
       }
@@ -169,9 +164,6 @@ const CreateAccount = () => {
           <h2 className="text-3xl font-bold text-blue-700 mb-2">Tạo Tài Khoản Quản Lý Mới</h2>
           <p className="text-gray-600">Dùng cho Admin tạo tài khoản nhân viên có vai trò thấp hơn.</p>
         </div>
-
-        {/* {successMessage && <div className="text-green-600">{successMessage}</div>} */}
-        {/* {errors.api && <div className="text-red-600">{errors.api}</div>} */}
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
