@@ -63,7 +63,7 @@ export const getAllCategoriesOfSupercategory = asyncHandler(async (req, res, nex
     },
   });
   if (!supercategory) {
-    return next(new ErrorResponse("Supercategory not found", 404));
+    return next(new ErrorResponse("Supercategory không tồn tại", 404));
   }
   res.status(200).json({
     status: "success",

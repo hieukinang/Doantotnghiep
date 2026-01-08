@@ -541,10 +541,15 @@ export const getStatisticOrderFollowDateRange = asyncHandler(async (req, res, ne
 	const startStr = formatYMD(start);
 	const endStr = formatYMD(end);
 
+	// Consider only delivered/confirmed orders
+	const statuses = [ORDER_STATUS.DELIVERED, ORDER_STATUS.CLIENT_CONFIRMED];
+	const statusesSql = statuses.map(s => `'${s}'`).join(",");
+
 	const sql = `
 		SELECT o.order_date AS date, COUNT(DISTINCT o.id) AS orders_count
 		FROM orders o
 		WHERE o.order_date BETWEEN :start AND :end
+		AND o.status IN (${statusesSql})
 		GROUP BY o.order_date
 		ORDER BY o.order_date ASC
 	`;
