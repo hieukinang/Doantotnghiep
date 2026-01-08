@@ -172,49 +172,68 @@ export const getSingleOrder = asyncHandler(async (req, res, next) => {
 // @access  Private("STORE")
 export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
   const storeId = req.user && req.user.id;
-  const status = req.query.status;
-  const startDateQ = req.query.startDate;
-  const endDateQ = req.query.endDate;
+  const { status, order_id, startdate, enddate, orderby, page, limit } = req.query;
 
   const where = { storeId };
-  if (status !== undefined && status !== null && String(status).trim() !== "") {
-    if (!Object.values(ORDER_STATUS).includes(status)) {
-      return next(new APIError("Trạng thái đơn hàng không hợp lệ", 400));
+
+  // status filter (case-insensitive)
+  if (typeof status !== "undefined" && status !== null && String(status).trim() !== "") {
+    const s = String(status).trim().toUpperCase();
+    if (!Object.values(ORDER_STATUS).includes(s)) {
+      return next(new APIError("Giá trị trạng thái đơn hàng không hợp lệ", 400));
     }
-    where.status = status;
+    where.status = s;
   }
 
-  // Date range handling for order_date (DATEONLY)
-  if (startDateQ || endDateQ) {
-    // parse endDate: if not provided, set to today
-    const now = new Date();
-    let endDate = endDateQ ? new Date(endDateQ) : now;
-    if (Number.isNaN(endDate.getTime())) return next(new APIError("enddate không hợp lệ", 400));
+  // order_id contains: cast id to CHAR and like
+  if (order_id && String(order_id).trim().length > 0) {
+    const pattern = `%${String(order_id).trim()}%`;
+    where[Op.and] = where[Op.and] || [];
+    where[Op.and].push(seqWhere(cast(col("id"), "CHAR"), { [Op.like]: pattern }));
+  }
 
-    // parse startDate if provided
-    let startDate = null;
-    if (startDateQ) {
-      startDate = new Date(startDateQ);
-      if (Number.isNaN(startDate.getTime())) return next(new APIError("startdate không hợp lệ", 400));
+  // date range filter on createdAt
+  if (startdate || enddate) {
+    let start = null;
+    let end = null;
+    if (startdate) {
+      start = new Date(startdate);
+      if (Number.isNaN(start.getTime())) return next(new APIError("startdate không hợp lệ", 400));
     }
-
-    // If startDate provided, validate startDate <= endDate
-    if (startDate && startDate > endDate) {
-      return next(new APIError("startdate phải nhỏ hơn hoặc bằng enddate", 400));
+    if (enddate) {
+      end = new Date(enddate);
+      if (Number.isNaN(end.getTime())) return next(new APIError("enddate không hợp lệ", 400));
     }
+    if (start && end && start > end) return next(new APIError("startdate phải nhỏ hơn hoặc bằng enddate", 400));
 
-    // Normalize to YYYY-MM-DD for DATEONLY comparison
-    const endStr = endDate.toISOString().slice(0, 10);
-    if (startDate) {
-      const startStr = startDate.toISOString().slice(0, 10);
-      where.order_date = { [Op.between]: [startStr, endStr] };
-    } else {
-      // startDate not provided: get all orders up to endDate
-      where.order_date = { [Op.lte]: endStr };
+    if (start && end) {
+      const s = start.toISOString().slice(0, 10);
+      const e = end.toISOString().slice(0, 10);
+      where.createdAt = { [Op.between]: [s, e] };
+    } else if (start) {
+      const s = start.toISOString().slice(0, 10);
+      where.createdAt = { [Op.gte]: s };
+    } else if (end) {
+      const e = end.toISOString().slice(0, 10);
+      where.createdAt = { [Op.lte]: e };
     }
   }
 
-  const orders = await Order.findAll({
+  // pagination
+  const pageNum = Math.max(parseInt(page) || 1, 1);
+  const perPage = Math.max(parseInt(limit) || 20, 1);
+  const offset = (pageNum - 1) * perPage;
+
+  // sorting
+  let order = [["createdAt", "DESC"]];
+  if (orderby && String(orderby).trim().length > 0) {
+    const ob = String(orderby).trim().toLowerCase();
+    if (ob === "created_at" || ob === "createdat") {
+      order = [["createdAt", "DESC"]];
+    }
+  }
+
+  const { count, rows } = await Order.findAndCountAll({
     where,
     include: [
       {
@@ -231,59 +250,90 @@ export const getAllOrdersByStore = asyncHandler(async (req, res, next) => {
         ],
       },
     ],
-    order: [["createdAt", "DESC"]],
+    order,
+    limit: perPage,
+    offset,
   });
 
-  res.status(200).json({ status: "success", results: orders.length, data: { orders } });
+  const totalPages = Math.ceil(count / perPage) || 1;
+
+  res.status(200).json({
+    status: "success",
+    results: rows.length,
+    page: pageNum,
+    perPage,
+    totalPages,
+    totalRecords: count,
+    data: { orders: rows },
+  });
 });
 
 // @desc    GET Orders by Admin (ADMIN: get all orders)
 // @route   GET /admin
 // @access  Private("ADMIN")
 export const getAllOrdersByAdmin = asyncHandler(async (req, res, next) => {
-  const status = req.query.status;
-  const startDateQ = req.query.startDate;
-  const endDateQ = req.query.endDate;
+  const { status, order_id, startdate, enddate, orderby, page, limit } = req.query;
 
   const where = {};
-  if (status !== undefined && status !== null && String(status).trim() !== "") {
-    if (!Object.values(ORDER_STATUS).includes(status)) {
-      return next(new APIError("Trạng thái đơn hàng không hợp lệ", 400));
+
+  // status filter (case-insensitive)
+  if (typeof status !== "undefined" && status !== null && String(status).trim() !== "") {
+    const s = String(status).trim().toUpperCase();
+    if (!Object.values(ORDER_STATUS).includes(s)) {
+      return next(new APIError("Giá trị trạng thái đơn hàng không hợp lệ", 400));
     }
-    where.status = status;
+    where.status = s;
   }
 
-  // Date range handling for order_date (DATEONLY)
-  if (startDateQ || endDateQ) {
-    // parse endDate: if not provided, set to today
-    const now = new Date();
-    let endDate = endDateQ ? new Date(endDateQ) : now;
-    if (Number.isNaN(endDate.getTime())) return next(new APIError("enddate không hợp lệ", 400));
+  // order_id contains: cast id to CHAR and like
+  if (order_id && String(order_id).trim().length > 0) {
+    const pattern = `%${String(order_id).trim()}%`;
+    where[Op.and] = where[Op.and] || [];
+    where[Op.and].push(seqWhere(cast(col("id"), "CHAR"), { [Op.like]: pattern }));
+  }
 
-    // parse startDate if provided
-    let startDate = null;
-    if (startDateQ) {
-      startDate = new Date(startDateQ);
-      if (Number.isNaN(startDate.getTime())) return next(new APIError("startdate không hợp lệ", 400));
+  // date range filter on createdAt
+  if (startdate || enddate) {
+    let start = null;
+    let end = null;
+    if (startdate) {
+      start = new Date(startdate);
+      if (Number.isNaN(start.getTime())) return next(new APIError("startdate không hợp lệ", 400));
     }
-
-    // If startDate provided, validate startDate <= endDate
-    if (startDate && startDate > endDate) {
-      return next(new APIError("startdate phải nhỏ hơn hoặc bằng enddate", 400));
+    if (enddate) {
+      end = new Date(enddate);
+      if (Number.isNaN(end.getTime())) return next(new APIError("enddate không hợp lệ", 400));
     }
+    if (start && end && start > end) return next(new APIError("startdate phải nhỏ hơn hoặc bằng enddate", 400));
 
-    // Normalize to YYYY-MM-DD for DATEONLY comparison
-    const endStr = endDate.toISOString().slice(0, 10);
-    if (startDate) {
-      const startStr = startDate.toISOString().slice(0, 10);
-      where.order_date = { [Op.between]: [startStr, endStr] };
-    } else {
-      // startDate not provided: get all orders up to endDate
-      where.order_date = { [Op.lte]: endStr };
+    if (start && end) {
+      const s = start.toISOString().slice(0, 10);
+      const e = end.toISOString().slice(0, 10);
+      where.createdAt = { [Op.between]: [s, e] };
+    } else if (start) {
+      const s = start.toISOString().slice(0, 10);
+      where.createdAt = { [Op.gte]: s };
+    } else if (end) {
+      const e = end.toISOString().slice(0, 10);
+      where.createdAt = { [Op.lte]: e };
     }
   }
 
-  const orders = await Order.findAll({
+  // pagination
+  const pageNum = Math.max(parseInt(page) || 1, 1);
+  const perPage = Math.max(parseInt(limit) || 20, 1);
+  const offset = (pageNum - 1) * perPage;
+
+  // sorting
+  let order = [["createdAt", "DESC"]];
+  if (orderby && String(orderby).trim().length > 0) {
+    const ob = String(orderby).trim().toLowerCase();
+    if (ob === "created_at" || ob === "createdat") {
+      order = [["createdAt", "DESC"]];
+    }
+  }
+
+  const { count, rows } = await Order.findAndCountAll({
     where,
     include: [
       {
@@ -300,10 +350,22 @@ export const getAllOrdersByAdmin = asyncHandler(async (req, res, next) => {
         ],
       },
     ],
-    order: [["createdAt", "DESC"]],
+    order,
+    limit: perPage,
+    offset,
   });
 
-  res.status(200).json({ status: "success", results: orders.length, data: { orders } });
+  const totalPages = Math.ceil(count / perPage) || 1;
+
+  res.status(200).json({
+    status: "success",
+    results: rows.length,
+    page: pageNum,
+    perPage,
+    totalPages,
+    totalRecords: count,
+    data: { orders: rows },
+  });
 });
 
 // @desc    POST Confirm Order by Store

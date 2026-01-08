@@ -95,5 +95,6 @@ router.route("/shipper/:id/deliver-order").post(isAuth(Shipper),
   shipperDeliverOrder);
 
 router.route("/admin").get(isAuth(Admin), getAllOrdersByAdmin);
+router.route("/admin/:id").get(isAuth(Admin), OrderIdValidator, getSingleOrder);
 
 export default router;
