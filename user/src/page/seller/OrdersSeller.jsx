@@ -16,6 +16,7 @@ const STATUS_MAP = {
   FAILED: "Lỗi",
   RETURNED: "Yêu cầu trả hàng",
   RETURN_CONFIRMED: "Đã trả hàng",
+  RETURN_NOT_CONFIRMED: "Không chấp nhận trả hàng",
 };
 
 const STATUS_OPTIONS = [
@@ -29,6 +30,7 @@ const STATUS_OPTIONS = [
   { value: "FAILED", label: "Lỗi" },
   { value: "RETURNED", label: "Yêu cầu trả hàng" },
   { value: "RETURN_CONFIRMED", label: "Đã trả hàng" },
+  { value: "RETURN_NOT_CONFIRMED", label: "Không chấp nhận trả hàng"}
 ];
 
 // Các trạng thái được phép xem đánh giá
@@ -282,7 +284,7 @@ const OrdersSeller = () => {
       <div style="text-align: right; padding: 15px; background: #f9f9f9; border-radius: 8px;">
         <div style="margin-bottom: 8px; font-size: 14px;">Tạm tính: ${order.subtotal.toLocaleString('vi-VN')}₫</div>
         <div style="margin-bottom: 8px; font-size: 14px;">Phí vận chuyển: ${order.shippingFee.toLocaleString('vi-VN')}₫</div>
-        <div style="font-size: 18px; color: #116AD1; font-weight: bold;">Tổng cộng: ${order.total.toLocaleString('vi-VN')}₫</div>
+        <div style="font-size: 18px; color: #116AD1; font-weight: bold;">Tổng cộng: ${(order.subtotal + order.shippingFee).toLocaleString('vi-VN')}₫</div>
       </div>
     `;
 
@@ -347,7 +349,7 @@ const OrdersSeller = () => {
   const handleConfirmReturn = async (id) => {
     const token = localStorage.getItem("sellerToken");
     try {
-      const res = await axios.post(`${backendURL}/orders/store/${id}/confirm-return-order`, {}, {
+      const res = await axios.post(`${backendURL}/orders/store/${id}/confirm-return-order?isAccepted=true`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -361,7 +363,24 @@ const OrdersSeller = () => {
     }
   };
 
-  // Xử lý nút xác nhận theo trạng thái
+  const handleRejectReturn = async (id) => {
+    const token = localStorage.getItem("sellerToken");
+    try {
+      const res = await axios.post(`${backendURL}/orders/store/${id}/confirm-return-order?isAccepted=false`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.status === "success") {
+        toast.success("Từ chối đổi trả thành công!");
+        await getOrdersofStore(currentPage, limit);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Từ chối đổi trả thất bại!");
+    }
+  };
+
+  // Xu ly nut xac nhan theo trang thai
   const handleConfirmAction = (order) => {
     if (order.status === "RETURNED") {
       handleConfirmReturn(order.id);
@@ -475,7 +494,7 @@ const OrdersSeller = () => {
                 <th className="px-4 py-2 w-[120px]">Mã đơn</th>
                 <th className="px-4 py-2 w-[120px]">Ngày</th>
                 <th className="px-4 py-2 w-[120px]">Tổng tiền</th>
-                <th className="px-4 py-2 w-[140px]">Trạng thái</th>
+                <th className="px-4 py-2 w-[240px]">Trạng thái</th>
                 <th className="px-4 py-2 text-right">Thao tác</th>
               </tr>
             </thead>
@@ -503,7 +522,15 @@ const OrdersSeller = () => {
                             className="px-3 py-1 border rounded text-green-600 hover:bg-green-50"
                             onClick={() => handleConfirmAction(o)}
                           >
-                            {o.status === "RETURNED" ? "Xác nhận trả hàng" : "Xác nhận"}
+                            {o.status === "RETURNED" ? "Xác nhận" : "Xác nhận"}
+                          </button>
+                        )}
+                        {o.status === "RETURNED" && (
+                          <button
+                            className="px-3 py-1 border rounded text-red-600 hover:bg-red-50"
+                            onClick={() => handleRejectReturn(o.id)}
+                          >
+                            Từ chối
                           </button>
                         )}
                         {REVIEWABLE_STATUSES.includes(o.status) && (
@@ -756,7 +783,7 @@ const OrdersSeller = () => {
                   </div>
                   <div className="flex justify-between border-t pt-2 mt-2">
                     <span className="text-gray-700 font-medium">Tổng cộng</span>
-                    <span className="font-bold text-[#116AD1]">{selectedOrder.total.toLocaleString("vi-VN")}₫</span>
+                    <span className="font-bold text-[#116AD1]">{(selectedOrder.subtotal + selectedOrder.shippingFee).toLocaleString("vi-VN")}₫</span>
                   </div>
                 </div>
               </div>
@@ -830,6 +857,17 @@ const OrdersSeller = () => {
                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                   >
                     {selectedOrder.rawStatus === "RETURNED" ? "Xác nhận trả hàng" : "Xác nhận đơn hàng"}
+                  </button>
+                )}
+                {selectedOrder.rawStatus === "RETURNED" && (
+                  <button
+                    onClick={() => {
+                      handleRejectReturn(selectedOrder.clientOrderId);
+                      closeModal();
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Từ chối đổi trả
                   </button>
                 )}
                 <button
