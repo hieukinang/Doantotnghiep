@@ -66,6 +66,10 @@ const Dashboard = () => {
   const [revenueYearData, setRevenueYearData] = useState([])
   const [loadingRevenueYear, setLoadingRevenueYear] = useState(false)
 
+  const [orderYear, setOrderYear] = useState(currentYear)
+  const [orderYearData, setOrderYearData] = useState([])
+  const [loadingOrderYear, setLoadingOrderYear] = useState(false)
+
   const fetchUserDay = async () => {
     setLoadingUserDay(true)
     try {
@@ -260,12 +264,37 @@ const Dashboard = () => {
     setLoadingRevenueYear(false)
   }
 
+  const fetchOrderYear = async () => {
+    setLoadingOrderYear(true)
+    try {
+      const res = await axios.get(`${API_BASE}/statistics/admin/order/year`, {
+        params: { year: orderYear },
+        ...getAuthHeaders()
+      })
+      const monthlyArr = res.data?.data?.monthly || []
+      const monthlyData = []
+      for (let i = 1; i <= 12; i++) {
+        const monthItem = Array.isArray(monthlyArr) ? monthlyArr.find(item => item.month === i) : null
+        monthlyData.push({
+          name: `T${i}`,
+          'Đơn hàng': monthItem?.orders || monthItem?.orders_count || monthItem?.total || 0
+        })
+      }
+      setOrderYearData(monthlyData)
+    } catch (error) {
+      console.error('Error fetching order year stats:', error)
+      setOrderYearData([])
+    }
+    setLoadingOrderYear(false)
+  }
+
   useEffect(() => { fetchUserDay() }, [userDayType, userDayStartDate, userDayEndDate])
   useEffect(() => { fetchUserToday() }, [])
   useEffect(() => { fetchUserYear() }, [userYearType, userYear])
   useEffect(() => { fetchOrderDay() }, [orderStartDate, orderEndDate])
   useEffect(() => { fetchRevenueDay() }, [revenueStartDate, revenueEndDate])
   useEffect(() => { fetchRevenueYear() }, [revenueYear])
+  useEffect(() => { fetchOrderYear() }, [orderYear])
 
   const totalUserDay = userDayData.reduce((sum, item) => sum + (item.value || 0), 0)
 
@@ -401,6 +430,36 @@ const Dashboard = () => {
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={orderDayData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Đơn hàng" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg border p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
+          <h3 className="text-lg font-semibold text-gray-700">Đơn hàng theo năm</h3>
+          <input
+            type="number"
+            value={orderYear}
+            onChange={(e) => setOrderYear(Number(e.target.value))}
+            className="border rounded px-3 py-1.5 text-sm w-24"
+            min="2020"
+            max="2030"
+          />
+        </div>
+        <div className="h-72">
+          {loadingOrderYear ? (
+            <div className="flex items-center justify-center h-full text-gray-500">Đang tải...</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={orderYearData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />

@@ -81,7 +81,6 @@ const CreateAccount = () => {
     setSuccessMessage("");
     if (!validate()) return;
     try {
-
       const url = `${import.meta.env.VITE_BACKEND_URL}/admins/register`
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {

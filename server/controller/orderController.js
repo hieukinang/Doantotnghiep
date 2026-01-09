@@ -604,9 +604,15 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
     shippingDiscount = Number(shippingCodeDoc.discount || 0);
   }
 
+  // (inside createCashOrder) -- replace subtotal calc and orderItemsPayload price
   let subtotal = 0;
   for (const it of items) {
-    subtotal += parseFloat(it.variant.price || 0) * it.quantity;
+    const basePrice = parseFloat(it.variant.price || 0);
+    const discountPct = Math.max(0, Math.min(100, Number(it.product.discount || 0)));
+    const unitPrice = Number((basePrice * (1 - discountPct / 100)).toFixed(2));
+    subtotal += unitPrice * it.quantity;
+    // store unitPrice back to item for later use when creating OrderItems
+    it.unitPrice = unitPrice;
   }
   const couponFixedDiscount = coupons.reduce((acc, c) => acc + Number(c.discount || 0), 0);
   const total_price = Math.max(0, subtotal - couponFixedDiscount);
@@ -649,7 +655,7 @@ export const createCashOrder = asyncHandler(async (req, res, next) => {
 
       orderItemsPayload.push({
         quantity: it.quantity,
-        price: parseFloat(it.variant.price || 0),
+        price: it.unitPrice != null ? it.unitPrice : parseFloat(it.variant.price || 0),
         orderId: order.id,
         title: it.product.name,
         image: it.product.main_image,
@@ -768,7 +774,13 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
 
   // 4. Tính toán tổng tiền
   let subtotal = 0;
-  items.forEach(it => subtotal += parseFloat(it.variant.price || 0) * it.quantity);
+  items.forEach(it => {
+    const basePrice = parseFloat(it.variant.price || 0);
+    const discountPct = Math.max(0, Math.min(100, Number(it.product.discount || 0)));
+    const unitPrice = Number((basePrice * (1 - discountPct / 100)).toFixed(2));
+    it.unitPrice = unitPrice;
+    subtotal += unitPrice * it.quantity;
+  });
   const couponDiscount = coupons.reduce((acc, c) => acc + Number(c.discount || 0), 0);
   const shipping_fee = Math.max(0, 30000 - Number(shippingCodeDoc?.discount || 0));
   const total_due = Math.max(0, subtotal - couponDiscount) + shipping_fee;
@@ -829,7 +841,7 @@ export const createWalletOrder = asyncHandler(async (req, res, next) => {
 
       orderItemsPayload.push({
         quantity: it.quantity,
-        price: parseFloat(it.variant.price || 0),
+        price: it.unitPrice != null ? it.unitPrice : parseFloat(it.variant.price || 0),
         orderId: order.id,
         title: it.product.name,
         image: it.product.main_image,

@@ -577,6 +577,47 @@ export const getStatisticOrderFollowDateRange = asyncHandler(async (req, res, ne
 	return res.status(200).json({ status: "success", data: { startdate: startStr, enddate: endStr, daily, totalOrders } });
 });
 
+export const getStatisticOrderFollowYear = asyncHandler(async (req, res, next) => {
+	const { year } = req.query;
+
+	if (!year) return next(new APIError("Vui lòng truyền 'year' (ví dụ: 2025)", 400));
+	const y = parseInt(String(year).trim(), 10);
+	if (Number.isNaN(y) || y < 2023 || y > 9999) return next(new APIError("Giá trị 'year' không hợp lệ", 400));
+
+	// consider only completed orders
+	const statuses = [ORDER_STATUS.DELIVERED, ORDER_STATUS.CLIENT_CONFIRMED];
+	const statusesSql = statuses.map(s => `'${s}'`).join(",");
+
+	const sql = `
+		SELECT MONTH(o.order_date) AS month, COUNT(*) AS orders_count
+		FROM orders o
+		WHERE YEAR(o.order_date) = :year
+		  AND o.status IN (${statusesSql})
+		GROUP BY MONTH(o.order_date)
+		ORDER BY MONTH(o.order_date) ASC
+	`;
+
+	const rows = await sequelize.query(sql, {
+		replacements: { year: y },
+		type: sequelize.QueryTypes.SELECT,
+	});
+
+	const map = {};
+	for (const r of rows) {
+		map[Number(r.month)] = Number(r.orders_count || 0);
+	}
+
+	const monthly = [];
+	let totalOrders = 0;
+	for (let m = 1; m <= 12; m++) {
+		const cnt = map[m] || 0;
+		monthly.push({ month: m, orders: cnt });
+		totalOrders += cnt;
+	}
+
+	return res.status(200).json({ status: "success", data: { year: y, monthly, totalOrders } });
+});
+
 export const getStatisticRevenueFollowDateRange = asyncHandler(async (req, res, next) => {
 	const { startdate, enddate } = req.query;
 

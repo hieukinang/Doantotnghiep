@@ -175,7 +175,7 @@ const CreateCategory = () => {
                       )}
                     </div>
                   ))}
-                  <button type="button" onClick={addAttribute} className="bg-green-500 text-white px-3 py-1 rounded-md">+ Them thuoc tinh</button>
+                  <button type="button" onClick={addAttribute} className="bg-green-500 text-white px-3 py-1 rounded-md">+ Thêm thuộc tính</button>
                 </div>
               </div>
             ) : (
@@ -200,7 +200,7 @@ const CreateCategory = () => {
             </div>
 
             <button type="submit" className="mt-6 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
-              {mode === "category" ? "Tao danh muc" : "Tao danh muc cha"}
+              {mode === "category" ? "Tạo danh mục" : "Tạo danh mục cha"}
             </button>
           </form>
           {message && <p className="mt-4 text-sm font-medium text-green-600">{message}</p>}

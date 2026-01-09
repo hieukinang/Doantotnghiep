@@ -451,15 +451,15 @@ const OrdersSeller = () => {
 
             {/* Buttons */}
             <div className="flex items-end gap-2">
-              <button
+              {/* <button
                 onClick={handleSearch}
                 className="flex-1 px-4 py-2 bg-[#116AD1] text-white rounded-lg hover:bg-[#0e57aa] text-sm"
               >
                 Tìm kiếm
-              </button>
+              </button> */}
               <button
                 onClick={handleResetFilter}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                className="px-4 flex-1 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
               >
                 Xóa bộ lọc
               </button>

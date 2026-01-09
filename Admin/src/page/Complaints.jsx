@@ -54,8 +54,8 @@ const Complaints = () => {
 
   const handleChat = (c) => {
     const oderId = c.clientId || c.storeId || c.shipperId || c.adminId;
-    const userName = c.clientId ? "Khach hang" 
-                   : c.storeId ? "Cua hang" 
+    const userName = c.clientId ? "Khách hàng" 
+                   : c.storeId ? "Cửa hàng" 
                    : c.shipperId ? "Shipper" 
                    : "Admin";
     if (!oderId) {
