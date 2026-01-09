@@ -1028,7 +1028,7 @@ export const shipperDeliverOrder = asyncHandler(async (req, res, next) => {
     }
 
     const shippingFee = 20000;
-    const orderTotal = Number(order.total_price || 0);
+    const orderTotal = Number(order.total_price || 0) + Number(order.shipping_fee || 0);
 
     // Luôn cộng shippingFee vào ví shipper, không quan tâm payment_method
     await shipper.increment("wallet", { by: shippingFee, transaction: t });
