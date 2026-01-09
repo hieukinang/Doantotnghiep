@@ -200,8 +200,19 @@ export const confirmReturnOrder = asyncHandler(async (req, res, next) => {
   const returnDoc = await Return.findOne({ where: { orderId: order.id } });
   if (!returnDoc) return next(new APIError("Không tìm thấy yêu cầu trả hàng cho đơn hàng này", 404));
 
+  // parse isAccepted from query (treat any value 'true' (case-insensitive) as true)
+  const isAccepted = String(req.query.isAccepted || "").toLowerCase() === "true";
+
   const refundAmount = Number(returnDoc.refund_amount || 0);
-  if (refundAmount <= 0) return next(new APIError("Không có số tiền hoàn trả để xử lý", 400));
+  // only require refund amount when accepting the return
+  if (isAccepted && refundAmount <= 0) return next(new APIError("Không có số tiền hoàn trả để xử lý", 400));
+
+  // if merchant rejects the return, mark order as RETURN_NOT_CONFIRMED and return success
+  if (!isAccepted) {
+    order.status = ORDER_STATUS.RETURN_NOT_CONFIRMED;
+    await order.save();
+    return res.status(200).json({ status: "success" });
+  }
 
   const t = await sequelize.transaction();
   let committed = false;
