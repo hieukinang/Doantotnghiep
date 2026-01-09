@@ -16,8 +16,8 @@ app.use(morgan('dev'));
 
 // connect mongo
 mongoose.connect(mongoUri, { dbName: 'chat-app', useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error', err));
+  .then(() => console.log('MongoDB đã kết nối'))
+  .catch(err => console.error('MongoDB lỗi kết nối', err));
 
 app.use('/api', routes);
 
