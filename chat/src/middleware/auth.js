@@ -14,7 +14,7 @@ async function authMiddleware(req, res, next) {
     token = req.cookies.token;
   }
   if (!token) {
-    return next(new APIError("Unauthorized , Please login to get access", 401));
+    return next(new APIError("Không có token, vui lòng đăng nhập để truy cập", 401));
   }
 
   try {
@@ -24,7 +24,7 @@ async function authMiddleware(req, res, next) {
     // Tìm user trong DB theo userId
     const currentUser = await User.findOne({ user_id: userId });
     if (!currentUser) {
-      return next(new APIError("The user that belong to this token does no longer exist", 401));
+      return next(new APIError("token không hợp lệ", 401));
     }
 
     // Nếu có logic đổi mật khẩu, kiểm tra tại đây (bỏ qua nếu không dùng)
@@ -35,7 +35,7 @@ async function authMiddleware(req, res, next) {
     req.user = currentUser;
     next();
   } catch (err) {
-    return next(new APIError('Invalid token', 401));
+    return next(new APIError('Token không hợp lệ', 401));
   }
 }
 
